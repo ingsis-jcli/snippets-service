@@ -15,8 +15,18 @@ public class HelloController {
     this.helloService = helloService;
   }
 
-  @GetMapping(path="")
+  @GetMapping
   public String getHello() {
     return helloService.getHello();
+  }
+
+  @GetMapping("/printscript")
+  public String getHelloFromPrintScript() {
+    return helloService.getHelloFromPrintScript();
+  }
+
+  @GetMapping("/permissions")
+  public String getHelloFromPermissions() {
+    return helloService.getHelloFromPermissions();
   }
 }
