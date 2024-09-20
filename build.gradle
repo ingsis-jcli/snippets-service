@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'checkstyle'
 }
 
 group = 'com.ingsis.jcli'
@@ -41,4 +42,12 @@ dependencyManagement {  // for openfeign
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+//Checkstyle set up
+checkstyle {
+    toolVersion = '10.3.3'
+    ignoreFailures = false
+    maxWarnings = 0
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
 }

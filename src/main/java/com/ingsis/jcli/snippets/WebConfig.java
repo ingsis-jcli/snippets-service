@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets_service;
+package com.ingsis.jcli.snippets;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

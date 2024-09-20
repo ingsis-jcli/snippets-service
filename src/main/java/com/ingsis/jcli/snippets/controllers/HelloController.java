@@ -1,5 +1,6 @@
-package com.ingsis.jcli.snippets_service.controllers;
-import com.ingsis.jcli.snippets_service.services.HelloService;
+package com.ingsis.jcli.snippets.controllers;
+
+import com.ingsis.jcli.snippets.services.HelloService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
