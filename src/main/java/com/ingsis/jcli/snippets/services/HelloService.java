@@ -29,4 +29,3 @@ public class HelloService {
     return permissionsClient.hello();
   }
 }
-
