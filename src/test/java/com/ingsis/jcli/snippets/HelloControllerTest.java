@@ -32,17 +32,17 @@ class HelloControllerTest {
 
   @Test
   void testGetHelloFromPrintScript() throws Exception {
-    when(helloService.getHelloFromPrintScript()).thenReturn("Hello from PrintScript!");
+    when(helloService.getHelloFromPrintScript()).thenReturn("Hello from printscript service!");
     mockMvc.perform(get("/hello/printscript"))
       .andExpect(status().isOk())
-        .andExpect(content().string("Hello from PrintScript!"));
+        .andExpect(content().string("Hello from printscript service!"));
   }
 
   @Test
   void testGetHelloFromPermissions() throws Exception {
-    when(helloService.getHelloFromPermissions()).thenReturn("Hello from Permissions!");
+    when(helloService.getHelloFromPermissions()).thenReturn("Hello from permissions service!");
     mockMvc.perform(get("/hello/permissions"))
       .andExpect(status().isOk())
-        .andExpect(content().string("Hello from Permissions!"));
+        .andExpect(content().string("Hello from permissions service!!"));
   }
 }

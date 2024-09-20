@@ -37,17 +37,17 @@ class HelloServiceTest {
 
   @Test
   void testGetHelloFromPrintScript() {
-    when(printScriptClient.hello()).thenReturn("Hello from PrintScript!");
+    when(printScriptClient.hello()).thenReturn("Hello from printscript service!");
     String result = helloService.getHelloFromPrintScript();
-    assertEquals("Hello from PrintScript!", result);
+    assertEquals("Hello from printscript service!", result);
     verify(printScriptClient).hello();
   }
 
   @Test
   void testGetHelloFromPermissions() {
-    when(permissionsClient.hello()).thenReturn("Hello from Permissions!");
+    when(permissionsClient.hello()).thenReturn("Hello from permissions service!");
     String result = helloService.getHelloFromPermissions();
-    assertEquals("Hello from Permissions!", result);
+    assertEquals("Hello from permissions service!", result);
     verify(permissionsClient).hello();
   }
 }
