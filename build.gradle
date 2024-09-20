@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.6'
     id 'checkstyle'
+    id 'jacoco'
 }
 
 group = 'com.ingsis.jcli'
@@ -42,6 +43,7 @@ dependencyManagement {  // for openfeign
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
 }
 
 //Checkstyle set up
@@ -50,4 +52,34 @@ checkstyle {
     ignoreFailures = false
     maxWarnings = 0
     configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+//Coverage set up
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = false
+        html.required = true
+        html.outputLocation = file("${buildDir}/jacocoHtml")
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
