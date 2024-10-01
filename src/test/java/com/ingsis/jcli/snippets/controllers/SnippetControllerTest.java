@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
@@ -12,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,7 +42,7 @@ class SnippetControllerTest {
     Long id = 1L;
     snippet.setId(id);
 
-    when(permissionService.canReadSnippet(anyLong(), anyLong())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
     when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
     mockMvc.perform(get(path)
             .param("userId", "123")
@@ -55,7 +57,7 @@ class SnippetControllerTest {
     Long id = 1L;
     snippet.setId(id);
 
-    when(permissionService.canReadSnippet(anyLong(), anyLong())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
     when(snippetService.getSnippet(anyLong())).thenReturn(Optional.empty());
     mockMvc.perform(get(path)
             .param("userId", "123")
@@ -69,7 +71,7 @@ class SnippetControllerTest {
     Long id = 1L;
     snippet.setId(id);
 
-    when(permissionService.canReadSnippet(anyLong(), anyLong())).thenReturn(false);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(false);
     when(snippetService.getSnippet(anyLong())).thenReturn(Optional.of(snippet));
     mockMvc.perform(get(path)
             .param("userId", "123")

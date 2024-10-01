@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
@@ -33,7 +34,7 @@ public class SnippetController {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    boolean hasPermission = permissionService.canReadSnippet(userId, snippetId);
+    boolean hasPermission = permissionService.hasPermissionOnSnippet(PermissionType.READ, userId, snippetId);
     if (!hasPermission) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }

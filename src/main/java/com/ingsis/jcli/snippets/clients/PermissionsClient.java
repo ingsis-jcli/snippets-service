@@ -13,7 +13,8 @@ public interface PermissionsClient {
   String hello();
 
   @RequestMapping(method = RequestMethod.GET, value = "/permissions/")
-  ResponseEntity<Boolean> canReadSnippet(
+  ResponseEntity<Boolean> hasPermission(
+      @RequestParam("type") String type,
       @RequestParam("snippetId") Long snippetId,
       @RequestParam("userId") Long userId);
 }
