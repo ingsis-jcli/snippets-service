@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.services;
 
+import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,9 @@ class SnippetServiceTest {
   @MockBean
   private SnippetRepository snippetRepository;
 
+  @MockBean
+  private BlobStorageService blobStorageService;
+
   @Test
   void getSnippet() {
     Snippet snippet = new Snippet();
@@ -39,5 +43,24 @@ class SnippetServiceTest {
 
     when(snippetRepository.findSnippetById(id)).thenReturn(Optional.empty());
     assertTrue(snippetService.getSnippet(id).isEmpty());
+  }
+
+  @Test
+  void createSnippet() {
+    String name = "name";
+    String url = "url";
+    String content = "content";
+    Long userId = 123L;
+
+    Snippet input = new Snippet(name, url, userId);
+    Snippet expected = new Snippet(name, url, userId);
+    expected.setId(1L);
+
+    SnippetDto snippetDto = new SnippetDto(name, content, userId);
+
+    when(snippetRepository.save(input)).thenReturn(expected);
+    when(blobStorageService.uploadSnippet(content)).thenReturn(url);
+
+    assertEquals(expected, snippetService.createSnippet(snippetDto));
   }
 }

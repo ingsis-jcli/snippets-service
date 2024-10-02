@@ -10,13 +10,19 @@ import org.springframework.stereotype.Service;
 public class PermissionService {
 
   final PermissionsClient permissionsClient;
+  final SnippetService snippetService;
 
   @Autowired
-  public PermissionService(PermissionsClient permissionsClient) {
+  public PermissionService(PermissionsClient permissionsClient, SnippetService snippetService) {
     this.permissionsClient = permissionsClient;
+    this.snippetService = snippetService;
   }
 
   public boolean hasPermissionOnSnippet(PermissionType type, Long snippetId, Long userId) {
+    if (snippetService.isOwner(snippetId, userId)) {
+      return true;
+    }
+
     ResponseEntity<Boolean> response = permissionsClient.hasPermission(type.name, snippetId, userId);
     if (response.getStatusCode().isError()) {
       // TODO

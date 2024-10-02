@@ -1,9 +1,11 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +42,18 @@ public class SnippetController {
     }
 
     return new ResponseEntity<>(snippet.get(), HttpStatus.OK);
+  }
+
+  @PostMapping("create")
+  public ResponseEntity<Long> createSnippet(
+      @RequestBody @Valid SnippetDto snippetDto) {
+
+    Snippet snippet;
+    try {
+      snippet = snippetService.createSnippet(snippetDto);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 }

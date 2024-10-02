@@ -22,5 +22,13 @@ public class Snippet {
 
   private String url;
 
-  private Long userId;
+  private Long owner;
+
+  public Snippet() {}
+
+  public Snippet(String name, String url, Long owner) {
+    this.name = name;
+    this.url = url;
+    this.owner = owner;
+  }
 }
