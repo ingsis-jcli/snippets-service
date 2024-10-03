@@ -1,7 +1,9 @@
 package com.ingsis.jcli.snippets.services;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import org.springframework.stereotype.Service;
 
+@Generated
 @Service
 public class BlobStorageService {
 
@@ -13,7 +15,7 @@ public class BlobStorageService {
     return url;
   }
 
-  public String updateSnippet(String url, String snippet) {
+  public String updateSnippet(String url, String content) {
     return url;
   }
 

@@ -7,6 +7,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Setter;
 
+@Generated
 @Embeddable
 @Setter
 public class LanguageVersion {
@@ -18,4 +19,11 @@ public class LanguageVersion {
   @ManyToOne
   @JoinColumn(name = "version_id", nullable = false)
   private Version version;
+
+  public LanguageVersion() {}
+
+  public LanguageVersion(Language language, Version version) {
+    this.language = language;
+    this.version = version;
+  }
 }

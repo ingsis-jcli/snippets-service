@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.models;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.LanguageVersion;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -9,18 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
 
+@Generated
 @Entity
 @Data
 public class Snippet {
 
-  @SequenceGenerator(
-      name = "snippet",
-      sequenceName = "snippet_sequence"
-  )
-  @GeneratedValue(
-      strategy = GenerationType.SEQUENCE,
-      generator = "snippet"
-  )
+  @SequenceGenerator(name = "snippet", sequenceName = "snippet_sequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "snippet")
   @Id
   private Long id;
 
@@ -30,8 +26,7 @@ public class Snippet {
 
   private Long owner;
 
-  @Embedded
-  private LanguageVersion languageVersion;
+  @Embedded private LanguageVersion languageVersion;
 
   public Snippet() {}
 
