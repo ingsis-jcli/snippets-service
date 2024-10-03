@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.models;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,7 @@ import lombok.Data;
 
 import java.time.LocalTime;
 
+@Generated
 @Entity
 @Data // getters, setters, toString, equals, empty constructor
 public class Hello {

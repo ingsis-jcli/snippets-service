@@ -1,6 +1,8 @@
 package com.ingsis.jcli.snippets.models;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -9,9 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
-
 import java.util.Set;
 
+@Generated
 @Entity
 @Data
 public class Language {
@@ -27,6 +29,7 @@ public class Language {
   @Id
   private Long id;
 
+  @Column(unique = true)
   private String name;
 
   @OneToMany(mappedBy = "language", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

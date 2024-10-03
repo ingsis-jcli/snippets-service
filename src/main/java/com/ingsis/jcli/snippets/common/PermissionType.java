@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.common;
 
+@Generated
 public enum PermissionType {
   OWNER("owner"),
   READ("read"),

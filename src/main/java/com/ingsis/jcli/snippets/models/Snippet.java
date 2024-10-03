@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.models;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.LanguageVersion;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -9,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
 
+@Generated
 @Entity
 @Data
 public class Snippet {

@@ -1,9 +1,11 @@
 package com.ingsis.jcli.snippets.dto;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+@Generated
 @Data
 public class SnippetDto {
 
@@ -15,6 +17,12 @@ public class SnippetDto {
 
   @NotNull(message = "Has to have an owner")
   private Long owner;
+
+  //@NotBlank(message = "Has to specify program language")
+  private String language;
+
+  //@NotBlank(message = "Has to specify program language's version")
+  private String version;
 
   public SnippetDto() {}
 
