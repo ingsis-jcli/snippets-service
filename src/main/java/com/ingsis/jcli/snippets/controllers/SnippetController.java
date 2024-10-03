@@ -6,6 +6,7 @@ import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import jakarta.validation.Valid;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/snippet")
@@ -33,15 +33,15 @@ public class SnippetController {
 
   @GetMapping()
   public ResponseEntity<Snippet> getSnippet(
-      @RequestParam Long userId,
-      @RequestParam Long snippetId) {
+      @RequestParam Long userId, @RequestParam Long snippetId) {
 
     Optional<Snippet> snippet = snippetService.getSnippet(snippetId);
     if (snippet.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    boolean hasPermission = permissionService.hasPermissionOnSnippet(PermissionType.READ, userId, snippetId);
+    boolean hasPermission =
+        permissionService.hasPermissionOnSnippet(PermissionType.READ, userId, snippetId);
     if (!hasPermission) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
@@ -50,8 +50,7 @@ public class SnippetController {
   }
 
   @PostMapping("create")
-  public ResponseEntity<Long> createSnippet(
-      @RequestBody @Valid SnippetDto snippetDto) {
+  public ResponseEntity<Long> createSnippet(@RequestBody @Valid SnippetDto snippetDto) {
 
     Snippet snippet;
     try {
@@ -66,13 +65,10 @@ public class SnippetController {
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
       @RequestParam Long userId,
-      @RequestParam Long snippetId
-  ) {
+      @RequestParam Long snippetId) {
 
-    boolean hasPermission = permissionService.hasPermissionOnSnippet(
-        PermissionType.WRITE,
-        userId,
-        snippetId);
+    boolean hasPermission =
+        permissionService.hasPermissionOnSnippet(PermissionType.WRITE, userId, snippetId);
     if (!hasPermission) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }

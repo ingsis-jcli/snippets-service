@@ -6,23 +6,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
-import lombok.Data;
-
 import java.time.LocalTime;
+import lombok.Data;
 
 @Generated
 @Entity
 @Data // getters, setters, toString, equals, empty constructor
 public class Hello {
 
-  @SequenceGenerator(
-      name ="hello",
-      sequenceName = "hello_sequence",
-      allocationSize = 10
-  )
-  @GeneratedValue(
-      strategy = GenerationType.SEQUENCE,
-      generator = "hello")
+  @SequenceGenerator(name = "hello", sequenceName = "hello_sequence", allocationSize = 10)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hello")
   @Id
   private Long id;
 

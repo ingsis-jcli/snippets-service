@@ -1,31 +1,28 @@
 package com.ingsis.jcli.snippets.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class SnippetServiceTest {
 
-  @Autowired
-  private SnippetService snippetService;
+  @Autowired private SnippetService snippetService;
 
-  @MockBean
-  private SnippetRepository snippetRepository;
+  @MockBean private SnippetRepository snippetRepository;
 
-  @MockBean
-  private BlobStorageService blobStorageService;
+  @MockBean private BlobStorageService blobStorageService;
 
   @Test
   void getSnippet() {

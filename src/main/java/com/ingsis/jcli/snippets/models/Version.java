@@ -14,14 +14,8 @@ import lombok.Data;
 @Entity
 @Data
 public class Version {
-  @SequenceGenerator(
-      name = "version",
-      sequenceName = "version_sequence"
-  )
-  @GeneratedValue(
-      strategy = GenerationType.SEQUENCE,
-      generator = "version"
-  )
+  @SequenceGenerator(name = "version", sequenceName = "version_sequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "version")
   @Id
   private Long id;
 

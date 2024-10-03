@@ -18,17 +18,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class HelloServiceTest {
 
-  @Autowired
-  private HelloService helloService;
+  @Autowired private HelloService helloService;
 
-  @MockBean
-  private HelloRepository helloRepository;
+  @MockBean private HelloRepository helloRepository;
 
-  @MockBean
-  private PrintScriptClient printScriptClient;
+  @MockBean private PrintScriptClient printScriptClient;
 
-  @MockBean
-  private PermissionsClient permissionsClient;
+  @MockBean private PermissionsClient permissionsClient;
 
   @Test
   void testGetHello() {

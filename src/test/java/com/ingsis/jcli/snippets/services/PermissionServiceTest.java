@@ -1,5 +1,10 @@
 package com.ingsis.jcli.snippets.services;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -10,23 +15,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-
 @SpringBootTest
 @ActiveProfiles("test")
 public class PermissionServiceTest {
 
-  @Autowired
-  private PermissionService permissionService;
+  @Autowired private PermissionService permissionService;
 
-  @MockBean
-  private SnippetService snippetService;
+  @MockBean private SnippetService snippetService;
 
-  @MockBean
-  private PermissionsClient permissionsClient;
+  @MockBean private PermissionsClient permissionsClient;
 
   @Test
   public void hasPermissionOwner() {

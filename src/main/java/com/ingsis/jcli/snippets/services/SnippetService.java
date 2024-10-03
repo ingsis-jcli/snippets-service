@@ -1,14 +1,13 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SnippetService {
@@ -34,11 +33,7 @@ public class SnippetService {
   public Snippet createSnippet(SnippetDto snippetDto) {
     String url = blobStorageService.uploadSnippet(snippetDto.getContent());
 
-    Snippet snippet = new Snippet(
-        snippetDto.getName(),
-        url,
-        snippetDto.getOwner()
-    );
+    Snippet snippet = new Snippet(snippetDto.getName(), url, snippetDto.getOwner());
     return snippetRepository.save(snippet);
   }
 
@@ -49,11 +44,7 @@ public class SnippetService {
 
   public SnippetDto convertToDto(Snippet snippet) {
     String content = blobStorageService.downloadSnippet(snippet.getUrl());
-    return new SnippetDto(
-        snippet.getName(),
-        content,
-        snippet.getOwner()
-    );
+    return new SnippetDto(snippet.getName(), content, snippet.getOwner());
   }
 
   public Snippet editSnippet(Long snippetId, SnippetDto snippetDto) {
@@ -64,9 +55,8 @@ public class SnippetService {
 
     snippet.get().setName(snippetDto.getName());
 
-    String newUrl = blobStorageService.updateSnippet(
-        snippet.get().getUrl(),
-        snippetDto.getContent());
+    String newUrl =
+        blobStorageService.updateSnippet(snippet.get().getUrl(), snippetDto.getContent());
     snippet.get().setUrl(newUrl);
 
     String languageName = snippetDto.getLanguage();

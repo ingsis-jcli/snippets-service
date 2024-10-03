@@ -10,22 +10,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
-import lombok.Data;
 import java.util.Set;
+import lombok.Data;
 
 @Generated
 @Entity
 @Data
 public class Language {
 
-  @SequenceGenerator(
-      name = "language",
-      sequenceName = "language_sequence"
-  )
-  @GeneratedValue(
-      strategy = GenerationType.SEQUENCE,
-      generator = "language"
-  )
+  @SequenceGenerator(name = "language", sequenceName = "language_sequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "language")
   @Id
   private Long id;
 

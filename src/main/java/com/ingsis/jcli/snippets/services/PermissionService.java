@@ -23,7 +23,8 @@ public class PermissionService {
       return true;
     }
 
-    ResponseEntity<Boolean> response = permissionsClient.hasPermission(type.name, snippetId, userId);
+    ResponseEntity<Boolean> response =
+        permissionsClient.hasPermission(type.name, snippetId, userId);
     if (response.getStatusCode().isError()) {
       // TODO
       return false;

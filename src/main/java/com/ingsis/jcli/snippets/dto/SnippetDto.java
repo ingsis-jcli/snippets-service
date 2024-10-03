@@ -18,10 +18,10 @@ public class SnippetDto {
   @NotNull(message = "Has to have an owner")
   private Long owner;
 
-  //@NotBlank(message = "Has to specify program language")
+  // @NotBlank(message = "Has to specify program language")
   private String language;
 
-  //@NotBlank(message = "Has to specify program language's version")
+  // @NotBlank(message = "Has to specify program language's version")
   private String version;
 
   public SnippetDto() {}
