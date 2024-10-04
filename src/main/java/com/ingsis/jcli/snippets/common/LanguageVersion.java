@@ -5,11 +5,13 @@ import com.ingsis.jcli.snippets.models.Version;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.Getter;
 import lombok.Setter;
 
 @Generated
 @Embeddable
 @Setter
+@Getter
 public class LanguageVersion {
 
   @ManyToOne
