@@ -1,10 +1,17 @@
 package com.ingsis.jcli.snippets.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
+
 import com.ingsis.jcli.snippets.common.LanguageVersion;
 import com.ingsis.jcli.snippets.models.Language;
 import com.ingsis.jcli.snippets.models.Version;
 import com.ingsis.jcli.snippets.repositories.LanguageRepository;
 import com.ingsis.jcli.snippets.repositories.VersionRepository;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -12,14 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.Optional;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -47,13 +46,13 @@ public class LanguageServiceTest {
     version.setLanguage(language);
     language.setVersions(Set.of(version));
     when(languageRepository.findByName(languageName)).thenReturn(Optional.of(language));
-    when(versionRepository.findByVersionAndLanguage(versionName, language)).thenReturn(Optional.of(version));
+    when(versionRepository.findByVersionAndLanguage(versionName, language))
+        .thenReturn(Optional.of(version));
     LanguageVersion result = languageService.getLanguageVersion(languageName, versionName);
     assertThat(result).isNotNull();
     assertThat(result.getLanguage()).isEqualTo(language);
     assertThat(result.getVersion()).isEqualTo(version);
   }
-
 
   @Test
   void testLanguageNotFound() {
@@ -61,8 +60,8 @@ public class LanguageServiceTest {
     String versionName = "1.0";
     when(languageRepository.findByName(languageName)).thenReturn(Optional.empty());
     assertThatThrownBy(() -> languageService.getLanguageVersion(languageName, versionName))
-      .isInstanceOf(NoSuchElementException.class)
-      .hasMessageContaining("No language found with name " + languageName);
+        .isInstanceOf(NoSuchElementException.class)
+        .hasMessageContaining("No language found with name " + languageName);
   }
 
   @Test
@@ -72,9 +71,10 @@ public class LanguageServiceTest {
     Language language = new Language();
     language.setName(languageName);
     when(languageRepository.findByName(languageName)).thenReturn(Optional.of(language));
-    when(versionRepository.findByVersionAndLanguage(versionName, language)).thenReturn(Optional.empty());
+    when(versionRepository.findByVersionAndLanguage(versionName, language))
+        .thenReturn(Optional.empty());
     assertThatThrownBy(() -> languageService.getLanguageVersion(languageName, versionName))
-      .isInstanceOf(NoSuchElementException.class)
-      .hasMessageContaining("No version found with name " + versionName);
+        .isInstanceOf(NoSuchElementException.class)
+        .hasMessageContaining("No version found with name " + versionName);
   }
 }
