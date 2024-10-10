@@ -31,3 +31,17 @@ jobs:
           push: true
           tags: |
             ghcr.io/ingsis-jcli/snippets-dev:latest
+
+      - name: Update service on VM with new image
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_KEY }}
+          script: |
+            pwd
+            cd infra
+            echo ${{secrets.GITHUB_TOKEN}} 
+            | sudo docker login -u ingsis-jcli --password-stdin ghcr.io 
+            sudo docker-compose -f docker-compose.dev.yml pull snippets  
+            sudo docker-compose -f docker-compose.dev.yml up -d snippets
