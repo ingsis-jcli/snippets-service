@@ -41,6 +41,6 @@ jobs:
           script: |
             pwd
             cd infra
-            echo ${{secrets.GITHUB_TOKEN}} | sudo docker login -u "ingsis-jcli" --password-stdin ghcr.io 
-            sudo docker-compose -f docker-compose.dev.yml pull snippets-dev
-            sudo docker-compose -f docker-compose.dev.yml up -d snippets-dev
+            echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login -u "ingsis-jcli" --password-stdin ghcr.io 
+            sudo docker-compose -f docker-compose.dev.yml pull snippets
+            sudo docker-compose -f docker-compose.dev.yml up -d snippets
