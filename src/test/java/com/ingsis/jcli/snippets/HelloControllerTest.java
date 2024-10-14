@@ -19,9 +19,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 class HelloControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-  @MockBean private HelloService helloService;
+  @MockBean
+  private HelloService helloService;
 
   @Test
   void testGetHello() throws Exception {

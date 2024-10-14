@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.models.Snippet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +20,26 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public class PermissionServiceTest {
 
-  @Autowired private PermissionService permissionService;
+  @Autowired
+  private PermissionService permissionService;
 
-  @MockBean private SnippetService snippetService;
+  @MockBean
+  private SnippetService snippetService;
 
-  @MockBean private PermissionsClient permissionsClient;
+  @MockBean
+  private PermissionsClient permissionsClient;
+
+  private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
+
+  private static final String language = "printscript";
+
+  private static final String version = "1.1";
 
   @Test
   public void hasPermissionOwner() {
     Long snippetId = 1L;
     Long userId = 123L;
-    Snippet snippet = new Snippet("name", "url", userId);
+    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(snippetId);
 
     when(snippetService.isOwner(snippetId, userId)).thenReturn(true);
@@ -41,7 +51,7 @@ public class PermissionServiceTest {
     Long snippetId = 1L;
     Long ownerId = 345L;
     Long userId = 123L;
-    Snippet snippet = new Snippet("name", "url", ownerId);
+    Snippet snippet = new Snippet("name", "url", ownerId, languageVersion);
     snippet.setId(snippetId);
 
     when(snippetService.isOwner(snippetId, userId)).thenReturn(false);
@@ -57,7 +67,7 @@ public class PermissionServiceTest {
     Long snippetId = 1L;
     Long ownerId = 345L;
     Long userId = 123L;
-    Snippet snippet = new Snippet("name", "url", ownerId);
+    Snippet snippet = new Snippet("name", "url", ownerId, languageVersion);
     snippet.setId(snippetId);
 
     when(snippetService.isOwner(snippetId, userId)).thenReturn(false);

@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Generated
@@ -20,8 +21,10 @@ public class Snippet {
   @Id
   private Long id;
 
+  @NotBlank
   private String name;
 
+  @NotBlank
   private String url;
 
   private Long owner;
@@ -30,12 +33,6 @@ public class Snippet {
   private LanguageVersion languageVersion;
 
   public Snippet() {}
-
-  public Snippet(String name, String url, Long owner) {
-    this.name = name;
-    this.url = url;
-    this.owner = owner;
-  }
 
   public Snippet(String name, String url, Long owner, LanguageVersion languageVersion) {
     this.name = name;

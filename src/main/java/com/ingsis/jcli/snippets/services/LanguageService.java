@@ -1,11 +1,10 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
-import java.net.URI;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +12,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class LanguageService {
-  private final LanguageClient languageClient;
+  private final LanguageClientFactory languageClientFactory;
   private final Map<String, String> urls;
 
   @Autowired
   public LanguageService(
-      LanguageClient languageClient,
+      LanguageClientFactory languageClientFactory,
       LanguageUrlProperties languageUrlProperties) {
-    this.languageClient = languageClient;
+    this.languageClientFactory = languageClientFactory;
 
     this.urls = Map.of(
         "printscript", languageUrlProperties.getPrintscript()
@@ -39,14 +38,13 @@ public class LanguageService {
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
 
-    URI baseUrl;
+    String baseUrl;
     try {
-      String url = urls.get(language);
-      baseUrl = URI.create(url);
+      baseUrl = urls.get(language);
     } catch (NoSuchElementException e) {
       throw new NoSuchLanguageException(language);
     }
 
-    return languageClient.validate(baseUrl, snippet, version);
+    return languageClientFactory.createClient(baseUrl).validate(snippet, version);
   }
 }

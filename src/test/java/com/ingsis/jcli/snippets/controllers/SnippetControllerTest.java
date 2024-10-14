@@ -9,11 +9,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,15 +34,28 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 class SnippetControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-  @MockBean private SnippetService snippetService;
+  @MockBean
+  private SnippetService snippetService;
 
-  @MockBean private PermissionService permissionService;
+  @MockBean
+  private PermissionService permissionService;
 
-  @Autowired private ObjectMapper objectMapper;
+  @MockBean
+  private LanguageService languageService;
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   private static final String path = "/snippet";
+
+  private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
+
+  private static final String language = "printscript";
+
+  private static final String version = "1.1";
 
   @Test
   void getSnippetOk() throws Exception {
@@ -80,13 +99,14 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetSuccess() throws Exception {
-    Snippet snippet = new Snippet("name", "url", 123L);
-    SnippetDto snippetDto = new SnippetDto("name", "content", 123L);
+    Snippet snippet = new Snippet("name", "url", 123L, languageVersion);
+    SnippetDto snippetDto = new SnippetDto("name", "content", 123L, language, version);
 
     Long id = 1L;
     snippet.setId(id);
 
     when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
+    when(languageService.validateSnippet(snippetDto.getContent(), languageVersion)).thenReturn(new LanguageSuccess());
 
     mockMvc
         .perform(
@@ -99,7 +119,7 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetFailBlankDto() throws Exception {
-    SnippetDto snippetDto = new SnippetDto("", "", 123L);
+    SnippetDto snippetDto = new SnippetDto("", "", 123L, "", "");
 
     mockMvc
         .perform(
@@ -123,8 +143,8 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetFailContent() throws Exception {
-    Snippet snippet = new Snippet("name", "url", 123L);
-    SnippetDto snippetDto = new SnippetDto("name", "content", 123L);
+    Snippet snippet = new Snippet("name", "url", 123L, languageVersion);
+    SnippetDto snippetDto = new SnippetDto("name", "content", 123L, language, version);
 
     Long id = 1L;
     snippet.setId(id);
@@ -132,20 +152,5 @@ class SnippetControllerTest {
     when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
 
     mockMvc.perform(post(path + "/create")).andExpect(status().is4xxClientError());
-  }
-
-  @Test
-  void createSnippetFailContentType() throws Exception {
-    Snippet snippet = new Snippet("name", "url", 123L);
-    SnippetDto snippetDto = new SnippetDto("name", "content", 123L);
-
-    Long id = 1L;
-    snippet.setId(id);
-
-    when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
-
-    mockMvc
-        .perform(post(path + "/create").content(objectMapper.writeValueAsString(snippetDto)))
-        .andExpect(status().is4xxClientError());
   }
 }

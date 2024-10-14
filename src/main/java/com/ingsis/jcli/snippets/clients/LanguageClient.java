@@ -5,11 +5,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.net.URI;
-
-@FeignClient
+@FeignClient(value = "language")
 public interface LanguageClient {
 
   @RequestMapping(method = RequestMethod.POST, value = "validate")
-  LanguageResponse validate(URI baseUrl, String snippet, String version);
+  LanguageResponse validate(String snippet, String version);
 }
