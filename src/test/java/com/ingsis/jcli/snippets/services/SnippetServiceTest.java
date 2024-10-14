@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -27,6 +28,9 @@ class SnippetServiceTest {
 
   @MockBean
   private BlobStorageService blobStorageService;
+
+  @MockBean
+  private LanguageService languageService;
 
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
 
@@ -67,6 +71,14 @@ class SnippetServiceTest {
 
     when(snippetRepository.save(input)).thenReturn(expected);
     when(blobStorageService.uploadSnippet(content)).thenReturn(url);
+    when(languageService.getLanguageVersion(
+        language,
+        version)
+    ).thenReturn(languageVersion);
+    when(languageService.validateSnippet(
+        snippetDto.getContent(),
+        languageVersion)
+    ).thenReturn(new LanguageSuccess());
 
     assertEquals(expected, snippetService.createSnippet(snippetDto));
   }

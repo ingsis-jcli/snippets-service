@@ -3,13 +3,11 @@ package com.ingsis.jcli.snippets.common.language;
 import com.ingsis.jcli.snippets.common.Generated;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Generated
 @Embeddable
-@Setter
-@Getter
+@Data
 public class LanguageVersion {
 
   @NotBlank
