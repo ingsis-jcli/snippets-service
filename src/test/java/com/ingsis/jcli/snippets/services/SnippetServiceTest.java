@@ -20,17 +20,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class SnippetServiceTest {
 
-  @Autowired
-  private SnippetService snippetService;
+  @Autowired private SnippetService snippetService;
 
-  @MockBean
-  private SnippetRepository snippetRepository;
+  @MockBean private SnippetRepository snippetRepository;
 
-  @MockBean
-  private BlobStorageService blobStorageService;
+  @MockBean private BlobStorageService blobStorageService;
 
-  @MockBean
-  private LanguageService languageService;
+  @MockBean private LanguageService languageService;
 
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
 
@@ -71,14 +67,9 @@ class SnippetServiceTest {
 
     when(snippetRepository.save(input)).thenReturn(expected);
     when(blobStorageService.uploadSnippet(content)).thenReturn(url);
-    when(languageService.getLanguageVersion(
-        language,
-        version)
-    ).thenReturn(languageVersion);
-    when(languageService.validateSnippet(
-        snippetDto.getContent(),
-        languageVersion)
-    ).thenReturn(new LanguageSuccess());
+    when(languageService.getLanguageVersion(language, version)).thenReturn(languageVersion);
+    when(languageService.validateSnippet(snippetDto.getContent(), languageVersion))
+        .thenReturn(new LanguageSuccess());
 
     assertEquals(expected, snippetService.createSnippet(snippetDto));
   }

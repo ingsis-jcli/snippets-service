@@ -10,10 +10,11 @@ import org.springframework.stereotype.Component;
 public class LanguageClientFactory {
 
   public LanguageClient createClient(String baseUrl) {
-    LanguageClient target = Feign.builder()
-        .encoder(new GsonEncoder())
-        .decoder(new GsonDecoder())
-        .target(LanguageClient.class, baseUrl);
+    LanguageClient target =
+        Feign.builder()
+            .encoder(new GsonEncoder())
+            .decoder(new GsonDecoder())
+            .target(LanguageClient.class, baseUrl);
     return target;
   }
 }

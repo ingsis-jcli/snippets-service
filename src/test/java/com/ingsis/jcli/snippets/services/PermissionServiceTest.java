@@ -20,14 +20,11 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public class PermissionServiceTest {
 
-  @Autowired
-  private PermissionService permissionService;
+  @Autowired private PermissionService permissionService;
 
-  @MockBean
-  private SnippetService snippetService;
+  @MockBean private SnippetService snippetService;
 
-  @MockBean
-  private PermissionsClient permissionsClient;
+  @MockBean private PermissionsClient permissionsClient;
 
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
 

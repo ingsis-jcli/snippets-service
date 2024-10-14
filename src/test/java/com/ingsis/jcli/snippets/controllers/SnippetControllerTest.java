@@ -17,9 +17,6 @@ import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import java.util.Optional;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,20 +31,15 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 class SnippetControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @MockBean
-  private SnippetService snippetService;
+  @MockBean private SnippetService snippetService;
 
-  @MockBean
-  private PermissionService permissionService;
+  @MockBean private PermissionService permissionService;
 
-  @MockBean
-  private LanguageService languageService;
+  @MockBean private LanguageService languageService;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
   private static final String path = "/snippet";
 
@@ -106,7 +98,8 @@ class SnippetControllerTest {
     snippet.setId(id);
 
     when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
-    when(languageService.validateSnippet(snippetDto.getContent(), languageVersion)).thenReturn(new LanguageSuccess());
+    when(languageService.validateSnippet(snippetDto.getContent(), languageVersion))
+        .thenReturn(new LanguageSuccess());
 
     mockMvc
         .perform(

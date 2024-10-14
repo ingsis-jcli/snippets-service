@@ -10,11 +10,9 @@ import lombok.Data;
 @Data
 public class LanguageVersion {
 
-  @NotBlank
-  private String language;
+  @NotBlank private String language;
 
-  @NotBlank
-  private String version;
+  @NotBlank private String version;
 
   public LanguageVersion() {}
 

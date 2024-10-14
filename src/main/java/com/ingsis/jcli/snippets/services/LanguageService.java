@@ -20,13 +20,10 @@ public class LanguageService {
 
   @Autowired
   public LanguageService(
-      LanguageClientFactory languageClientFactory,
-      LanguageUrlProperties languageUrlProperties) {
+      LanguageClientFactory languageClientFactory, LanguageUrlProperties languageUrlProperties) {
     this.languageClientFactory = languageClientFactory;
 
-    this.urls = Map.of(
-        "printscript", languageUrlProperties.getPrintscript()
-    );
+    this.urls = Map.of("printscript", languageUrlProperties.getPrintscript());
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {

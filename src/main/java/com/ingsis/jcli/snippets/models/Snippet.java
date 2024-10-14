@@ -21,16 +21,13 @@ public class Snippet {
   @Id
   private Long id;
 
-  @NotBlank
-  private String name;
+  @NotBlank private String name;
 
-  @NotBlank
-  private String url;
+  @NotBlank private String url;
 
   private Long owner;
 
-  @Embedded
-  private LanguageVersion languageVersion;
+  @Embedded private LanguageVersion languageVersion;
 
   public Snippet() {}
 
