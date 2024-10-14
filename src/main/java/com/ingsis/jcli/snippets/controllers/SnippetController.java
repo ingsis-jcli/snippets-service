@@ -51,7 +51,6 @@ public class SnippetController {
 
   @PostMapping("create")
   public ResponseEntity<Long> createSnippet(@RequestBody @Valid SnippetDto snippetDto) {
-
     Snippet snippet;
     try {
       snippet = snippetService.createSnippet(snippetDto);

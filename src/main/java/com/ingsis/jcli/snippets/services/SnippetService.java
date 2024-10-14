@@ -1,6 +1,8 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.ingsis.jcli.snippets.common.LanguageVersion;
+import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
+import com.ingsis.jcli.snippets.common.language.LanguageResponse;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
@@ -31,20 +33,25 @@ public class SnippetService {
   }
 
   public Snippet createSnippet(SnippetDto snippetDto) {
+    LanguageVersion languageVersion = languageService.getLanguageVersion(
+        snippetDto.getLanguage(),
+        snippetDto.getVersion()
+    );
+    LanguageResponse isValid = languageService.validateSnippet(snippetDto.getContent(), languageVersion);
+
+    if (isValid.hasError()) {
+      throw new InvalidSnippetException(isValid.getError(), languageVersion);
+    }
+
     String url = blobStorageService.uploadSnippet(snippetDto.getContent());
 
-    Snippet snippet = new Snippet(snippetDto.getName(), url, snippetDto.getOwner());
+    Snippet snippet = new Snippet(snippetDto.getName(), url, snippetDto.getOwner(), languageVersion);
     return snippetRepository.save(snippet);
   }
 
   public boolean isOwner(Long snippetId, Long userId) {
     Optional<Snippet> snippet = getSnippet(snippetId);
     return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
-  }
-
-  public SnippetDto convertToDto(Snippet snippet) {
-    String content = blobStorageService.downloadSnippet(snippet.getUrl());
-    return new SnippetDto(snippet.getName(), content, snippet.getOwner());
   }
 
   public Snippet editSnippet(Long snippetId, SnippetDto snippetDto) {

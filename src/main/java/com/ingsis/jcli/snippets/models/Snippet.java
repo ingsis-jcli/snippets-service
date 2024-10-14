@@ -1,7 +1,7 @@
 package com.ingsis.jcli.snippets.models;
 
 import com.ingsis.jcli.snippets.common.Generated;
-import com.ingsis.jcli.snippets.common.LanguageVersion;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,7 +26,8 @@ public class Snippet {
 
   private Long owner;
 
-  @Embedded private LanguageVersion languageVersion;
+  @Embedded
+  private LanguageVersion languageVersion;
 
   public Snippet() {}
 
@@ -34,5 +35,12 @@ public class Snippet {
     this.name = name;
     this.url = url;
     this.owner = owner;
+  }
+
+  public Snippet(String name, String url, Long owner, LanguageVersion languageVersion) {
+    this.name = name;
+    this.url = url;
+    this.owner = owner;
+    this.languageVersion = languageVersion;
   }
 }

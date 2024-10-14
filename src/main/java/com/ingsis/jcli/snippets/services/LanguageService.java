@@ -1,40 +1,52 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.ingsis.jcli.snippets.common.LanguageVersion;
-import com.ingsis.jcli.snippets.models.Language;
-import com.ingsis.jcli.snippets.models.Version;
-import com.ingsis.jcli.snippets.repositories.LanguageRepository;
-import com.ingsis.jcli.snippets.repositories.VersionRepository;
+import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
+import com.ingsis.jcli.snippets.common.language.LanguageResponse;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
+import java.net.URI;
+import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LanguageService {
-
-  private final LanguageRepository languageRepository;
-  private final VersionRepository versionRepository;
+  private final LanguageClient languageClient;
+  private final Map<String, String> urls;
 
   @Autowired
   public LanguageService(
-      LanguageRepository languageRepository, VersionRepository versionRepository) {
-    this.languageRepository = languageRepository;
-    this.versionRepository = versionRepository;
+      LanguageClient languageClient,
+      LanguageUrlProperties languageUrlProperties) {
+    this.languageClient = languageClient;
+
+    this.urls = Map.of(
+        "printscript", languageUrlProperties.getPrintscript()
+    );
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {
-    Optional<Language> language = languageRepository.findByName(languageName);
-    if (language.isEmpty()) {
-      throw new NoSuchElementException("No language found with name " + languageName);
+    if (!urls.containsKey(languageName)) {
+      throw new NoSuchLanguageException(languageName);
     }
 
-    Optional<Version> version =
-        versionRepository.findByVersionAndLanguage(versionName, language.get());
-    if (version.isEmpty()) {
-      throw new NoSuchElementException("No version found with name " + versionName);
+    return new LanguageVersion(languageName, versionName);
+  }
+
+  public LanguageResponse validateSnippet(String snippet, LanguageVersion languageVersion) {
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+
+    URI baseUrl;
+    try {
+      String url = urls.get(language);
+      baseUrl = URI.create(url);
+    } catch (NoSuchElementException e) {
+      throw new NoSuchLanguageException(language);
     }
 
-    return new LanguageVersion(language.get(), version.get());
+    return languageClient.validate(baseUrl, snippet, version);
   }
 }
