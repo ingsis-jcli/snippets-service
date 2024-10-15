@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets;
+package com.ingsis.jcli.snippets.controllers;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

@@ -1,5 +1,6 @@
-package com.ingsis.jcli.snippets.config;
+package com.ingsis.jcli.snippets;
 
+import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

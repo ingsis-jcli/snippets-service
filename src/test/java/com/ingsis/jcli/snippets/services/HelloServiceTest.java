@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets;
+package com.ingsis.jcli.snippets.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.clients.PrintScriptClient;
 import com.ingsis.jcli.snippets.repositories.HelloRepository;
-import com.ingsis.jcli.snippets.services.HelloService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

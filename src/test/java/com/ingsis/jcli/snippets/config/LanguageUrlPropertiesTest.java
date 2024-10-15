@@ -1,8 +1,7 @@
-package com.ingsis.jcli.snippets.testconfig;
+package com.ingsis.jcli.snippets.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
