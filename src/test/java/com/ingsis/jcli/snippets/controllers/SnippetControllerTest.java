@@ -3,8 +3,7 @@ package com.ingsis.jcli.snippets.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -145,5 +144,71 @@ class SnippetControllerTest {
     when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
 
     mockMvc.perform(post(path + "/create")).andExpect(status().is4xxClientError());
+  }
+  
+  @Test
+  void editSnippetSuccess() throws Exception {
+    Long userId = 123L;
+    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
+    SnippetDto snippetDto = new SnippetDto("name", "content", userId, language, version);
+    
+    Long id = 1L;
+    snippet.setId(id);
+    
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
+    when(snippetService.editSnippet(id, snippetDto)).thenReturn(snippet);
+    
+    mockMvc
+        .perform(
+            put(path + "/edit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(snippetDto))
+                .param("userId", userId.toString())
+                .param("snippetId", id.toString()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(id));
+  }
+  
+  @Test
+  void editSnippetFail() throws Exception {
+    Long userId = 123L;
+    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
+    SnippetDto snippetDto = new SnippetDto("name", "content", userId, language, version);
+    
+    Long id = 1L;
+    snippet.setId(id);
+    
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
+    when(snippetService.editSnippet(id, snippetDto)).thenThrow(new RuntimeException());
+    
+    mockMvc
+        .perform(
+            put(path + "/edit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(snippetDto))
+                .param("userId", userId.toString())
+                .param("snippetId", id.toString()))
+        .andExpect(status().isInternalServerError());
+  }
+  
+  @Test
+  void editSnippetFailForbidden() throws Exception {
+    Long userId = 123L;
+    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
+    SnippetDto snippetDto = new SnippetDto("name", "content", userId, language, version);
+    
+    Long id = 1L;
+    snippet.setId(id);
+    
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(false);
+    
+    mockMvc
+        .perform(
+            put(path + "/edit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(snippetDto))
+                .param("userId", userId.toString())
+                .param("snippetId", id.toString()))
+        .andExpect(status().isForbidden());
   }
 }

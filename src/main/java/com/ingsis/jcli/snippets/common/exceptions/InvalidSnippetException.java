@@ -5,12 +5,12 @@ import lombok.Getter;
 
 @Getter
 public class InvalidSnippetException extends RuntimeException {
-  private final String message;
+  private final String error;
   private final LanguageVersion languageVersion;
 
-  public InvalidSnippetException(String message, LanguageVersion languageVersion) {
-    super("Error validating snippet: " + message);
-    this.message = message;
+  public InvalidSnippetException(String error, LanguageVersion languageVersion) {
+    super("Error validating snippet: " + error);
+    this.error = error;
     this.languageVersion = languageVersion;
   }
 }
