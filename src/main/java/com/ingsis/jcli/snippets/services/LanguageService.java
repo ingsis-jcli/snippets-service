@@ -37,15 +37,14 @@ public class LanguageService {
   public LanguageResponse validateSnippet(String snippet, LanguageVersion languageVersion) {
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
-
-    String baseUrl;
-    try {
-      baseUrl = urls.get(language);
-    } catch (NoSuchElementException e) {
+    
+    if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
-
+    
+    String baseUrl = urls.get(language);
     LanguageClient client = languageClientFactory.createClient(baseUrl);
+    
     ResponseEntity<LanguageResponse> response =
         client.validate(new ValidateRequest(snippet, version));
 
