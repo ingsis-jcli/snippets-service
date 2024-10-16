@@ -5,10 +5,12 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "languages.url")
+@ConfigurationProperties(prefix = "languages")
 public class LanguageUrlProperties {
-  private String printscript;
+  private Map<String, String> urls;
 }

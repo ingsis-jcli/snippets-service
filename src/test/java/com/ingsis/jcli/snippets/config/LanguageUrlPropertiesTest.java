@@ -9,6 +9,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Map;
+
 @SpringBootTest
 @ActiveProfiles("test")
 public class LanguageUrlPropertiesTest {
@@ -19,13 +21,7 @@ public class LanguageUrlPropertiesTest {
 
   @Test
   public void getProperties() {
-    assertEquals("http://printscript:8080/", languageUrlProperties.getPrintscript());
-  }
-
-  @Test
-  public void setProperties() {
-    String newUrl = "http://a:8080/";
-    languageUrlProperties.setPrintscript(newUrl);
-    assertEquals(newUrl, languageUrlProperties.getPrintscript());
+    Map<String, String> urls = languageUrlProperties.getUrls();
+    assertEquals("http://printscript:8080/", urls.get("printscript"));
   }
 }

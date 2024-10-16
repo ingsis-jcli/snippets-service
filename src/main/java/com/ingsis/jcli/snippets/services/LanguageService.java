@@ -22,7 +22,7 @@ public class LanguageService {
       LanguageClientFactory languageClientFactory, LanguageUrlProperties languageUrlProperties) {
     this.languageClientFactory = languageClientFactory;
 
-    this.urls = Map.of("printscript", languageUrlProperties.getPrintscript());
+    this.urls = languageUrlProperties.getUrls();
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {
