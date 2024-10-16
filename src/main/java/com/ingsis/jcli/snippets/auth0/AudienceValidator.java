@@ -1,10 +1,10 @@
 package com.ingsis.jcli.snippets.auth0;
+
+import java.util.List;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
-
-import java.util.List;
 
 public class AudienceValidator implements OAuth2TokenValidator<Jwt> {
 

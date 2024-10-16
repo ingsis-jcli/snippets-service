@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
@@ -26,11 +28,9 @@ public class PermissionServiceTest {
 
   @MockBean private PermissionsClient permissionsClient;
 
+  @MockBean private JwtDecoder jwtDecoder;
+
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-
-  private static final String language = "printscript";
-
-  private static final String version = "1.1";
 
   @Test
   public void hasPermissionOwner() {
@@ -40,6 +40,7 @@ public class PermissionServiceTest {
     snippet.setId(snippetId);
 
     when(snippetService.isOwner(snippetId, userId)).thenReturn(true);
+
     assertTrue(permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId));
   }
 
@@ -52,8 +53,9 @@ public class PermissionServiceTest {
     snippet.setId(snippetId);
 
     when(snippetService.isOwner(snippetId, userId)).thenReturn(false);
-    when(permissionsClient.hasPermission(PermissionType.READ.name, snippetId, userId))
-        .thenReturn(ResponseEntity.ok(true));
+
+    ResponseEntity<Boolean> responseEntity = ResponseEntity.ok(true);
+    when(permissionsClient.hasPermission("read", snippetId, userId)).thenReturn(responseEntity);
 
     assertTrue(permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId));
     assertNotEquals(ownerId, userId);
@@ -68,8 +70,26 @@ public class PermissionServiceTest {
     snippet.setId(snippetId);
 
     when(snippetService.isOwner(snippetId, userId)).thenReturn(false);
-    when(permissionsClient.hasPermission(PermissionType.READ.name, snippetId, userId))
+
+    when(permissionsClient.hasPermission(PermissionType.READ.name(), snippetId, userId))
         .thenReturn(ResponseEntity.ok(false));
+
+    assertFalse(permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId));
+    assertNotEquals(ownerId, userId);
+  }
+
+  @Test
+  public void hasPermissionErrorResponse() {
+    Long snippetId = 1L;
+    Long ownerId = 345L;
+    Long userId = 123L;
+    Snippet snippet = new Snippet("name", "url", ownerId, languageVersion);
+    snippet.setId(snippetId);
+
+    when(snippetService.isOwner(snippetId, userId)).thenReturn(false);
+
+    when(permissionsClient.hasPermission(PermissionType.READ.name(), snippetId, userId))
+        .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
 
     assertFalse(permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId));
     assertNotEquals(ownerId, userId);

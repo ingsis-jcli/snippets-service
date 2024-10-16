@@ -8,7 +8,6 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -37,14 +36,14 @@ public class LanguageService {
   public LanguageResponse validateSnippet(String snippet, LanguageVersion languageVersion) {
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
-    
+
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
-    
+
     String baseUrl = urls.get(language);
     LanguageClient client = languageClientFactory.createClient(baseUrl);
-    
+
     ResponseEntity<LanguageResponse> response =
         client.validate(new ValidateRequest(snippet, version));
 

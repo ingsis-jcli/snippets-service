@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(value = "language")
 public interface LanguageClient {
 
-  @PostMapping( "validate")
+  @PostMapping("validate")
   ResponseEntity<LanguageResponse> validate(@RequestBody ValidateRequest validateRequest);
 }
