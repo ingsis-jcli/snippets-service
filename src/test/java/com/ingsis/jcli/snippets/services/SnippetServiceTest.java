@@ -118,8 +118,8 @@ class SnippetServiceTest {
     when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(oldSnippet));
     when(blobStorageService.updateSnippet(oldUrl, newContent)).thenReturn(newUrl);
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    // when(languageService.validateSnippet(snippetDto.getContent(),
-    // languageVersionOk)).thenReturn(new LanguageSuccess());
+    when(languageService.validateSnippet(snippetDto.getContent(), languageVersionOk))
+        .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(newSnippet)).thenReturn(newSnippet);
 
     assertEquals(newSnippet, snippetService.editSnippet(snippetId, snippetDto));

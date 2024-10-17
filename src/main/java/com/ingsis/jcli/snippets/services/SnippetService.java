@@ -60,15 +60,20 @@ public class SnippetService {
       throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
     }
 
-    snippet.get().setName(snippetDto.getName());
+    String languageName = snippetDto.getLanguage();
+    String versionName = snippetDto.getVersion();
+    LanguageVersion languageVersion = languageService.getLanguageVersion(languageName, versionName);
+    LanguageResponse response =
+        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
+
+    if (response.hasError()) {
+      throw new InvalidSnippetException(response.getError(), languageVersion);
+    }
 
     String newUrl =
         blobStorageService.updateSnippet(snippet.get().getUrl(), snippetDto.getContent());
     snippet.get().setUrl(newUrl);
-
-    String languageName = snippetDto.getLanguage();
-    String versionName = snippetDto.getVersion();
-    LanguageVersion languageVersion = languageService.getLanguageVersion(languageName, versionName);
+    snippet.get().setName(snippetDto.getName());
     snippet.get().setLanguageVersion(languageVersion);
 
     return snippetRepository.save(snippet.get());
