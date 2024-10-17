@@ -45,6 +45,8 @@ public class Auth0Configuration {
         .cors(cors -> cors.disable())
         .csrf(csrf -> csrf.disable());
 
+    // TODO Remove the roles from the auth0
+
     return http.build();
   }
 

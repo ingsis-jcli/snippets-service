@@ -18,6 +18,23 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/austral-ingsis/chess-ui")
+        credentials {
+            username = System.getenv('USERNAME') ?: ''
+            password = System.getenv('TOKEN') ?: ''
+        }
+    }
+
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/austral-ingsis/class-redis-streams")
+        credentials {
+            username = System.getenv('USERNAME') ?: ''
+            password = System.getenv('TOKEN') ?: ''
+        }
+    }
 }
 
 ext {
@@ -46,6 +63,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     testImplementation 'org.springframework.security:spring-security-test'
 
+    // Redis MVC Library
+    // implementation 'org.austral.ingsis:redis-streams:0.1.13'
 
 }
 
