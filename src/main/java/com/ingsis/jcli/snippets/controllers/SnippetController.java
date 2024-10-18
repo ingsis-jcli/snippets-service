@@ -32,10 +32,10 @@ public class SnippetController {
   }
 
   @GetMapping()
-  public ResponseEntity<Snippet> getSnippet(
+  public ResponseEntity<String> getSnippet(
       @RequestParam Long userId, @RequestParam Long snippetId) {
 
-    Optional<Snippet> snippet = snippetService.getSnippet(snippetId);
+    Optional<String> snippet = snippetService.getSnippet(snippetId);
     if (snippet.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
@@ -49,7 +49,7 @@ public class SnippetController {
     return new ResponseEntity<>(snippet.get(), HttpStatus.OK);
   }
 
-  @PostMapping("create")
+  @PostMapping()
   public ResponseEntity<Long> createSnippet(@RequestBody @Valid SnippetDto snippetDto) {
     Snippet snippet;
     try {
@@ -60,7 +60,7 @@ public class SnippetController {
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
-  @PutMapping("edit")
+  @PutMapping()
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
       @RequestParam Long userId,

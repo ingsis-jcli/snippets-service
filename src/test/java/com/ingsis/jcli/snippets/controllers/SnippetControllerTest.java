@@ -1,11 +1,13 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import static com.ingsis.jcli.snippets.services.BlobStorageService.getUrl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -53,21 +55,21 @@ class SnippetControllerTest {
 
   @Test
   void getSnippetOk() throws Exception {
-    Snippet snippet = new Snippet();
     Long id = 1L;
-    snippet.setId(id);
+    Long userId = 123L;
+    String expectedSnippetContent = "This is the content of the snippet.";
 
     when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
+    when(snippetService.getSnippet(id)).thenReturn(Optional.of(expectedSnippetContent));
 
     mockMvc
         .perform(
             get(path)
-                .param("userId", "123")
+                .param("userId", userId.toString())
                 .param("snippetId", id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1L));
+        .andExpect(content().string(expectedSnippetContent));
   }
 
   @Test
@@ -91,7 +93,7 @@ class SnippetControllerTest {
     Long id = 1L;
 
     when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(false);
-    when(snippetService.getSnippet(anyLong())).thenReturn(Optional.of(new Snippet()));
+    when(snippetService.getSnippet(anyLong())).thenReturn(Optional.of(""));
 
     mockMvc
         .perform(
@@ -104,8 +106,8 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetSuccess() throws Exception {
-    Snippet snippet = new Snippet("name", "url", 123L, languageVersion);
     SnippetDto snippetDto = new SnippetDto("name", "content", 123L, language, version);
+    Snippet snippet = new Snippet("name", getUrl(snippetDto), 123L, languageVersion);
 
     Long id = 1L;
     snippet.setId(id);
@@ -116,7 +118,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            post(path + "/create")
+            post(path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snippetDto))
                 .with(SecurityMockMvcRequestPostProcessors.jwt()))
@@ -130,7 +132,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            post(path + "/create")
+            post(path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snippetDto))
                 .with(SecurityMockMvcRequestPostProcessors.jwt()))
@@ -151,7 +153,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            put(path + "/edit")
+            put(path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snippetDto))
                 .param("userId", userId.toString())
@@ -174,7 +176,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            put(path + "/edit")
+            put(path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snippetDto))
                 .param("userId", userId.toString())
