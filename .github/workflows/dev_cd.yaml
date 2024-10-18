@@ -24,6 +24,11 @@ jobs:
           username: ingsis-jcli
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Debugging
+        run: |
+          echo "USERNAME=${{ github.actor }}"
+          echo "TOKEN is set."
+
       - name: Push to GitHub Packages
         id: docker_build
         uses: docker/build-push-action@v4
