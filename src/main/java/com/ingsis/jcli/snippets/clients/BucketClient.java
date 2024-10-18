@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(value = "bucket", url = "http://asset_service:8083/v1")
+@FeignClient(value = "asset-api", url = "http://asset-service-api:8083/v1")
 public interface BucketClient {
 
   @GetMapping("/asset/{container}/{key}")
