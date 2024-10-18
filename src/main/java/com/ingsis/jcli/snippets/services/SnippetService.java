@@ -31,7 +31,7 @@ public class SnippetService {
   }
 
   public void helloBucket() {
-    blobStorageService.uploadSnippet("/snippet", "hello.txt", "Hello Bucket");
+    blobStorageService.uploadSnippet("snippet", "hello.txt", "Hello Bucket");
   }
 
   public Optional<String> getSnippet(Long snippetId) {
