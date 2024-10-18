@@ -5,7 +5,10 @@ services:
     container_name: "snippets-api"
     build:
       context: .
-      dockerfile: Dockerfile.multi
+      dockerfile: Dockerfile
+      args:
+        USERNAME: "${GITHUB_ACTOR}"
+        TOKEN: "${GITHUB_TOKEN}"
     ports:
       - 8080:8080
     environment:
