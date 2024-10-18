@@ -16,23 +16,28 @@ java {
     }
 }
 
+def loadEnv() {
+    def envFile = file(".env")
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def keyValue = line.split("=")
+            if (keyValue.length == 2) {
+                project.ext.set(keyValue[0], keyValue[1])
+            }
+        }
+    }
+}
+
+loadEnv()
+
 repositories {
     mavenCentral()
     maven {
         name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/austral-ingsis/chess-ui")
-        credentials {
-            username = System.getenv('USERNAME') ?: ''
-            password = System.getenv('TOKEN') ?: ''
-        }
-    }
-
-    maven {
-        name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/austral-ingsis/class-redis-streams")
         credentials {
-            username = System.getenv('USERNAME') ?: ''
-            password = System.getenv('TOKEN') ?: ''
+            username = System.getenv('USERNAME') ?: project.GITHUB_ACTOR
+            password = System.getenv('PASSWORD') ?: project.GITHUB_TOKEN
         }
     }
 }
@@ -64,8 +69,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 
     // Redis MVC Library
-    // implementation 'org.austral.ingsis:redis-streams:0.1.13'
-
+    implementation 'org.austral.ingsis:redis-streams-mvc:0.1.13'
 }
 
 dependencyManagement {  // for openfeign
