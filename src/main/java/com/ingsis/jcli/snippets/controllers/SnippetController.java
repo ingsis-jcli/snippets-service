@@ -31,6 +31,12 @@ public class SnippetController {
     this.permissionService = permissionService;
   }
 
+  @PostMapping("/hello-bucket")
+  public ResponseEntity<String> helloBucket() {
+    snippetService.helloBucket();
+    return new ResponseEntity<>("Hello Bucket", HttpStatus.OK);
+  }
+
   @GetMapping()
   public ResponseEntity<String> getSnippet(
       @RequestParam Long userId, @RequestParam Long snippetId) {

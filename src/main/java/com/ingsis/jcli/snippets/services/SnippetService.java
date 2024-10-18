@@ -30,6 +30,10 @@ public class SnippetService {
     this.languageService = languageService;
   }
 
+  public void helloBucket() {
+    blobStorageService.uploadSnippet("/snippet", "hello.txt", "Hello Bucket");
+  }
+
   public Optional<String> getSnippet(Long snippetId) {
     Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
     if (snippetOptional.isPresent()) {
