@@ -5,7 +5,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -32,15 +31,7 @@ public class Auth0Configuration {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(
-            authz ->
-                authz
-                    .requestMatchers("/")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/hello/create")
-                    .hasAuthority("SCOPE_read:snippets")
-                    .anyRequest()
-                    .authenticated())
+    http.authorizeHttpRequests(authz -> authz.anyRequest().authenticated())
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
         .cors(cors -> cors.disable())
         .csrf(csrf -> csrf.disable());
