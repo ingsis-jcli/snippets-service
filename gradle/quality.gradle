@@ -1,0 +1,52 @@
+//Checkstyle set up
+checkstyle {
+    toolVersion = '10.3.3'
+    ignoreFailures = false
+    maxWarnings = 0
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+//Coverage set up
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = false
+        html.required = true
+        html.outputLocation = file("${buildDir}/jacocoHtml")
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+// Code formatting configuration
+spotless {
+    java {
+        googleJavaFormat()
+    }
+    kotlin {
+        ktlint()
+    }
+}
