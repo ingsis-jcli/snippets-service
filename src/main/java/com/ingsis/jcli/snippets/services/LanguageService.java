@@ -8,10 +8,15 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class LanguageService {
   private final LanguageClientFactory languageClientFactory;
@@ -34,15 +39,21 @@ public class LanguageService {
   }
 
   public LanguageResponse validateSnippet(String snippet, LanguageVersion languageVersion) {
+    Marker marker = MarkerFactory.getMarker("Validate");
+    log.info(marker, "Validating snippet: " + snippet);
+    
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
-
+    log.info(marker, "Language: " + language + " Version: " + version);
+    
     if (!urls.containsKey(language)) {
+      log.error(marker, "NoSuchLanguageException: " + language + " - " + version);
       throw new NoSuchLanguageException(language);
     }
 
     String baseUrl = urls.get(language);
     LanguageClient client = languageClientFactory.createClient(baseUrl);
+    log.info(marker, "Client base url: " + baseUrl);
 
     ResponseEntity<LanguageResponse> response =
         client.validate(new ValidateRequest(snippet, version));
