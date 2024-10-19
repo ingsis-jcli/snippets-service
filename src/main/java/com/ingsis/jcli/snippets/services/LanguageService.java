@@ -63,6 +63,7 @@ public class LanguageService {
     ResponseEntity<ValidateResponse> response = client.validate(validateRequest);
     log.info(marker, "Response: " + response);
     log.info(marker, "Response code: " + response.getStatusCode());
+    log.info(marker, "Response body: " + response.getBody());
 
     return getResponse(response);
   }
