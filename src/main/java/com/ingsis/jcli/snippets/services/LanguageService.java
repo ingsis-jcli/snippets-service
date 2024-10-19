@@ -55,8 +55,13 @@ public class LanguageService {
     LanguageClient client = languageClientFactory.createClient(baseUrl);
     log.info(marker, "Client base url: " + baseUrl);
 
+    ValidateRequest validateRequest = new ValidateRequest(language, version);
+    log.info(marker, "Validate request: " + validateRequest);
+    
     ResponseEntity<LanguageResponse> response =
-        client.validate(new ValidateRequest(snippet, version));
+        client.validate(validateRequest);
+    
+    log.info(marker, "Response code: " + response.getStatusCode());
 
     return response.getBody();
   }
