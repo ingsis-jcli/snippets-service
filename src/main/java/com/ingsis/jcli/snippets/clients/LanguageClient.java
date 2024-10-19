@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(value = "language")
 public interface LanguageClient {
+  
+  @RequestLine("GET /hello")
+  ResponseEntity<String> hello();
 
   @RequestLine("POST /validate")
   @Headers("Content-Type: application/json")
