@@ -3,7 +3,9 @@ package com.ingsis.jcli.snippets.services;
 import com.ingsis.jcli.snippets.clients.LanguageClient;
 import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
+import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
+import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
@@ -57,10 +59,16 @@ public class LanguageService {
     ValidateRequest validateRequest = new ValidateRequest(snippet, version);
     log.info(marker, "Validate request: " + validateRequest);
 
-    ResponseEntity<LanguageResponse> response = client.validate(validateRequest);
-
+    ResponseEntity<String> response = client.validate(validateRequest);
     log.info(marker, "Response code: " + response.getStatusCode());
-
-    return response.getBody();
+    
+    return getResponse(response);
+  }
+  
+  public LanguageResponse getResponse(ResponseEntity<String> response) {
+    if (response.getStatusCode().is2xxSuccessful()) {
+      return new LanguageSuccess();
+    }
+    return new LanguageError(response.getBody());
   }
 }

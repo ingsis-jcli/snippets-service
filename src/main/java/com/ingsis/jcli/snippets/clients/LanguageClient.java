@@ -1,6 +1,5 @@
 package com.ingsis.jcli.snippets.clients;
 
-import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import feign.Headers;
 import feign.RequestLine;
@@ -13,5 +12,5 @@ public interface LanguageClient {
 
   @RequestLine("POST /validate")
   @Headers("Content-Type: application/json")
-  ResponseEntity<LanguageResponse> validate(@RequestBody ValidateRequest validateRequest);
+  ResponseEntity<String> validate(@RequestBody ValidateRequest validateRequest);
 }
