@@ -57,12 +57,7 @@ public class SnippetController {
 
   @PostMapping()
   public ResponseEntity<Long> createSnippet(@RequestBody @Valid SnippetDto snippetDto) {
-    Snippet snippet;
-    try {
-      snippet = snippetService.createSnippet(snippetDto);
-    } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    Snippet snippet = snippetService.createSnippet(snippetDto);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
@@ -78,12 +73,7 @@ public class SnippetController {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    Snippet snippet;
-    try {
-      snippet = snippetService.editSnippet(snippetId, snippetDto);
-    } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
   }
 }

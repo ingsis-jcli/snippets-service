@@ -51,9 +51,11 @@ public class SnippetService {
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
     LanguageResponse isValid =
         languageService.validateSnippet(snippetDto.getContent(), languageVersion);
+
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
+
     blobStorageService.uploadSnippet(
         getUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
     Snippet snippet =
