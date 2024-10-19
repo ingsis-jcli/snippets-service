@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 @Generated
 @Component
 public class LanguageClientFactory {
-  
+
   private final RequestInterceptor authFeignInterceptor;
-  
+
   @Autowired
   public LanguageClientFactory(AuthFeignInterceptor authFeignInterceptor) {
     this.authFeignInterceptor = authFeignInterceptor;

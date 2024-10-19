@@ -1,6 +1,7 @@
 package com.ingsis.jcli.snippets.clients;
 
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
+import com.ingsis.jcli.snippets.common.responses.ValidateResponse;
 import feign.Headers;
 import feign.RequestLine;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,5 +13,5 @@ public interface LanguageClient {
 
   @RequestLine("POST /validate")
   @Headers("Content-Type: application/json")
-  ResponseEntity<String> validate(@RequestBody ValidateRequest validateRequest);
+  ResponseEntity<ValidateResponse> validate(@RequestBody ValidateRequest validateRequest);
 }

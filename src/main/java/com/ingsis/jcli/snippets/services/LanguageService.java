@@ -8,6 +8,7 @@ import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
+import com.ingsis.jcli.snippets.common.responses.ValidateResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -59,16 +60,16 @@ public class LanguageService {
     ValidateRequest validateRequest = new ValidateRequest(snippet, version);
     log.info(marker, "Validate request: " + validateRequest);
 
-    ResponseEntity<String> response = client.validate(validateRequest);
+    ResponseEntity<ValidateResponse> response = client.validate(validateRequest);
     log.info(marker, "Response code: " + response.getStatusCode());
-    
+
     return getResponse(response);
   }
-  
-  public LanguageResponse getResponse(ResponseEntity<String> response) {
+
+  public LanguageResponse getResponse(ResponseEntity<ValidateResponse> response) {
     if (response.getStatusCode().is2xxSuccessful()) {
       return new LanguageSuccess();
     }
-    return new LanguageError(response.getBody());
+    return new LanguageError(response.getBody().getError());
   }
 }
