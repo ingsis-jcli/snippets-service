@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface LanguageClient {
 
   @RequestLine("GET /hello")
-  ResponseEntity<String> hello();
+  String hello();
 
   @RequestLine("POST /validate")
   @Headers("Content-Type: application/json")
