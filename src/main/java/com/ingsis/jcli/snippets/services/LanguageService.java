@@ -8,7 +8,6 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -41,11 +40,11 @@ public class LanguageService {
   public LanguageResponse validateSnippet(String snippet, LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Validate");
     log.info(marker, "Validating snippet: " + snippet);
-    
+
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
     log.info(marker, "Language: " + language + " Version: " + version);
-    
+
     if (!urls.containsKey(language)) {
       log.error(marker, "NoSuchLanguageException: " + language + " - " + version);
       throw new NoSuchLanguageException(language);
@@ -57,10 +56,9 @@ public class LanguageService {
 
     ValidateRequest validateRequest = new ValidateRequest(snippet, version);
     log.info(marker, "Validate request: " + validateRequest);
-    
-    ResponseEntity<LanguageResponse> response =
-        client.validate(validateRequest);
-    
+
+    ResponseEntity<LanguageResponse> response = client.validate(validateRequest);
+
     log.info(marker, "Response code: " + response.getStatusCode());
 
     return response.getBody();
