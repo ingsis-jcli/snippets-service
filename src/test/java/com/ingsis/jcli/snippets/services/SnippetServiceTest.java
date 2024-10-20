@@ -1,6 +1,6 @@
 package com.ingsis.jcli.snippets.services;
 
-import static com.ingsis.jcli.snippets.services.BlobStorageService.getUrl;
+import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -77,7 +77,7 @@ class SnippetServiceTest {
     String content = "content";
     Long userId = 123L;
     SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
-    Snippet expected = new Snippet(name, getUrl(snippetDto), userId, languageVersionOk);
+    Snippet expected = new Snippet(name, getBaseUrl(snippetDto), userId, languageVersionOk);
     expected.setId(1L);
     when(snippetRepository.save(any(Snippet.class))).thenReturn(expected);
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
@@ -85,7 +85,7 @@ class SnippetServiceTest {
         .thenReturn(new LanguageSuccess());
     Snippet actualSnippet = snippetService.createSnippet(snippetDto);
     assertEquals(expected, actualSnippet);
-    verify(blobStorageService).uploadSnippet(getUrl(snippetDto), name, content);
+    verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto), name, content);
   }
 
   @Test
@@ -115,8 +115,8 @@ class SnippetServiceTest {
     SnippetDto snippetDto1 = new SnippetDto(initialName, "content", userId, languageOk, versionOk);
     SnippetDto snippetDto2 = new SnippetDto("name2", "content2", 1234L, languageOk, versionOk);
     Snippet initialSnippet =
-        new Snippet(initialName, getUrl(snippetDto1), userId, languageVersionOk);
-    Snippet finalSnippet = new Snippet("name2", getUrl(snippetDto2), 1234L, languageVersionOk);
+        new Snippet(initialName, getBaseUrl(snippetDto1), userId, languageVersionOk);
+    Snippet finalSnippet = new Snippet("name2", getBaseUrl(snippetDto2), 1234L, languageVersionOk);
     finalSnippet.setId(snippetId);
     initialSnippet.setId(snippetId);
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));

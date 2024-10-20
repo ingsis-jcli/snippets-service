@@ -19,7 +19,7 @@ public class BlobStorageService {
     this.bucketClient = bucketClient;
   }
 
-  public static String getUrl(SnippetDto snippetDto) {
+  public static String getBaseUrl(SnippetDto snippetDto) {
     return "snippets/"
         + snippetDto.getLanguage()
         + "-"

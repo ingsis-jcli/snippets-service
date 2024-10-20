@@ -1,6 +1,6 @@
 package com.ingsis.jcli.snippets.controllers;
 
-import static com.ingsis.jcli.snippets.services.BlobStorageService.getUrl;
+import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -107,7 +107,7 @@ class SnippetControllerTest {
   @Test
   void createSnippetSuccess() throws Exception {
     SnippetDto snippetDto = new SnippetDto("name", "content", 123L, language, version);
-    Snippet snippet = new Snippet("name", getUrl(snippetDto), 123L, languageVersion);
+    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto), 123L, languageVersion);
 
     Long id = 1L;
     snippet.setId(id);

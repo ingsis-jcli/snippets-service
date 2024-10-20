@@ -1,6 +1,6 @@
 package com.ingsis.jcli.snippets.services;
 
-import static com.ingsis.jcli.snippets.services.BlobStorageService.getUrl;
+import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
@@ -57,10 +57,10 @@ public class SnippetService {
     }
 
     blobStorageService.uploadSnippet(
-        getUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
+        getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
     Snippet snippet =
         new Snippet(
-            snippetDto.getName(), getUrl(snippetDto), snippetDto.getOwner(), languageVersion);
+            snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
     return snippetRepository.save(snippet);
   }
 
