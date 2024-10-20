@@ -22,9 +22,9 @@ public class BlobStorageService {
   public static String getUrl(SnippetDto snippetDto) {
     return "snippets/"
         + snippetDto.getLanguage()
-        + "/"
+        + "-"
         + snippetDto.getVersion()
-        + "/"
+        + "-"
         + snippetDto.getOwner();
   }
 
