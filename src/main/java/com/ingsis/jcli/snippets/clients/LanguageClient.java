@@ -1,7 +1,8 @@
 package com.ingsis.jcli.snippets.clients;
 
+import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
-import com.ingsis.jcli.snippets.common.responses.ValidateResponse;
+import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,8 @@ public interface LanguageClient {
 
   @GetMapping("hello")
   String hello();
-  
+
   @PostMapping(value = "/validate", consumes = "application/json", produces = "application/json")
-  ResponseEntity<ValidateResponse> validate(@RequestBody ValidateRequest validateRequest);
+  ResponseEntity<ErrorResponse> validate(@RequestBody ValidateRequest validateRequest)
+      throws FeignException;
 }
