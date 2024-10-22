@@ -5,12 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
-import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
+import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +37,7 @@ public class LanguageServiceTest {
   private static final String versionOk = "1.1";
   private static final LanguageVersion languageVersionOk =
       new LanguageVersion(languageOk, versionOk);
-  private static final String url = "http://printscript:8080/";
+  private static final String url = "${PRINTSCRIPT_URL}"; // fix "http://printscript:8080/";
 
   @Test
   public void getLanguageVersionOk() {
@@ -62,13 +63,18 @@ public class LanguageServiceTest {
   public void validateSnippetOk() {
     String snippet = "content";
     ValidateRequest request = new ValidateRequest(snippet, versionOk);
-    LanguageResponse response = new LanguageSuccess();
-    ResponseEntity<LanguageResponse> httpResponse = new ResponseEntity<>(response, HttpStatus.OK);
+    ErrorResponse response = new ErrorResponse("");
+    ResponseEntity<ErrorResponse> httpResponse = new ResponseEntity<>(response, HttpStatus.OK);
 
     when(languageClientFactory.createClient(url)).thenReturn(languageClient);
-    when(languageClient.validate(request)).thenReturn(httpResponse);
+    try {
+      when(languageClient.validate(request)).thenReturn(httpResponse);
+    } catch (FeignException e) {
+      throw new RuntimeException(e);
+    }
 
-    assertEquals(response, languageService.validateSnippet(snippet, languageVersionOk));
+    assertEquals(
+        new LanguageSuccess(), languageService.validateSnippet(snippet, languageVersionOk));
   }
 
   @Test

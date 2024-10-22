@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.repositories.HelloRepository;
 import com.ingsis.jcli.snippets.services.HelloService;
 import java.time.Instant;
@@ -32,6 +34,10 @@ class HelloControllerTest {
   @MockBean private HelloRepository helloRepository;
 
   @MockBean private JwtDecoder jwtDecoder;
+
+  @MockBean private LanguageClientFactory languageClientFactory;
+
+  @MockBean private LanguageClient languageClient;
 
   private Jwt jwt;
 

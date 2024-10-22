@@ -25,9 +25,14 @@ class AuthFeignTests {
   void apply_shouldAddAuthorizationHeader_whenRequestAttributesPresent() {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
     Mockito.when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer test-token");
+    
     RequestAttributes requestAttributes = new ServletRequestAttributes(request);
     RequestContextHolder.setRequestAttributes(requestAttributes);
+    
     RequestTemplate requestTemplate = new RequestTemplate();
+    requestTemplate.header(HttpHeaders.CONTENT_TYPE, "application/json");
+    requestTemplate.uri("/test");
+    
     authFeignInterceptor.apply(requestTemplate);
     assertEquals(
         "Bearer test-token",

@@ -16,7 +16,7 @@ public class AuthFeignInterceptor implements RequestInterceptor {
 
   @Override
   public void apply(RequestTemplate template) {
-    log.info("Intercepting request:" + template);
+    log.info("Intercepting request: " + template.url());
     final RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
     if (requestAttributes != null) {
       final HttpServletRequest httpServletRequest =
@@ -25,6 +25,6 @@ public class AuthFeignInterceptor implements RequestInterceptor {
           HttpHeaders.AUTHORIZATION, httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION));
       log.info("Header added: " + httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION));
     }
-    log.info("Intercepted request:" + template);
+    log.info("Intercepted request: " + template.url());
   }
 }
