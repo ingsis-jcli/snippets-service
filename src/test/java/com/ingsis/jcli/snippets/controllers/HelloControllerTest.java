@@ -88,4 +88,16 @@ class HelloControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().string("Hello from permissions service!"));
   }
+  
+  @Test
+  void testGetHelloFromPrintScript2() throws Exception {
+    when(languageClientFactory.createClient("http://infra-printscript-api:8080/")).thenReturn(languageClient);
+    when(languageClient.hello()).thenReturn("Hello from printscript service!");
+    
+    mockMvc
+        .perform(
+            get("/hello/printscript2").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt)))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Hello from printscript service!"));
+  }
 }
