@@ -44,6 +44,9 @@ dependencies {
 
     // Redis MVC Library
     implementation 'org.austral.ingsis:redis-streams-mvc:0.1.13'
+
+    // Redis reactive
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 dependencyManagement {  // for openfeign
