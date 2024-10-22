@@ -1,4 +1,7 @@
 FROM gradle:8.10.1-jdk21-jammy AS build
+ARG USERNAME
+ARG TOKEN
+RUN git config --global url."https://${USERNAME}:${TOKEN}@github.com/".insteadOf "https://github.com/"
 COPY . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle assemble

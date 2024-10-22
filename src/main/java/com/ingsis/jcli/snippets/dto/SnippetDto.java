@@ -18,17 +18,19 @@ public class SnippetDto {
   @NotNull(message = "Has to have an owner")
   private Long owner;
 
-  // @NotBlank(message = "Has to specify program language")
+  @NotBlank(message = "Has to specify program language")
   private String language;
 
-  // @NotBlank(message = "Has to specify program language's version")
+  @NotBlank(message = "Has to specify program language's version")
   private String version;
 
   public SnippetDto() {}
 
-  public SnippetDto(String name, String content, Long owner) {
+  public SnippetDto(String name, String content, Long owner, String language, String version) {
     this.name = name;
     this.content = content;
     this.owner = owner;
+    this.language = language;
+    this.version = version;
   }
 }

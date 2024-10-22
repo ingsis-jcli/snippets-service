@@ -1,80 +1,93 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.ingsis.jcli.snippets.common.LanguageVersion;
-import com.ingsis.jcli.snippets.models.Language;
-import com.ingsis.jcli.snippets.models.Version;
-import com.ingsis.jcli.snippets.repositories.LanguageRepository;
-import com.ingsis.jcli.snippets.repositories.VersionRepository;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
+import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.clients.factory.FeignException;
+import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
+import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
+import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
+import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.Optional;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
 public class LanguageServiceTest {
 
-  @MockBean private LanguageRepository languageRepository;
-
-  @MockBean private VersionRepository versionRepository;
-
   @Autowired private LanguageService languageService;
 
-  @BeforeEach
-  void setUp() {
-    MockitoAnnotations.openMocks(this);
+  @MockBean private LanguageClientFactory languageClientFactory;
+
+  @MockBean private LanguageClient languageClient;
+
+  @MockBean private JwtDecoder jwtDecoder;
+
+  private static final String languageOk = "printscript";
+  private static final String versionOk = "1.1";
+  private static final LanguageVersion languageVersionOk =
+      new LanguageVersion(languageOk, versionOk);
+  private static final String url = "${PRINTSCRIPT_URL}"; // fix "http://printscript:8080/";
+
+  @Test
+  public void getLanguageVersionOk() {
+    LanguageVersion expected = new LanguageVersion(languageOk, versionOk);
+
+    assertEquals(expected, languageService.getLanguageVersion(languageOk, versionOk));
   }
 
   @Test
-  void testSuccess() {
-    String languageName = "PrintScript";
-    String versionName = "1.0";
-    Language language = new Language();
-    language.setName(languageName);
-    Version version = new Version();
-    version.setVersion(versionName);
-    version.setLanguage(language);
-    language.setVersions(Set.of(version));
-    when(languageRepository.findByName(languageName)).thenReturn(Optional.of(language));
-    when(versionRepository.findByVersionAndLanguage(versionName, language)).thenReturn(Optional.of(version));
-    LanguageVersion result = languageService.getLanguageVersion(languageName, versionName);
-    assertThat(result).isNotNull();
-    assertThat(result.getLanguage()).isEqualTo(language);
-    assertThat(result.getVersion()).isEqualTo(version);
-  }
+  public void getLanguageVersionException() {
+    String language = "java";
+    String version = "8";
 
+    NoSuchLanguageException exception =
+        assertThrows(
+            NoSuchLanguageException.class,
+            () -> languageService.getLanguageVersion(language, version));
 
-  @Test
-  void testLanguageNotFound() {
-    String languageName = "UnknownLanguage";
-    String versionName = "1.0";
-    when(languageRepository.findByName(languageName)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> languageService.getLanguageVersion(languageName, versionName))
-      .isInstanceOf(NoSuchElementException.class)
-      .hasMessageContaining("No language found with name " + languageName);
+    assertEquals(language, exception.getLanguage());
   }
 
   @Test
-  void testVersionNotFound() {
-    String languageName = "PrintScript";
-    String versionName = "UnknownVersion";
-    Language language = new Language();
-    language.setName(languageName);
-    when(languageRepository.findByName(languageName)).thenReturn(Optional.of(language));
-    when(versionRepository.findByVersionAndLanguage(versionName, language)).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> languageService.getLanguageVersion(languageName, versionName))
-      .isInstanceOf(NoSuchElementException.class)
-      .hasMessageContaining("No version found with name " + versionName);
+  public void validateSnippetOk() {
+    String snippet = "content";
+    ValidateRequest request = new ValidateRequest(snippet, versionOk);
+    ErrorResponse response = new ErrorResponse("");
+    ResponseEntity<ErrorResponse> httpResponse = new ResponseEntity<>(response, HttpStatus.OK);
+
+    when(languageClientFactory.createClient(url)).thenReturn(languageClient);
+    try {
+      when(languageClient.validate(request)).thenReturn(httpResponse);
+    } catch (FeignException e) {
+      throw new RuntimeException(e);
+    }
+
+    assertEquals(
+        new LanguageSuccess(), languageService.validateSnippet(snippet, languageVersionOk));
+  }
+
+  @Test
+  public void validateSnippetException() {
+    String snippet = "content";
+    String language = "lua";
+    LanguageVersion languageVersion = new LanguageVersion(language, "123");
+
+    NoSuchLanguageException exception =
+        assertThrows(
+            NoSuchLanguageException.class,
+            () -> languageService.validateSnippet(snippet, languageVersion));
+
+    assertEquals(language, exception.getLanguage());
   }
 }

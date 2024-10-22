@@ -31,11 +31,17 @@ public class SnippetController {
     this.permissionService = permissionService;
   }
 
+  @PostMapping("/hello-bucket")
+  public ResponseEntity<String> helloBucket() {
+    snippetService.helloBucket();
+    return new ResponseEntity<>("Hello Bucket", HttpStatus.OK);
+  }
+
   @GetMapping()
-  public ResponseEntity<Snippet> getSnippet(
+  public ResponseEntity<String> getSnippet(
       @RequestParam Long userId, @RequestParam Long snippetId) {
 
-    Optional<Snippet> snippet = snippetService.getSnippet(snippetId);
+    Optional<String> snippet = snippetService.getSnippet(snippetId);
     if (snippet.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
@@ -49,19 +55,13 @@ public class SnippetController {
     return new ResponseEntity<>(snippet.get(), HttpStatus.OK);
   }
 
-  @PostMapping("create")
+  @PostMapping()
   public ResponseEntity<Long> createSnippet(@RequestBody @Valid SnippetDto snippetDto) {
-
-    Snippet snippet;
-    try {
-      snippet = snippetService.createSnippet(snippetDto);
-    } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    Snippet snippet = snippetService.createSnippet(snippetDto);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
-  @PutMapping("edit")
+  @PutMapping()
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
       @RequestParam Long userId,
@@ -73,12 +73,7 @@ public class SnippetController {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    Snippet snippet;
-    try {
-      snippet = snippetService.editSnippet(snippetId, snippetDto);
-    } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
   }
 }

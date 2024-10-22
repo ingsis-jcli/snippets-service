@@ -7,18 +7,14 @@ plugins {
     id 'com.diffplug.spotless' version '6.21.0'
 }
 
-group = 'com.ingsis.jcli'
-version = '0.0.1-SNAPSHOT'
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
-repositories {
-    mavenCentral()
-}
+group = 'com.ingsis.jcli'
+version = '0.0.1-SNAPSHOT'
 
 ext {
     set('springCloudVersion', "2023.0.3") // for openfeign
@@ -30,6 +26,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    implementation 'io.github.openfeign:feign-gson:12.2'
+
     runtimeOnly 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -38,6 +36,14 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok:1.18.32'
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    // Auth0 Configuration
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // Redis MVC Library
+    implementation 'org.austral.ingsis:redis-streams-mvc:0.1.13'
 }
 
 dependencyManagement {  // for openfeign
@@ -46,55 +52,5 @@ dependencyManagement {  // for openfeign
     }
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport // report is always generated after tests run
-}
-
-//Checkstyle set up
-checkstyle {
-    toolVersion = '10.3.3'
-    ignoreFailures = false
-    maxWarnings = 0
-    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-}
-
-//Coverage set up
-jacoco {
-    toolVersion = "0.8.11"
-}
-
-jacocoTestReport {
-    reports {
-        xml.required = true
-        csv.required = false
-        html.required = true
-        html.outputLocation = file("${buildDir}/jacocoHtml")
-    }
-}
-
-tasks.jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                counter = 'INSTRUCTION'
-                value = 'COVEREDRATIO'
-                minimum = 0.80
-            }
-        }
-    }
-}
-
-tasks.check {
-    dependsOn(tasks.jacocoTestCoverageVerification)
-}
-
-// Code formatting configuration
-spotless {
-    java {
-        googleJavaFormat()
-    }
-    kotlin {
-        ktlint()
-    }
-}
+apply from: 'gradle/repositories.gradle'
+apply from: 'gradle/quality.gradle'

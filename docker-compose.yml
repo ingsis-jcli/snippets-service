@@ -5,7 +5,10 @@ services:
     container_name: "snippets-api"
     build:
       context: .
-      dockerfile: Dockerfile.multi
+      dockerfile: Dockerfile
+      args:
+        USERNAME: "${GITHUB_ACTOR}"
+        TOKEN: "${GITHUB_TOKEN}"
     ports:
       - 8080:8080
     environment:
@@ -15,6 +18,7 @@ services:
       POSTGRES_HOST: "${POSTGRES_HOST}"
       POSTGRES_PORT: "${POSTGRES_PORT}"
       PORT: "${PORT}"
+      PRINTSCRIPT_URL: "${PRINTSCRIPT_URL}"
 
   db:
     container_name: snippets-db

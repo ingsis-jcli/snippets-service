@@ -1,6 +1,10 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.ingsis.jcli.snippets.common.LanguageVersion;
+import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
+
+import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
+import com.ingsis.jcli.snippets.common.language.LanguageResponse;
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
@@ -26,44 +30,60 @@ public class SnippetService {
     this.languageService = languageService;
   }
 
-  public Optional<Snippet> getSnippet(Long snippetId) {
-    return snippetRepository.findSnippetById(snippetId);
+  public void helloBucket() {
+    blobStorageService.uploadSnippet("snippet", "hello.txt", "Hello Bucket");
+  }
+
+  public Optional<String> getSnippet(Long snippetId) {
+    Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOptional.isPresent()) {
+      Snippet snippet = snippetOptional.get();
+      String name = snippet.getName();
+      String url = snippet.getUrl();
+      Optional<String> content = blobStorageService.getSnippet(url, name);
+      return content;
+    }
+    return Optional.empty();
   }
 
   public Snippet createSnippet(SnippetDto snippetDto) {
-    String url = blobStorageService.uploadSnippet(snippetDto.getContent());
+    LanguageVersion languageVersion =
+        languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+    LanguageResponse isValid =
+        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
 
-    Snippet snippet = new Snippet(snippetDto.getName(), url, snippetDto.getOwner());
+    if (isValid.hasError()) {
+      throw new InvalidSnippetException(isValid.getError(), languageVersion);
+    }
+
+    blobStorageService.uploadSnippet(
+        getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
+    Snippet snippet =
+        new Snippet(
+            snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
     return snippetRepository.save(snippet);
   }
 
   public boolean isOwner(Long snippetId, Long userId) {
-    Optional<Snippet> snippet = getSnippet(snippetId);
+    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
     return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
   }
 
-  public SnippetDto convertToDto(Snippet snippet) {
-    String content = blobStorageService.downloadSnippet(snippet.getUrl());
-    return new SnippetDto(snippet.getName(), content, snippet.getOwner());
-  }
-
   public Snippet editSnippet(Long snippetId, SnippetDto snippetDto) {
-    Optional<Snippet> snippet = getSnippet(snippetId);
+    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
     if (snippet.isEmpty()) {
       throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
     }
-
-    snippet.get().setName(snippetDto.getName());
-
-    String newUrl =
-        blobStorageService.updateSnippet(snippet.get().getUrl(), snippetDto.getContent());
-    snippet.get().setUrl(newUrl);
-
     String languageName = snippetDto.getLanguage();
     String versionName = snippetDto.getVersion();
     LanguageVersion languageVersion = languageService.getLanguageVersion(languageName, versionName);
-    snippet.get().setLanguageVersion(languageVersion);
+    LanguageResponse response =
+        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
 
-    return snippetRepository.save(snippet.get());
+    if (response.hasError()) {
+      throw new InvalidSnippetException(response.getError(), languageVersion);
+    }
+    blobStorageService.deleteSnippet(snippet.get().getUrl(), snippet.get().getName());
+    return createSnippet(snippetDto);
   }
 }
