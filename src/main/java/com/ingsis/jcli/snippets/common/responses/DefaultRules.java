@@ -4,4 +4,4 @@ import com.ingsis.jcli.snippets.common.Generated;
 import java.util.List;
 
 @Generated
-public record DefaultRules(List<DeafaultRule> rules) {}
+public record DefaultRules(List<DefaultRule> rules) {}
