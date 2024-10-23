@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.advice;
 
+import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
 import org.springframework.http.HttpStatus;
@@ -24,5 +25,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<String> handleNoSuchLanguageException(
       InvalidSnippetException ex, WebRequest request) {
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(ErrorFetchingClientData.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ResponseEntity<String> handleErrorFetchingClientData(
+      ErrorFetchingClientData ex, WebRequest request) {
+    return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

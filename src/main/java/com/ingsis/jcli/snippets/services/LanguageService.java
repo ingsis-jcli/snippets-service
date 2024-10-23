@@ -4,12 +4,14 @@ import com.google.gson.JsonElement;
 import com.ingsis.jcli.snippets.clients.LanguageClient;
 import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
+import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
 import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
+import com.ingsis.jcli.snippets.common.responses.DefaultRules;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import java.util.Map;
@@ -86,6 +88,42 @@ public class LanguageService {
       String error = jsonError.toString();
       return ResponseEntity.status(e.getResponseEntity().getStatusCode())
           .body(new ErrorResponse(error));
+    }
+  }
+
+  public DefaultRules getFormattingRules(LanguageVersion languageVersion) {
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+    if (!urls.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+    String baseUrl = urls.get(language);
+    LanguageClient client = languageClientFactory.createClient(baseUrl);
+    try {
+      ResponseEntity<DefaultRules> response = client.getFormattingRules(version);
+      return response.getBody();
+    } catch (FeignException e) {
+      JsonElement jsonError = e.getResponseEntity().getBody().get("error");
+      String error = jsonError.toString();
+      throw new ErrorFetchingClientData(error, languageVersion);
+    }
+  }
+
+  public DefaultRules getLintingRules(LanguageVersion languageVersion) {
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+    if (!urls.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+    String baseUrl = urls.get(language);
+    LanguageClient client = languageClientFactory.createClient(baseUrl);
+    try {
+      ResponseEntity<DefaultRules> response = client.getLintingRules(version);
+      return response.getBody();
+    } catch (FeignException e) {
+      JsonElement jsonError = e.getResponseEntity().getBody().get("error");
+      String error = jsonError.toString();
+      throw new ErrorFetchingClientData(error, languageVersion);
     }
   }
 }

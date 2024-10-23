@@ -8,6 +8,8 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,5 +87,23 @@ public class SnippetService {
     }
     blobStorageService.deleteSnippet(snippet.get().getUrl(), snippet.get().getName());
     return createSnippet(snippetDto);
+  }
+
+  public List<SnippetDto> getAllSnippets(String userId) {
+    List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
+    List<SnippetDto> snippetDtos = new ArrayList<>();
+    for (Snippet snippet : snippets) {
+      String content =
+          blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
+      SnippetDto dto =
+          new SnippetDto(
+              snippet.getName(),
+              content,
+              snippet.getOwner(),
+              snippet.getLanguageVersion().getLanguage(),
+              snippet.getLanguageVersion().getVersion());
+      snippetDtos.add(dto);
+    }
+    return snippetDtos;
   }
 }

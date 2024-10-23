@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.clients;
 
 import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
+import com.ingsis.jcli.snippets.common.responses.DefaultRules;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -18,4 +19,16 @@ public interface LanguageClient {
   @PostMapping(value = "/validate", consumes = "application/json", produces = "application/json")
   ResponseEntity<ErrorResponse> validate(@RequestBody ValidateRequest validateRequest)
       throws FeignException;
+
+  @GetMapping(
+      value = "/formatting_rules",
+      consumes = "application/json",
+      produces = "application/json")
+  ResponseEntity<DefaultRules> getFormattingRules(String version) throws FeignException;
+
+  @GetMapping(
+      value = "/linting_rules",
+      consumes = "application/json",
+      produces = "application/json")
+  ResponseEntity<DefaultRules> getLintingRules(String version) throws FeignException;
 }
