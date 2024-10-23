@@ -25,7 +25,7 @@ public class Snippet {
 
   @NotBlank private String url;
 
-  private String owner;
+  @NotBlank private String owner;
 
   @Embedded private LanguageVersion languageVersion;
 
