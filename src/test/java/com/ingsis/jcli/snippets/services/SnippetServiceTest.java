@@ -112,25 +112,25 @@ class SnippetServiceTest {
     Long snippetId = 1L;
     String initialName = "name";
     String userId = "123";
-    
+
     SnippetDto snippetDto1 = new SnippetDto(initialName, "content", userId, languageOk, versionOk);
     SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "1234", languageOk, versionOk);
-    
+
     Snippet initialSnippet =
         new Snippet(initialName, getBaseUrl(snippetDto1), userId, languageVersionOk);
     Snippet finalSnippet = new Snippet("name2", getBaseUrl(snippetDto2), "1234", languageVersionOk);
-    
+
     finalSnippet.setId(snippetId);
     initialSnippet.setId(snippetId);
-    
+
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(snippetDto2.getContent(), languageVersionOk))
         .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
-    
+
     Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2);
-    
+
     verify(blobStorageService).deleteSnippet(initialSnippet.getUrl(), initialSnippet.getName());
     assertEquals(finalSnippet, actualSnippet);
   }
