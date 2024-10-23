@@ -1,8 +1,7 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,16 +55,16 @@ class SnippetControllerTest {
   @Test
   void getSnippetOk() throws Exception {
     Long id = 1L;
-    Long userId = 123L;
+    String userId = "123";
     String expectedSnippetContent = "This is the content of the snippet.";
 
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(true);
     when(snippetService.getSnippet(id)).thenReturn(Optional.of(expectedSnippetContent));
 
     mockMvc
         .perform(
             get(path)
-                .param("userId", userId.toString())
+                .param("userId", userId)
                 .param("snippetId", id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.jwt()))
         .andExpect(status().isOk())
@@ -76,7 +75,7 @@ class SnippetControllerTest {
   void getSnippetNotFound() throws Exception {
     Long id = 1L;
 
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(true);
     when(snippetService.getSnippet(anyLong())).thenReturn(Optional.empty());
 
     mockMvc
@@ -92,7 +91,7 @@ class SnippetControllerTest {
   void getSnippetForbidden() throws Exception {
     Long id = 1L;
 
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(false);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(false);
     when(snippetService.getSnippet(anyLong())).thenReturn(Optional.of(""));
 
     mockMvc
@@ -106,8 +105,8 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetSuccess() throws Exception {
-    SnippetDto snippetDto = new SnippetDto("name", "content", 123L, language, version);
-    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto), 123L, languageVersion);
+    SnippetDto snippetDto = new SnippetDto("name", "content", "123", language, version);
+    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto), "123", languageVersion);
 
     Long id = 1L;
     snippet.setId(id);
@@ -128,7 +127,7 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetFailBlankDto() throws Exception {
-    SnippetDto snippetDto = new SnippetDto("", "", 123L, "", "");
+    SnippetDto snippetDto = new SnippetDto("", "", "123", "", "");
 
     mockMvc
         .perform(
@@ -141,14 +140,14 @@ class SnippetControllerTest {
 
   @Test
   void editSnippetSuccess() throws Exception {
-    Long userId = 123L;
+    String userId = "123";
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     SnippetDto snippetDto = new SnippetDto("name", "content", userId, language, version);
 
     Long id = 1L;
     snippet.setId(id);
 
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(true);
     when(snippetService.editSnippet(id, snippetDto)).thenReturn(snippet);
 
     mockMvc
@@ -156,7 +155,7 @@ class SnippetControllerTest {
             put(path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(snippetDto))
-                .param("userId", userId.toString())
+                .param("userId", userId)
                 .param("snippetId", id.toString())
                 .with(SecurityMockMvcRequestPostProcessors.jwt()))
         .andExpect(status().isOk())
@@ -165,14 +164,14 @@ class SnippetControllerTest {
 
   @Test
   void editSnippetFailForbidden() throws Exception {
-    Long userId = 123L;
+    String userId = "123";
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     SnippetDto snippetDto = new SnippetDto("name", "content", userId, language, version);
 
     Long id = 1L;
     snippet.setId(id);
 
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyLong())).thenReturn(false);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(false);
 
     mockMvc
         .perform(

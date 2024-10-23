@@ -43,7 +43,7 @@ class SnippetServiceTest {
   private static final LanguageVersion languageVersionOk =
       new LanguageVersion(languageOk, versionOk);
   private static final String languageUrl = "http://printscript:8080/";
-  private static final Long userId = 123L;
+  private static final String userId = "123";
 
   @Test
   void getSnippet() {
@@ -75,7 +75,7 @@ class SnippetServiceTest {
   void createSnippetOk() {
     String name = "name";
     String content = "content";
-    Long userId = 123L;
+    String userId = "123";
     SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
     Snippet expected = new Snippet(name, getBaseUrl(snippetDto), userId, languageVersionOk);
     expected.setId(1L);
@@ -111,20 +111,26 @@ class SnippetServiceTest {
   void editSnippetOk() {
     Long snippetId = 1L;
     String initialName = "name";
-    Long userId = 123L;
+    String userId = "123";
+    
     SnippetDto snippetDto1 = new SnippetDto(initialName, "content", userId, languageOk, versionOk);
-    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", 1234L, languageOk, versionOk);
+    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "1234", languageOk, versionOk);
+    
     Snippet initialSnippet =
         new Snippet(initialName, getBaseUrl(snippetDto1), userId, languageVersionOk);
-    Snippet finalSnippet = new Snippet("name2", getBaseUrl(snippetDto2), 1234L, languageVersionOk);
+    Snippet finalSnippet = new Snippet("name2", getBaseUrl(snippetDto2), "1234", languageVersionOk);
+    
     finalSnippet.setId(snippetId);
     initialSnippet.setId(snippetId);
+    
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(snippetDto2.getContent(), languageVersionOk))
         .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
+    
     Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2);
+    
     verify(blobStorageService).deleteSnippet(initialSnippet.getUrl(), initialSnippet.getName());
     assertEquals(finalSnippet, actualSnippet);
   }

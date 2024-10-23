@@ -18,7 +18,7 @@ public class PermissionService {
     this.snippetService = snippetService;
   }
 
-  public boolean hasPermissionOnSnippet(PermissionType type, Long snippetId, Long userId) {
+  public boolean hasPermissionOnSnippet(PermissionType type, Long snippetId, String userId) {
     if (snippetService.isOwner(snippetId, userId)) {
       return true;
     }

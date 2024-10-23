@@ -16,7 +16,7 @@ public class SnippetDto {
   private String content;
 
   @NotNull(message = "Has to have an owner")
-  private Long owner;
+  private String owner;
 
   @NotBlank(message = "Has to specify program language")
   private String language;
@@ -26,7 +26,7 @@ public class SnippetDto {
 
   public SnippetDto() {}
 
-  public SnippetDto(String name, String content, Long owner, String language, String version) {
+  public SnippetDto(String name, String content, String owner, String language, String version) {
     this.name = name;
     this.content = content;
     this.owner = owner;

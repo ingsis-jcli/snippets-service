@@ -64,7 +64,7 @@ public class SnippetService {
     return snippetRepository.save(snippet);
   }
 
-  public boolean isOwner(Long snippetId, Long userId) {
+  public boolean isOwner(Long snippetId, String userId) {
     Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
     return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
   }

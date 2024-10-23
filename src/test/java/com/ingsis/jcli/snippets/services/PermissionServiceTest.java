@@ -35,7 +35,7 @@ public class PermissionServiceTest {
   @Test
   public void hasPermissionOwner() {
     Long snippetId = 1L;
-    Long userId = 123L;
+    String userId = "123";
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(snippetId);
 
@@ -47,8 +47,8 @@ public class PermissionServiceTest {
   @Test
   public void hasPermissionOther() {
     Long snippetId = 1L;
-    Long ownerId = 345L;
-    Long userId = 123L;
+    String ownerId = "345";
+    String userId = "123";
     Snippet snippet = new Snippet("name", "url", ownerId, languageVersion);
     snippet.setId(snippetId);
 
@@ -64,8 +64,8 @@ public class PermissionServiceTest {
   @Test
   public void hasPermissionFalse() {
     Long snippetId = 1L;
-    Long ownerId = 345L;
-    Long userId = 123L;
+    String ownerId = "345";
+    String userId = "123";
     Snippet snippet = new Snippet("name", "url", ownerId, languageVersion);
     snippet.setId(snippetId);
 
@@ -81,8 +81,8 @@ public class PermissionServiceTest {
   @Test
   public void hasPermissionErrorResponse() {
     Long snippetId = 1L;
-    Long ownerId = 345L;
-    Long userId = 123L;
+    String ownerId = "345";
+    String userId = "123";
     Snippet snippet = new Snippet("name", "url", ownerId, languageVersion);
     snippet.setId(snippetId);
 

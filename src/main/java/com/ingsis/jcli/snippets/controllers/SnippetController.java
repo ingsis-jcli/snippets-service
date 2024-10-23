@@ -39,7 +39,7 @@ public class SnippetController {
 
   @GetMapping()
   public ResponseEntity<String> getSnippet(
-      @RequestParam Long userId, @RequestParam Long snippetId) {
+      @RequestParam String userId, @RequestParam Long snippetId) {
 
     Optional<String> snippet = snippetService.getSnippet(snippetId);
     if (snippet.isEmpty()) {
@@ -47,7 +47,7 @@ public class SnippetController {
     }
 
     boolean hasPermission =
-        permissionService.hasPermissionOnSnippet(PermissionType.READ, userId, snippetId);
+        permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId);
     if (!hasPermission) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
@@ -64,11 +64,11 @@ public class SnippetController {
   @PutMapping()
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
-      @RequestParam Long userId,
+      @RequestParam String userId,
       @RequestParam Long snippetId) {
 
     boolean hasPermission =
-        permissionService.hasPermissionOnSnippet(PermissionType.WRITE, userId, snippetId);
+        permissionService.hasPermissionOnSnippet(PermissionType.WRITE, snippetId, userId);
     if (!hasPermission) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }

@@ -25,13 +25,13 @@ public class Snippet {
 
   @NotBlank private String url;
 
-  private Long owner;
+  private String owner;
 
   @Embedded private LanguageVersion languageVersion;
 
   public Snippet() {}
 
-  public Snippet(String name, String url, Long owner, LanguageVersion languageVersion) {
+  public Snippet(String name, String url, String owner, LanguageVersion languageVersion) {
     this.name = name;
     this.url = url;
     this.owner = owner;
