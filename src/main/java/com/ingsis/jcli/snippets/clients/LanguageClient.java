@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(value = "language")
 public interface LanguageClient {
@@ -30,5 +31,6 @@ public interface LanguageClient {
       value = "/linting_rules",
       consumes = "application/json",
       produces = "application/json")
-  ResponseEntity<DefaultRules> getLintingRules(String version) throws FeignException;
+  ResponseEntity<DefaultRules> getLintingRules(@RequestParam("version") String version)
+      throws FeignException;
 }
