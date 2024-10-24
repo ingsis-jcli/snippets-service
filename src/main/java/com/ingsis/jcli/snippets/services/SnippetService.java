@@ -5,6 +5,7 @@ import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -62,20 +63,19 @@ public class SnippetService {
 
   public Snippet createSnippet(SnippetDto snippetDto) {
     LanguageVersion languageVersion =
-        languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+      languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+    blobStorageService.uploadSnippet(
+      getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
+    Snippet snippet =
+      new Snippet(
+        snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
+    snippetRepository.save(snippet);
     LanguageResponse isValid =
-        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
-
+        languageService.validateSnippet(snippet, languageVersion);
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
-
-    blobStorageService.uploadSnippet(
-        getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
-    Snippet snippet =
-        new Snippet(
-            snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
-    return snippetRepository.save(snippet);
+    return snippet;
   }
 
   public boolean isOwner(Long snippetId, String userId) {
@@ -88,16 +88,6 @@ public class SnippetService {
     if (snippet.isEmpty()) {
       throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
     }
-    String languageName = snippetDto.getLanguage();
-    String versionName = snippetDto.getVersion();
-    LanguageVersion languageVersion = languageService.getLanguageVersion(languageName, versionName);
-    LanguageResponse response =
-        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
-
-    if (response.hasError()) {
-      throw new InvalidSnippetException(response.getError(), languageVersion);
-    }
-    blobStorageService.deleteSnippet(snippet.get().getUrl(), snippet.get().getName());
     return createSnippet(snippetDto);
   }
 
@@ -159,11 +149,27 @@ public class SnippetService {
     return snippets.stream().map(this::getSnippetDto).toList();
   }
 
-  public void lintUsersSnippets(String userId, LanguageVersion languageVersion) {
+  public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
-    snippets.stream()
-        .map(this::getSnippetDto)
-        .forEach(s -> lintSnippetsProducer.lint(s, rules));
+    for (Snippet snippet : snippets) {
+      lintSnippetsProducer.lint(snippet, getRuleDtosFromRules(rules));
+    }
+  }
+
+  public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
+    List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
+    List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    for (Snippet snippet : snippets) {
+      lintSnippetsProducer.lint(snippet, getRuleDtosFromRules(rules));
+    }
+  }
+
+  public List<RuleDto> getRuleDtosFromRules(List<Rule> rules) {
+    List<RuleDto> ruleDtos = new ArrayList<>();
+    for (Rule rule : rules) {
+      ruleDtos.add(new RuleDto(rule.isActive(), rule.getName(), rule.getValue()));
+    }
+    return ruleDtos;
   }
 }

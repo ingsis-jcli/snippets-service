@@ -1,12 +1,7 @@
 package com.ingsis.jcli.snippets.services;
 
-import com.google.gson.JsonElement;
-import com.ingsis.jcli.snippets.clients.LanguageClient;
 import com.ingsis.jcli.snippets.clients.LanguageRestClient;
 import com.ingsis.jcli.snippets.clients.LanguageRestTemplateFactory;
-import com.ingsis.jcli.snippets.clients.factory.FeignException;
-import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
-import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
 import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
@@ -18,26 +13,25 @@ import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import java.util.List;
 import java.util.Map;
+
+import com.ingsis.jcli.snippets.dto.SnippetDto;
+import com.ingsis.jcli.snippets.models.Snippet;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class LanguageService {
-  private final LanguageClientFactory languageClientFactory;
   private final Map<String, String> urls;
   private final LanguageRestTemplateFactory languageRestTemplateFactory;
 
   @Autowired
   public LanguageService(
-      LanguageClientFactory languageClientFactory,
       LanguageUrlProperties languageUrlProperties,
       LanguageRestTemplateFactory languageRestTemplateFactory) {
-    this.languageClientFactory = languageClientFactory;
     this.languageRestTemplateFactory = languageRestTemplateFactory;
     this.urls = languageUrlProperties.getUrls();
   }
@@ -50,9 +44,9 @@ public class LanguageService {
     return new LanguageVersion(languageName, versionName);
   }
 
-  public LanguageResponse validateSnippet(String snippet, LanguageVersion languageVersion) {
+  public LanguageResponse validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Validate");
-    log.info(marker, "Validating snippet: " + snippet);
+    log.info(marker, "Validating snippet: " + snippet.getName());
 
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
@@ -64,55 +58,36 @@ public class LanguageService {
     }
 
     String baseUrl = urls.get(language);
-    LanguageClient client = languageClientFactory.createClient(baseUrl);
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     log.info(marker, "Client base url: " + baseUrl);
 
-    ValidateRequest validateRequest = new ValidateRequest(snippet, version);
+    ValidateRequest validateRequest = new ValidateRequest(snippet.getName(), snippet.getUrl(), version);
     log.info(marker, "Validate request: " + validateRequest);
 
-    ResponseEntity<ErrorResponse> response = validate(client, validateRequest);
+    ErrorResponse response = client.validate(validateRequest);
+
     log.info(marker, "Response: " + response);
-    log.info(marker, "Response code: " + response.getStatusCode());
-    log.info(marker, "Response body: " + response.getBody());
 
-    return getResponse(response);
-  }
-
-  public LanguageResponse getResponse(ResponseEntity<ErrorResponse> response) {
-    if (response.getStatusCode().is2xxSuccessful()) {
+    if (response.error() == null) {
       return new LanguageSuccess();
     }
-    return new LanguageError(response.getBody().error());
-  }
-
-  public ResponseEntity<ErrorResponse> validate(
-      LanguageClient client, ValidateRequest validateRequest) {
-    try {
-      return client.validate(validateRequest);
-    } catch (FeignException e) {
-      JsonElement jsonError = e.getResponseEntity().getBody().get("error");
-      String error = jsonError.toString();
-      return ResponseEntity.status(e.getResponseEntity().getStatusCode())
-          .body(new ErrorResponse(error));
-    }
+    return new LanguageError(response.error());
   }
 
   public List<DefaultRule> getFormattingRules(LanguageVersion languageVersion) {
+    Marker marker = MarkerFactory.getMarker("Get Rules");
+    log.info(marker, "Getting rules for language version: " + languageVersion);
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
     String baseUrl = urls.get(language);
-    LanguageClient client = languageClientFactory.createClient(baseUrl);
-    try {
-      ResponseEntity<List<DefaultRule>> response = client.getFormattingRules(version);
-      return response.getBody();
-    } catch (FeignException e) {
-      JsonElement jsonError = e.getResponseEntity().getBody().get("error");
-      String error = jsonError.toString();
-      throw new ErrorFetchingClientData(error, languageVersion);
-    }
+    log.info(marker, "Base url: " + baseUrl);
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
+    List<DefaultRule> response = client.getFormattingRules(version);
+    log.info(marker, "Response from language: " + response);
+    return response;
   }
 
   public List<DefaultRule> getLintingRules(LanguageVersion languageVersion) {

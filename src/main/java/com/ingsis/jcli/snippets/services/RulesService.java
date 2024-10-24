@@ -43,7 +43,6 @@ public class RulesService {
   }
 
   public void updateLintingRules(String userId, List<Rule> rules) {
-    // Update the rules for the user
     Optional<LintingRules> lintingRules = lintingRulesRepository.findByUserId(userId);
     if (lintingRules.isPresent()) {
       lintingRules.get().setRules(rules);
@@ -55,7 +54,6 @@ public class RulesService {
   }
 
   public void updateFormattingRules(String userId, List<Rule> rules) {
-    // Update the rules for the user
     Optional<FormattingRules> formattingRules = formattingRulesRepository.findAllByUserId(userId);
     if (formattingRules.isPresent()) {
       formattingRules.get().setRules(rules);
@@ -63,11 +61,6 @@ public class RulesService {
     } else {
       FormattingRules newFormattingRules = new FormattingRules(userId, rules);
       formattingRulesRepository.save(newFormattingRules);
-    }
-    // Request all snippets to be formatted
-    List<SnippetDto> snippets = snippetService.getAllSnippets(userId);
-    for (SnippetDto snippetDto : snippets) {
-      formatSnippetsProducer.format(snippetDto, rules);
     }
   }
 
@@ -91,22 +84,23 @@ public class RulesService {
     return lintingRules.getRules();
   }
 
-  public FormattingRules getFormattingRules(String userId, String language, String version) {
+  public List<Rule> getFormattingRules(String userId, LanguageVersion languageVersion) {
     Optional<FormattingRules> rules = formattingRulesRepository.findAllByUserId(userId);
     if (rules.isPresent()) {
-      return rules.get();
+      return rules.get().getRules();
     }
-    LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
-    List<DefaultRule> defaultRules = languageService.getFormattingRules(languageVersion);
 
+    List<DefaultRule> defaultRules = languageService.getFormattingRules(languageVersion);
     List<Rule> ruleEntities =
       defaultRules.stream()
         .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
         .collect(Collectors.toList());
 
     ruleRepository.saveAll(ruleEntities);
+
     FormattingRules formattingRules = new FormattingRules(userId, ruleEntities);
     formattingRulesRepository.save(formattingRules);
-    return formattingRules;
+
+    return formattingRules.getRules();
   }
 }

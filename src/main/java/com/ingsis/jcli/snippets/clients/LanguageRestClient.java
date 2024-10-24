@@ -1,10 +1,12 @@
 package com.ingsis.jcli.snippets.clients;
 
+import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import java.util.List;
+
+import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 public class LanguageRestClient {
@@ -35,4 +37,15 @@ public class LanguageRestClient {
 
     return response.getBody();
   }
+
+  public ErrorResponse validate(ValidateRequest validateRequest) {
+    String url = String.format("%s/validate", baseUrl);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<ValidateRequest> requestEntity = new HttpEntity<>(validateRequest, headers);
+    ResponseEntity<ErrorResponse> response =
+      restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
+    return response.getBody();
+  }
+
 }

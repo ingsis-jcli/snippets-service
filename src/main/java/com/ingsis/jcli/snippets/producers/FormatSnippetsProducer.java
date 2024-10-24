@@ -19,6 +19,6 @@ public class FormatSnippetsProducer extends JavaRedisStreamProducer {
   }
 
   public void format(SnippetDto snippetDto, List<Rule> rules) {
-    emit(new FormatRequest(snippetDto, rules));
+    //emit(new FormatRequest(snippetDto, rules));
   }
 }
