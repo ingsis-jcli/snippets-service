@@ -103,10 +103,14 @@ public class RulesService {
     } else {
       LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
       List<DefaultRule> defaultRules = languageService.getFormattingRules(languageVersion);
+
       List<Rule> ruleEntities =
           defaultRules.stream()
               .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
               .collect(Collectors.toList());
+
+      ruleRepository.saveAll(ruleEntities);
+
       FormattingRules formattingRules = new FormattingRules(userId, ruleEntities);
       formattingRulesRepository.save(formattingRules);
       return formattingRules;
