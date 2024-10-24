@@ -110,15 +110,20 @@ public class LanguageService {
   }
 
   public DefaultRules getLintingRules(LanguageVersion languageVersion) {
+    Marker marker = MarkerFactory.getMarker("Get Rules");
+    log.info(marker, "Getting rules for language version: " + languageVersion);
+
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
     String baseUrl = urls.get(language);
+    log.info(marker, "Base url: " + baseUrl);
     LanguageClient client = languageClientFactory.createClient(baseUrl);
     try {
       ResponseEntity<DefaultRules> response = client.getLintingRules(version);
+
       return response.getBody();
     } catch (FeignException e) {
       JsonElement jsonError = e.getResponseEntity().getBody().get("error");
