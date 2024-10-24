@@ -88,7 +88,7 @@ public class RulesService {
       DefaultRules defaultRules = languageService.getLintingRules(languageVersion);
       List<Rule> ruleEntities =
           defaultRules.rules().stream()
-              .map(ruleDto -> new Rule(ruleDto.getName(), ruleDto.isActive(), ruleDto.getValue()))
+              .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
               .collect(Collectors.toList());
       LintingRules lintingRules = new LintingRules(userId, ruleEntities);
       lintingRulesRepository.save(lintingRules);
@@ -105,7 +105,7 @@ public class RulesService {
       DefaultRules defaultRules = languageService.getFormattingRules(languageVersion);
       List<Rule> ruleEntities =
           defaultRules.rules().stream()
-              .map(ruleDto -> new Rule(ruleDto.getName(), ruleDto.isActive(), ruleDto.getValue()))
+              .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
               .collect(Collectors.toList());
       FormattingRules formattingRules = new FormattingRules(userId, ruleEntities);
       formattingRulesRepository.save(formattingRules);

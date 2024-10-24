@@ -33,7 +33,9 @@ public class LanguageService {
 
   @Autowired
   public LanguageService(
-      LanguageClientFactory languageClientFactory, LanguageUrlProperties languageUrlProperties, LanguageRestTemplateFactory languageRestTemplateFactory) {
+      LanguageClientFactory languageClientFactory,
+      LanguageUrlProperties languageUrlProperties,
+      LanguageRestTemplateFactory languageRestTemplateFactory) {
     this.languageClientFactory = languageClientFactory;
     this.languageRestTemplateFactory = languageRestTemplateFactory;
     this.urls = languageUrlProperties.getUrls();

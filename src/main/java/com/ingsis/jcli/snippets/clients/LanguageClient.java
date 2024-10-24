@@ -27,10 +27,7 @@ public interface LanguageClient {
       produces = "application/json")
   ResponseEntity<DefaultRules> getFormattingRules(String version) throws FeignException;
 
-  @GetMapping(
-      value = "/linting_rules",
-      produces = "application/json")
+  @GetMapping(value = "/linting_rules", produces = "application/json")
   ResponseEntity<DefaultRules> getLintingRules(@RequestParam("version") String version)
       throws FeignException;
-
 }
