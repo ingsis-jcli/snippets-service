@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.services;
 
 import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,9 @@ public class PermissionService {
       return false;
     }
     return response.getBody() != null && response.getBody();
+  }
+
+  public List<Long> getSnippetsSharedWithUser(String userId) {
+    return permissionsClient.getSnippetsSharedWithUser(userId).getBody();
   }
 }

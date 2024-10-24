@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.clients;
 
+import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,4 +22,7 @@ public interface PermissionsClient {
   @RequestMapping(method = RequestMethod.POST, value = "/permissions/create")
   ResponseEntity<String> addSnippet(
       @RequestParam("snippetId") Long snippetId, @RequestParam("userId") String userId);
+
+  @RequestMapping(method = RequestMethod.GET, value = "/permissions/user")
+  ResponseEntity<List<Long>> getSnippetsSharedWithUser(@RequestParam("userId") String userId);
 }

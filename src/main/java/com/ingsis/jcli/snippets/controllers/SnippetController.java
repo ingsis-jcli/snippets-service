@@ -6,6 +6,7 @@ import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import jakarta.validation.Valid;
+import java.util.Collection;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -75,5 +76,17 @@ public class SnippetController {
 
     Snippet snippet = snippetService.editSnippet(snippetId, snippetDto);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
+  }
+
+  @GetMapping("/search")
+  public ResponseEntity<Collection<SnippetDto>> searchSnippet(
+      @RequestParam(value = "page", defaultValue = "0") int page,
+      @RequestParam(value = "size", defaultValue = "10") int pageSize,
+      @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
+      @RequestParam(value = "shared", defaultValue = "true") boolean isShared,
+      @RequestParam("isValid") Optional<Boolean> isValid,
+      @RequestParam("name") Optional<String> name,
+      @RequestParam("language") Optional<String> language) {
+    return null;
   }
 }

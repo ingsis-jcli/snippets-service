@@ -8,28 +8,32 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
+import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SnippetService {
 
-  final SnippetRepository snippetRepository;
-  final BlobStorageService blobStorageService;
-  final LanguageService languageService;
+  private final SnippetRepository snippetRepository;
+  private final BlobStorageService blobStorageService;
+  private final LanguageService languageService;
+  private final PermissionService permissionService;
 
   @Autowired
   public SnippetService(
       SnippetRepository snippetRepository,
       BlobStorageService blobStorageService,
-      LanguageService languageService) {
+      LanguageService languageService,
+      PermissionService permissionService) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
+    this.permissionService = permissionService;
   }
 
   public void helloBucket() {
@@ -91,19 +95,59 @@ public class SnippetService {
 
   public List<SnippetDto> getAllSnippets(String userId) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
-    List<SnippetDto> snippetDtos = new ArrayList<>();
-    for (Snippet snippet : snippets) {
-      String content =
-          blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
-      SnippetDto dto =
-          new SnippetDto(
-              snippet.getName(),
-              content,
-              snippet.getOwner(),
-              snippet.getLanguageVersion().getLanguage(),
-              snippet.getLanguageVersion().getVersion());
-      snippetDtos.add(dto);
+    return snippets.stream().map(this::getSnippetDto).toList();
+  }
+
+  public SnippetDto getSnippetDto(Snippet snippet) {
+    String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
+    return new SnippetDto(
+        snippet.getName(),
+        content,
+        snippet.getOwner(),
+        snippet.getLanguageVersion().getLanguage(),
+        snippet.getLanguageVersion().getVersion());
+  }
+
+  public List<SnippetDto> getSnippetBy(
+      String userId,
+      int page,
+      int pageSize,
+      boolean isOwner,
+      boolean isShared,
+      Optional<Boolean> isValid,
+      Optional<String> name,
+      Optional<String> language) {
+
+    Pageable pageable = PageRequest.of(page, pageSize);
+
+    List<Specification<Snippet>> specs = new ArrayList<>();
+
+    Specification<Snippet> spec =
+        isOwner
+            ? SnippetSpecifications.isOwner(userId)
+            : Specification.not(SnippetSpecifications.isOwner(userId));
+    specs.add(spec);
+
+    if (isShared) {
+      List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
+      specs.add(SnippetSpecifications.isShared(sharedWithUser));
+      spec =
+          isShared
+              ? SnippetSpecifications.isShared(sharedWithUser)
+              : Specification.not(SnippetSpecifications.isShared(sharedWithUser));
+      specs.add(spec);
     }
-    return snippetDtos;
+
+    // TODO: isValid
+
+    name.ifPresent(match -> specs.add(SnippetSpecifications.nameHasWordThatStartsWith(match)));
+
+    language.ifPresent(lang -> specs.add(SnippetSpecifications.isLanguage(lang)));
+
+    Specification<Snippet> finalSpec = specs.stream().reduce(Specification::and).orElse(null);
+
+    List<Snippet> snippets = snippetRepository.findAll(finalSpec, pageable).getContent();
+
+    return snippets.stream().map(this::getSnippetDto).toList();
   }
 }
