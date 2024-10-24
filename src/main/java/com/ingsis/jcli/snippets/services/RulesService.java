@@ -1,7 +1,7 @@
 package com.ingsis.jcli.snippets.services;
 
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
-import com.ingsis.jcli.snippets.common.responses.DefaultRules;
+import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.FormattingRules;
 import com.ingsis.jcli.snippets.models.LintingRules;
@@ -85,9 +85,9 @@ public class RulesService {
       return rules.get();
     } else {
       LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
-      DefaultRules defaultRules = languageService.getLintingRules(languageVersion);
+      List<DefaultRule> defaultRules = languageService.getLintingRules(languageVersion);
       List<Rule> ruleEntities =
-          defaultRules.rules().stream()
+          defaultRules.stream()
               .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
               .collect(Collectors.toList());
       LintingRules lintingRules = new LintingRules(userId, ruleEntities);
@@ -102,9 +102,9 @@ public class RulesService {
       return rules.get();
     } else {
       LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
-      DefaultRules defaultRules = languageService.getFormattingRules(languageVersion);
+      List<DefaultRule> defaultRules = languageService.getFormattingRules(languageVersion);
       List<Rule> ruleEntities =
-          defaultRules.rules().stream()
+          defaultRules.stream()
               .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
               .collect(Collectors.toList());
       FormattingRules formattingRules = new FormattingRules(userId, ruleEntities);

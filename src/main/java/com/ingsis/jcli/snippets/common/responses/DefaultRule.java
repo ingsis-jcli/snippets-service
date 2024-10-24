@@ -1,3 +1,8 @@
 package com.ingsis.jcli.snippets.common.responses;
 
-public record DefaultRule(String name, boolean isActive, String value) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record DefaultRule(
+    @JsonProperty("name") String name,
+    @JsonProperty("isActive") boolean isActive,
+    @JsonProperty("value") String value) {}

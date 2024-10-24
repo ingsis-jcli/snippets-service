@@ -2,8 +2,9 @@ package com.ingsis.jcli.snippets.clients;
 
 import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
-import com.ingsis.jcli.snippets.common.responses.DefaultRules;
+import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
+import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,9 +26,9 @@ public interface LanguageClient {
       value = "/formatting_rules",
       consumes = "application/json",
       produces = "application/json")
-  ResponseEntity<DefaultRules> getFormattingRules(String version) throws FeignException;
+  ResponseEntity<List<DefaultRule>> getFormattingRules(String version) throws FeignException;
 
   @GetMapping(value = "/linting_rules", produces = "application/json")
-  ResponseEntity<DefaultRules> getLintingRules(@RequestParam("version") String version)
+  ResponseEntity<List<DefaultRule>> getLintingRules(@RequestParam("version") String version)
       throws FeignException;
 }

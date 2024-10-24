@@ -13,9 +13,10 @@ import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
-import com.ingsis.jcli.snippets.common.responses.DefaultRules;
+import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
+import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
@@ -96,7 +97,7 @@ public class LanguageService {
     }
   }
 
-  public DefaultRules getFormattingRules(LanguageVersion languageVersion) {
+  public List<DefaultRule> getFormattingRules(LanguageVersion languageVersion) {
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
     if (!urls.containsKey(language)) {
@@ -105,7 +106,7 @@ public class LanguageService {
     String baseUrl = urls.get(language);
     LanguageClient client = languageClientFactory.createClient(baseUrl);
     try {
-      ResponseEntity<DefaultRules> response = client.getFormattingRules(version);
+      ResponseEntity<List<DefaultRule>> response = client.getFormattingRules(version);
       return response.getBody();
     } catch (FeignException e) {
       JsonElement jsonError = e.getResponseEntity().getBody().get("error");
@@ -114,7 +115,7 @@ public class LanguageService {
     }
   }
 
-  public DefaultRules getLintingRules(LanguageVersion languageVersion) {
+  public List<DefaultRule> getLintingRules(LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Get Rules");
     log.info(marker, "Getting rules for language version: " + languageVersion);
 
@@ -126,7 +127,7 @@ public class LanguageService {
     String baseUrl = urls.get(language);
     log.info(marker, "Base url: " + baseUrl);
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
-    DefaultRules response = client.getLintingRules(version);
+    List<DefaultRule> response = client.getLintingRules(version);
     log.info(marker, "Response from language: " + response);
     return response;
   }

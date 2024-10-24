@@ -17,7 +17,6 @@ import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.DefaultRule;
-import com.ingsis.jcli.snippets.common.responses.DefaultRules;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -105,28 +104,27 @@ public class LanguageServiceTest {
 
   @Test
   public void getFormattingRules() throws FeignException {
-    DefaultRules expectedRules =
-        new DefaultRules(
-            List.of(
-                new DefaultRule("declaration_space_before_colon", true, null),
-                new DefaultRule("declaration_space_after_colon", true, null)));
-    ResponseEntity<DefaultRules> httpResponse = new ResponseEntity<>(expectedRules, HttpStatus.OK);
+    List<DefaultRule> expectedRules =
+        List.of(
+            new DefaultRule("declaration_space_before_colon", true, null),
+            new DefaultRule("declaration_space_after_colon", true, null));
+    ResponseEntity<List<DefaultRule>> httpResponse =
+        new ResponseEntity<>(expectedRules, HttpStatus.OK);
     when(languageClientFactory.createClient(url)).thenReturn(languageClient);
     when(languageClient.getFormattingRules("1.1")).thenReturn(httpResponse);
-    DefaultRules result = languageService.getFormattingRules(languageVersionOk);
+    List<DefaultRule> result = languageService.getFormattingRules(languageVersionOk);
     assertEquals(expectedRules, result);
   }
 
   @Test
   public void getLintingRules() throws FeignException {
-    DefaultRules expectedRules =
-        new DefaultRules(
-            List.of(
-                new DefaultRule("declaration_space_before_colon", true, null),
-                new DefaultRule("declaration_space_after_colon", true, null)));
+    List<DefaultRule> expectedRules =
+        List.of(
+            new DefaultRule("declaration_space_before_colon", true, null),
+            new DefaultRule("declaration_space_after_colon", true, null));
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.getLintingRules("1.1")).thenReturn(expectedRules);
-    DefaultRules result = languageService.getLintingRules(languageVersionOk);
+    List<DefaultRule> result = languageService.getLintingRules(languageVersionOk);
     assertEquals(expectedRules, result);
   }
 
