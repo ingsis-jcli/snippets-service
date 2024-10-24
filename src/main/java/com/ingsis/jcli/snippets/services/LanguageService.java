@@ -123,6 +123,8 @@ public class LanguageService {
     LanguageClient client = languageClientFactory.createClient(baseUrl);
     try {
       ResponseEntity<DefaultRules> response = client.getLintingRules(version);
+      log.info(marker, "Response from languahe: " + response);
+      log.info(marker, "Rules from languahe: " + response.getBody());
 
       return response.getBody();
     } catch (FeignException e) {
