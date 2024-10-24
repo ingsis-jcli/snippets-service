@@ -2,6 +2,8 @@ package com.ingsis.jcli.snippets.services;
 
 import com.google.gson.JsonElement;
 import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.clients.LanguageRestClient;
+import com.ingsis.jcli.snippets.clients.LanguageRestTemplateFactory;
 import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
@@ -27,12 +29,13 @@ import org.springframework.stereotype.Service;
 public class LanguageService {
   private final LanguageClientFactory languageClientFactory;
   private final Map<String, String> urls;
+  private final LanguageRestTemplateFactory languageRestTemplateFactory;
 
   @Autowired
   public LanguageService(
-      LanguageClientFactory languageClientFactory, LanguageUrlProperties languageUrlProperties) {
+      LanguageClientFactory languageClientFactory, LanguageUrlProperties languageUrlProperties, LanguageRestTemplateFactory languageRestTemplateFactory) {
     this.languageClientFactory = languageClientFactory;
-
+    this.languageRestTemplateFactory = languageRestTemplateFactory;
     this.urls = languageUrlProperties.getUrls();
   }
 
@@ -120,17 +123,9 @@ public class LanguageService {
     }
     String baseUrl = urls.get(language);
     log.info(marker, "Base url: " + baseUrl);
-    LanguageClient client = languageClientFactory.createClient(baseUrl);
-    try {
-      ResponseEntity<DefaultRules> response = client.getLintingRules(version);
-      log.info(marker, "Response from languahe: " + response);
-      log.info(marker, "Rules from languahe: " + response.getBody());
-
-      return response.getBody();
-    } catch (FeignException e) {
-      JsonElement jsonError = e.getResponseEntity().getBody().get("error");
-      String error = jsonError.toString();
-      throw new ErrorFetchingClientData(error, languageVersion);
-    }
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
+    DefaultRules response = client.getLintingRules(version);
+    log.info(marker, "Response from language: " + response);
+    return response;
   }
 }
