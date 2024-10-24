@@ -23,7 +23,6 @@ public class RulesService {
   final LintingRulesRepository lintingRulesRepository;
   final RuleRepository ruleRepository;
   final LanguageService languageService;
-  final SnippetService snippetService;
   final LintSnippetsProducer lintSnippetsProducer;
   final FormatSnippetsProducer formatSnippetsProducer;
 
@@ -33,14 +32,12 @@ public class RulesService {
       LintingRulesRepository lintingRulesRepository,
       LanguageService languageService,
       RuleRepository ruleRepository,
-      SnippetService snippetService,
       LintSnippetsProducer lintSnippetsProducer,
       FormatSnippetsProducer formatSnippetsProducer) {
     this.formattingRulesRepository = formattingRulesRepository;
     this.lintingRulesRepository = lintingRulesRepository;
     this.languageService = languageService;
     this.ruleRepository = ruleRepository;
-    this.snippetService = snippetService;
     this.lintSnippetsProducer = lintSnippetsProducer;
     this.formatSnippetsProducer = formatSnippetsProducer;
   }
@@ -54,11 +51,6 @@ public class RulesService {
     } else {
       LintingRules newLintingRules = new LintingRules(userId, rules);
       lintingRulesRepository.save(newLintingRules);
-    }
-    // Request all snippets to be linted
-    List<SnippetDto> snippets = snippetService.getAllSnippets(userId);
-    for (SnippetDto snippetDto : snippets) {
-      lintSnippetsProducer.lint(snippetDto, rules);
     }
   }
 
@@ -79,21 +71,24 @@ public class RulesService {
     }
   }
 
-  public LintingRules getLintingRules(String userId, String language, String version) {
+  public List<Rule> getLintingRules(String userId, LanguageVersion languageVersion) {
     Optional<LintingRules> rules = lintingRulesRepository.findByUserId(userId);
     if (rules.isPresent()) {
-      return rules.get();
+      return rules.get().getRules();
     }
-    LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
+
     List<DefaultRule> defaultRules = languageService.getLintingRules(languageVersion);
     List<Rule> ruleEntities =
       defaultRules.stream()
         .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
         .collect(Collectors.toList());
+
     ruleRepository.saveAll(ruleEntities);
+
     LintingRules lintingRules = new LintingRules(userId, ruleEntities);
     lintingRulesRepository.save(lintingRules);
-    return lintingRules;
+
+    return lintingRules.getRules();
   }
 
   public FormattingRules getFormattingRules(String userId, String language, String version) {

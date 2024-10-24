@@ -6,7 +6,9 @@ import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
+import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
 import java.util.*;
@@ -23,17 +25,23 @@ public class SnippetService {
   private final BlobStorageService blobStorageService;
   private final LanguageService languageService;
   private final PermissionService permissionService;
+  private final RulesService rulesService;
+  private final LintSnippetsProducer lintSnippetsProducer;
 
   @Autowired
   public SnippetService(
       SnippetRepository snippetRepository,
       BlobStorageService blobStorageService,
       LanguageService languageService,
-      PermissionService permissionService) {
+      PermissionService permissionService,
+      RulesService rulesService,
+      LintSnippetsProducer lintSnippetsProducer) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
     this.permissionService = permissionService;
+    this.rulesService = rulesService;
+    this.lintSnippetsProducer = lintSnippetsProducer;
   }
 
   public void helloBucket() {
@@ -149,5 +157,13 @@ public class SnippetService {
     List<Snippet> snippets = snippetRepository.findAll(finalSpec, pageable).getContent();
 
     return snippets.stream().map(this::getSnippetDto).toList();
+  }
+
+  public void lintUsersSnippets(String userId, LanguageVersion languageVersion) {
+    List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
+    List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    snippets.stream()
+        .map(this::getSnippetDto)
+        .forEach(s -> lintSnippetsProducer.lint(s, rules));
   }
 }
