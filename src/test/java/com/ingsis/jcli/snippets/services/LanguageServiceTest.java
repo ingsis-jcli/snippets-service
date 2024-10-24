@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.gson.JsonObject;
 import com.ingsis.jcli.snippets.clients.LanguageClient;
+import com.ingsis.jcli.snippets.clients.LanguageRestClient;
+import com.ingsis.jcli.snippets.clients.LanguageRestTemplateFactory;
 import com.ingsis.jcli.snippets.clients.factory.FeignException;
 import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
@@ -35,7 +37,11 @@ public class LanguageServiceTest {
 
   @MockBean private LanguageClientFactory languageClientFactory;
 
+  @MockBean private LanguageRestTemplateFactory languageRestTemplateFactory;
+
   @MockBean private LanguageClient languageClient;
+
+  @MockBean private LanguageRestClient languageRestClient;
 
   @MockBean private JwtDecoder jwtDecoder;
 
@@ -118,9 +124,8 @@ public class LanguageServiceTest {
             List.of(
                 new DefaultRule("declaration_space_before_colon", true, null),
                 new DefaultRule("declaration_space_after_colon", true, null)));
-    ResponseEntity<DefaultRules> httpResponse = new ResponseEntity<>(expectedRules, HttpStatus.OK);
-    when(languageClientFactory.createClient(url)).thenReturn(languageClient);
-    when(languageClient.getLintingRules("1.1")).thenReturn(httpResponse);
+    when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
+    when(languageRestClient.getLintingRules("1.1")).thenReturn(expectedRules);
     DefaultRules result = languageService.getLintingRules(languageVersionOk);
     assertEquals(expectedRules, result);
   }
@@ -159,21 +164,6 @@ public class LanguageServiceTest {
         assertThrows(
             ErrorFetchingClientData.class,
             () -> languageService.getFormattingRules(languageVersionOk));
-  }
-
-  @Test
-  public void getLintingRulesFeignException() throws FeignException {
-    when(languageClientFactory.createClient(url)).thenReturn(languageClient);
-    JsonObject errorPayload = new JsonObject();
-    errorPayload.addProperty("error", "Internal server error");
-    ResponseEntity<JsonObject> errorResponseEntity =
-        new ResponseEntity<>(errorPayload, HttpStatus.INTERNAL_SERVER_ERROR);
-    FeignException feignException = new FeignException(errorResponseEntity);
-    when(languageClient.getLintingRules("1.1")).thenThrow(feignException);
-    ErrorFetchingClientData exception =
-        assertThrows(
-            ErrorFetchingClientData.class,
-            () -> languageService.getLintingRules(languageVersionOk));
   }
 
   @Test
