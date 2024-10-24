@@ -3,6 +3,7 @@ package com.ingsis.jcli.snippets.controllers;
 import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,13 +25,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/snippet")
 public class SnippetController {
 
-  final SnippetService snippetService;
-  final PermissionService permissionService;
+  private final SnippetService snippetService;
+  private final PermissionService permissionService;
+  private final JwtService jwtService;
 
   @Autowired
-  public SnippetController(SnippetService snippetService, PermissionService permissionService) {
+  public SnippetController(
+      SnippetService snippetService, PermissionService permissionService, JwtService jwtService) {
     this.snippetService = snippetService;
     this.permissionService = permissionService;
+    this.jwtService = jwtService;
   }
 
   @PostMapping("/hello-bucket")
@@ -40,7 +45,10 @@ public class SnippetController {
 
   @GetMapping()
   public ResponseEntity<String> getSnippet(
-      @RequestParam String userId, @RequestParam Long snippetId) {
+      @RequestParam Long snippetId,
+      @RequestHeader("Authorization") String token) {
+
+    String userId = jwtService.extractUserId(token);
 
     Optional<String> snippet = snippetService.getSnippet(snippetId);
     if (snippet.isEmpty()) {
@@ -57,7 +65,12 @@ public class SnippetController {
   }
 
   @PostMapping()
-  public ResponseEntity<Long> createSnippet(@RequestBody @Valid SnippetDto snippetDto) {
+  public ResponseEntity<Long> createSnippet(
+      @RequestBody @Valid SnippetDto snippetDto,
+      @RequestHeader("Authorization") String token) {
+
+    String userId = jwtService.extractUserId(token);
+
     Snippet snippet = snippetService.createSnippet(snippetDto);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
@@ -65,8 +78,10 @@ public class SnippetController {
   @PutMapping()
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
-      @RequestParam String userId,
-      @RequestParam Long snippetId) {
+      @RequestParam Long snippetId,
+      @RequestHeader(name="Authorization") String token) {
+
+    String userId = jwtService.extractUserId(token);
 
     boolean hasPermission =
         permissionService.hasPermissionOnSnippet(PermissionType.WRITE, snippetId, userId);
@@ -86,7 +101,11 @@ public class SnippetController {
       @RequestParam(value = "shared", defaultValue = "true") boolean isShared,
       @RequestParam("isValid") Optional<Boolean> isValid,
       @RequestParam("name") Optional<String> name,
-      @RequestParam("language") Optional<String> language) {
+      @RequestParam("language") Optional<String> language,
+      @RequestHeader("Authorization") String token) {
+
+    String userId = jwtService.extractUserId(token);
+
     return null;
   }
 }

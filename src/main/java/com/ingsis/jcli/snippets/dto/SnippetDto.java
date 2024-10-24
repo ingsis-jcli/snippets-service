@@ -15,7 +15,6 @@ public class SnippetDto {
   @NotNull(message = "Content cannot be null")
   private String content;
 
-  @NotNull(message = "Has to have an owner")
   private String owner;
 
   @NotBlank(message = "Has to specify program language")
