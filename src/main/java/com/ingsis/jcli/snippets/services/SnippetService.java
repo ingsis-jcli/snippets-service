@@ -6,6 +6,7 @@ import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -120,13 +121,13 @@ public class SnippetService {
         snippet.getLanguageVersion().getVersion());
   }
 
-  public List<SnippetDto> getSnippetBy(
+  public List<SnippetDto> getSnippetsBy(
       String userId,
       int page,
       int pageSize,
       boolean isOwner,
       boolean isShared,
-      Optional<Boolean> isValid,
+      Optional<ProcessStatus> lintingStatus,
       Optional<String> name,
       Optional<String> language) {
 
@@ -140,17 +141,16 @@ public class SnippetService {
             : Specification.not(SnippetSpecifications.isOwner(userId));
     specs.add(spec);
 
-    if (isShared) {
-      List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
-      specs.add(SnippetSpecifications.isShared(sharedWithUser));
-      spec =
-          isShared
-              ? SnippetSpecifications.isShared(sharedWithUser)
-              : Specification.not(SnippetSpecifications.isShared(sharedWithUser));
-      specs.add(spec);
-    }
+    List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
+    specs.add(SnippetSpecifications.isShared(sharedWithUser));
+    spec =
+        isShared
+            ? SnippetSpecifications.isShared(sharedWithUser)
+            : Specification.not(SnippetSpecifications.isShared(sharedWithUser));
+    specs.add(spec);
 
-    // TODO: isValid
+    lintingStatus.ifPresent(
+        status -> specs.add(SnippetSpecifications.snippetsLintingStatusIs(status)));
 
     name.ifPresent(match -> specs.add(SnippetSpecifications.nameHasWordThatStartsWith(match)));
 

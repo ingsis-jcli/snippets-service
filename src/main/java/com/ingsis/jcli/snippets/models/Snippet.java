@@ -33,7 +33,7 @@ public class Snippet {
   @NotBlank private String owner;
 
   @Embedded private LanguageVersion languageVersion;
-  
+
   @Embedded private Status status;
 
   @OneToMany(mappedBy = "snippet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.specifications;
 
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.models.Snippet;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,5 +30,8 @@ public class SnippetSpecifications {
     };
   }
 
-  // TODO: validation spec
+  public static Specification<Snippet> snippetsLintingStatusIs(ProcessStatus status) {
+    return (root, query, criteriaBuilder) ->
+        criteriaBuilder.equal(root.get("status").get("linting"), status);
+  }
 }

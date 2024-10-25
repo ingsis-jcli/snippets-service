@@ -1,13 +1,14 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import jakarta.validation.Valid;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -92,18 +93,21 @@ public class SnippetController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<Collection<SnippetDto>> searchSnippet(
+  public ResponseEntity<List<SnippetDto>> getSnippetsBy(
       @RequestParam(value = "page", defaultValue = "0") int page,
       @RequestParam(value = "size", defaultValue = "10") int pageSize,
       @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
       @RequestParam(value = "shared", defaultValue = "true") boolean isShared,
-      @RequestParam("isValid") Optional<Boolean> isValid,
+      @RequestParam("lintingStatus") Optional<ProcessStatus> lintingStatus,
       @RequestParam("name") Optional<String> name,
       @RequestParam("language") Optional<String> language,
       @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
+    List<SnippetDto> snippets =
+        snippetService.getSnippetsBy(
+            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
 
-    return null;
+    return new ResponseEntity<>(snippets, HttpStatus.OK);
   }
 }
