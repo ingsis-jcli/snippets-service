@@ -7,8 +7,8 @@ import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
-import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -73,7 +73,7 @@ public class LanguageService {
     return new LanguageError(response.error());
   }
 
-  public List<DefaultRule> getFormattingRules(LanguageVersion languageVersion) {
+  public List<RuleDto> getFormattingRules(LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Get Rules");
     log.info(marker, "Getting rules for language version: " + languageVersion);
 
@@ -87,13 +87,13 @@ public class LanguageService {
     log.info(marker, "Base url: " + baseUrl);
 
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
-    List<DefaultRule> response = client.getFormattingRules(version);
+    List<RuleDto> response = client.getFormattingRules(version);
     log.info(marker, "Response from language: " + response);
 
     return response;
   }
 
-  public List<DefaultRule> getLintingRules(LanguageVersion languageVersion) {
+  public List<RuleDto> getLintingRules(LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Get Rules");
     log.info(marker, "Getting rules for language version: " + languageVersion);
 
@@ -107,7 +107,7 @@ public class LanguageService {
     log.info(marker, "Base url: " + baseUrl);
 
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
-    List<DefaultRule> response = client.getLintingRules(version);
+    List<RuleDto> response = client.getLintingRules(version);
     log.info(marker, "Response from language: " + response);
 
     return response;

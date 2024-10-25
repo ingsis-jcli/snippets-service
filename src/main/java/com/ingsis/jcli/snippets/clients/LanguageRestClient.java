@@ -1,7 +1,7 @@
 package com.ingsis.jcli.snippets.clients;
 
+import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
-import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
@@ -22,21 +22,21 @@ public class LanguageRestClient {
     this.baseUrl = baseUrl;
   }
 
-  public List<DefaultRule> getLintingRules(String version) {
+  public List<RuleDto> getLintingRules(String version) {
     String url = String.format("%s/linting_rules?version=%s", baseUrl, version);
 
-    ResponseEntity<List<DefaultRule>> response =
+    ResponseEntity<List<RuleDto>> response =
         restTemplate.exchange(
-            url, HttpMethod.GET, null, new ParameterizedTypeReference<List<DefaultRule>>() {});
+            url, HttpMethod.GET, null, new ParameterizedTypeReference<List<RuleDto>>() {});
 
     return response.getBody();
   }
 
-  public List<DefaultRule> getFormattingRules(String version) {
+  public List<RuleDto> getFormattingRules(String version) {
     String url = String.format("%s/formatting_rules?version=%s", baseUrl, version);
-    ResponseEntity<List<DefaultRule>> response =
+    ResponseEntity<List<RuleDto>> response =
         restTemplate.exchange(
-            url, HttpMethod.GET, null, new ParameterizedTypeReference<List<DefaultRule>>() {});
+            url, HttpMethod.GET, null, new ParameterizedTypeReference<List<RuleDto>>() {});
 
     return response.getBody();
   }
