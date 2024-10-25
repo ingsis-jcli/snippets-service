@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.models;
 
 import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.status.Status;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -32,6 +33,8 @@ public class Snippet {
   @NotBlank private String owner;
 
   @Embedded private LanguageVersion languageVersion;
+  
+  @Embedded private Status status;
 
   @OneToMany(mappedBy = "snippet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<TestCase> testCases;
