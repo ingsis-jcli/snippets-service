@@ -112,7 +112,8 @@ class SnippetServiceTest {
         .thenReturn(new LanguageError(errorMessage));
 
     InvalidSnippetException exception =
-        assertThrows(InvalidSnippetException.class, () -> snippetService.createSnippet(snippetDto, userId));
+        assertThrows(
+            InvalidSnippetException.class, () -> snippetService.createSnippet(snippetDto, userId));
 
     assertEquals(errorMessage, exception.getError());
     assertEquals(languageVersionOk, exception.getLanguageVersion());
@@ -161,6 +162,7 @@ class SnippetServiceTest {
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.empty());
 
     assertThrows(
-        NoSuchElementException.class, () -> snippetService.editSnippet(snippetId, snippetDto, userId));
+        NoSuchElementException.class,
+        () -> snippetService.editSnippet(snippetId, snippetDto, userId));
   }
 }

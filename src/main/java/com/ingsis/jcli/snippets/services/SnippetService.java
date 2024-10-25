@@ -78,8 +78,7 @@ public class SnippetService {
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
 
     Snippet snippet =
-        new Snippet(
-            snippetDto.getName(), getBaseUrl(snippetDto, userId), userId, languageVersion);
+        new Snippet(snippetDto.getName(), getBaseUrl(snippetDto, userId), userId, languageVersion);
 
     snippetRepository.save(snippet);
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);

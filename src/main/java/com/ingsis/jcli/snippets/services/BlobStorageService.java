@@ -20,12 +20,7 @@ public class BlobStorageService {
   }
 
   public static String getBaseUrl(SnippetDto snippetDto, String userId) {
-    return "snippets/"
-        + snippetDto.getLanguage()
-        + "-"
-        + snippetDto.getVersion()
-        + "-"
-        + userId;
+    return "snippets/" + snippetDto.getLanguage() + "-" + snippetDto.getVersion() + "-" + userId;
   }
 
   public void uploadSnippet(String container, String name, String content) {
