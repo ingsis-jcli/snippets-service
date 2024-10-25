@@ -14,6 +14,7 @@ import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
@@ -192,7 +193,13 @@ public class LanguageServiceTest {
     LanguageVersion languageVersion = new LanguageVersion(languageOk, versionOk);
     Snippet snippet = new Snippet("SnippetName", "SnippetUrl", "UserId", languageVersion);
     TestCase testCase =
-        new TestCase(snippet, "Test Case", List.of("input1"), List.of("output1"), TestType.VALID);
+        new TestCase(
+            snippet,
+            "Test Case",
+            List.of("input1"),
+            List.of("output1"),
+            TestType.VALID,
+            TestState.PENDING);
 
     TestCaseRequest request =
         new TestCaseRequest(
@@ -200,8 +207,8 @@ public class LanguageServiceTest {
 
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.runTestCase(request)).thenReturn(TestType.VALID);
-    boolean result = languageService.runTestCase(testCase);
-    assertEquals(true, result);
+    TestState result = languageService.runTestCase(testCase);
+    assertEquals(TestState.SUCCESS, result);
   }
 
   @Test
@@ -209,7 +216,13 @@ public class LanguageServiceTest {
     LanguageVersion invalidVersion = new LanguageVersion("unknownLanguage", versionOk);
     Snippet snippet = new Snippet("SnippetName", "SnippetUrl", "UserId", invalidVersion);
     TestCase testCase =
-        new TestCase(snippet, "Test Case", List.of("input1"), List.of("output1"), TestType.VALID);
+        new TestCase(
+            snippet,
+            "Test Case",
+            List.of("input1"),
+            List.of("output1"),
+            TestType.VALID,
+            TestState.PENDING);
 
     NoSuchLanguageException exception =
         assertThrows(
@@ -226,7 +239,13 @@ public class LanguageServiceTest {
     LanguageVersion languageVersion = new LanguageVersion(languageOk, versionOk);
     Snippet snippet = new Snippet("SnippetName", "SnippetUrl", "UserId", languageVersion);
     TestCase testCase =
-        new TestCase(snippet, "Test Case", List.of("input1"), List.of("output1"), TestType.VALID);
+        new TestCase(
+            snippet,
+            "Test Case",
+            List.of("input1"),
+            List.of("output1"),
+            TestType.VALID,
+            TestState.PENDING);
 
     TestCaseRequest request =
         new TestCaseRequest(
@@ -235,8 +254,8 @@ public class LanguageServiceTest {
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.runTestCase(request)).thenReturn(TestType.INVALID);
 
-    boolean result = languageService.runTestCase(testCase);
+    TestState result = languageService.runTestCase(testCase);
 
-    assertEquals(false, result);
+    assertEquals(TestState.FAILURE, result);
   }
 }

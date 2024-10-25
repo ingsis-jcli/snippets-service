@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.services;
 
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -25,12 +26,18 @@ public class TestCaseService {
             testCaseDto.name(),
             testCaseDto.input(),
             testCaseDto.output(),
-            testCaseDto.type());
+            testCaseDto.type(),
+            TestState.PENDING);
     testCaseRepository.save(testCase);
     return testCase.getId();
   }
 
   public Optional<TestCase> getTestCase(Long id) {
     return testCaseRepository.findById(id);
+  }
+
+  public void updateTestCaseState(TestCase testCase, TestState testState) {
+    testCase.setState(testState);
+    testCaseRepository.save(testCase);
   }
 }

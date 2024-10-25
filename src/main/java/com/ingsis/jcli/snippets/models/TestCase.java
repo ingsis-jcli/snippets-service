@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.models;
 
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -33,14 +34,22 @@ public class TestCase {
 
   @NotNull private TestType type;
 
+  @NotNull private TestState state;
+
   public TestCase() {}
 
   public TestCase(
-      Snippet snippet, String name, List<String> inputs, List<String> outputs, TestType type) {
+      Snippet snippet,
+      String name,
+      List<String> inputs,
+      List<String> outputs,
+      TestType type,
+      TestState state) {
     this.snippet = snippet;
     this.name = name;
     this.inputs = inputs;
     this.outputs = outputs;
     this.type = type;
+    this.state = state;
   }
 }

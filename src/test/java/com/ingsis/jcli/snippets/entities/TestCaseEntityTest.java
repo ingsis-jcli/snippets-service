@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.entities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -18,12 +19,14 @@ class TestCaseEntityTest {
     List<String> inputs = Arrays.asList("input1", "input2");
     List<String> outputs = Arrays.asList("output1", "output2");
     TestType type = TestType.VALID;
+    TestState state = TestState.PENDING;
 
-    TestCase testCase = new TestCase(snippet, name, inputs, outputs, type);
+    TestCase testCase = new TestCase(snippet, name, inputs, outputs, type, state);
 
     assertEquals(name, testCase.getName());
     assertEquals(inputs, testCase.getInputs());
     assertEquals(outputs, testCase.getOutputs());
     assertEquals(type, testCase.getType());
+    assertEquals(state, testCase.getState());
   }
 }

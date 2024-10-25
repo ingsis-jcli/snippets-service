@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -183,12 +184,12 @@ class TestCaseControllerTest {
     when(jwtService.extractUserId(token)).thenReturn("userId");
     when(testCaseService.getTestCase(testCaseId)).thenReturn(Optional.of(testCase));
     when(permissionService.hasPermissionOnSnippet(any(), any(), any())).thenReturn(true);
-    when(languageService.runTestCase(testCase)).thenReturn(true);
+    when(languageService.runTestCase(testCase)).thenReturn(TestState.SUCCESS);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
         .perform(get("/test-case/" + testCaseId).header("Authorization", token))
         .andExpect(status().isOk())
-        .andExpect(content().string("true"));
+        .andExpect(content().string("\"" + TestState.SUCCESS.toString() + "\""));
   }
 }

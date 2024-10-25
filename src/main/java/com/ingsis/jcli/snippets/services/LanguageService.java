@@ -9,6 +9,7 @@ import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
@@ -116,7 +117,7 @@ public class LanguageService {
     return response;
   }
 
-  public boolean runTestCase(TestCase testCase) {
+  public TestState runTestCase(TestCase testCase) {
     LanguageVersion languageVersion = testCase.getSnippet().getLanguageVersion();
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
@@ -137,6 +138,9 @@ public class LanguageService {
     TestType result =
         client.runTestCase(new TestCaseRequest(snippetName, url, version, input, output));
 
-    return result.equals(testCase.getType());
+    if (result.equals(testCase.getType())) {
+      return TestState.SUCCESS;
+    }
+    return TestState.FAILURE;
   }
 }

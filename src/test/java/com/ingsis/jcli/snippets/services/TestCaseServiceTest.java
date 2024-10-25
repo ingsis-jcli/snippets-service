@@ -4,6 +4,7 @@ import static org.hibernate.validator.internal.util.Contracts.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -43,7 +44,8 @@ class TestCaseServiceTest {
             "Test Case",
             Arrays.asList("input1"),
             Arrays.asList("output1"),
-            TestType.VALID);
+            TestType.VALID,
+            TestState.PENDING);
     when(testCaseRepository.save(testCase)).thenReturn(testCase);
 
     Long id = testCaseService.createTestCase(testCaseDto, snippet);
@@ -62,7 +64,8 @@ class TestCaseServiceTest {
             "Test Case",
             Arrays.asList("input1"),
             Arrays.asList("output1"),
-            TestType.VALID);
+            TestType.VALID,
+            TestState.PENDING);
     testCase.setId(testCaseId);
 
     when(testCaseRepository.findById(testCaseId)).thenReturn(Optional.of(testCase));

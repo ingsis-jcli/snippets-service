@@ -1,6 +1,7 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -73,17 +74,18 @@ public class TestsController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Boolean> runTestCase(
+  public ResponseEntity<TestState> runTestCase(
       @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
     String userId = jwtService.extractUserId(token);
 
-    Optional<TestCase> testCase = testCaseService.getTestCase(id);
+    Optional<TestCase> testCaseOp = testCaseService.getTestCase(id);
 
-    if (testCase.isEmpty()) {
+    if (testCaseOp.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+    TestCase testCase = testCaseOp.get();
 
-    Long snippetId = testCase.get().getSnippet().getId();
+    Long snippetId = testCase.getSnippet().getId();
 
     boolean hasPermission =
         permissionService.hasPermissionOnSnippet(PermissionType.EXECUTE, snippetId, userId);
@@ -92,7 +94,9 @@ public class TestsController {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    boolean testCaseResult = languageService.runTestCase(testCase.get());
+    TestState testCaseResult = languageService.runTestCase(testCase);
+
+    testCaseService.updateTestCaseState(testCase, testCaseResult);
 
     return new ResponseEntity<>(testCaseResult, HttpStatus.OK);
   }
