@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -48,12 +49,12 @@ public class LanguageRestClient {
     HttpEntity<ValidateRequest> requestEntity = new HttpEntity<>(validateRequest, headers);
     ResponseEntity<ErrorResponse> response =
         restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
-    System.out.println("Request Headers: " + headers);
+    if (response.getStatusCode() == HttpStatus.OK) {
+      return new ErrorResponse("");
+    }
     if (response.getBody() == null) {
       return new ErrorResponse("No response received");
     }
-    System.out.println("Response Headers: " + response.getHeaders());
-
     return response.getBody();
   }
 }
