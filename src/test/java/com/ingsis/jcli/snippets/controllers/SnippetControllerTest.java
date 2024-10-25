@@ -71,7 +71,7 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(true);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.of(expectedSnippetContent));
+    when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(expectedSnippetContent));
     when(jwtDecoder.decode(anyString()))
         .thenReturn(mockJwt); // Mock JwtDecoder to return the mockJwt
 
@@ -95,7 +95,7 @@ class SnippetControllerTest {
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(permissionService.hasPermissionOnSnippet(PermissionType.READ, id, userId))
         .thenReturn(true);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.empty());
+    when(snippetService.getSnippetContent(id)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
@@ -116,7 +116,7 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(false);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.of(""));
+    when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(""));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc

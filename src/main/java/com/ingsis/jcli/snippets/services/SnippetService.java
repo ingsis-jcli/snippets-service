@@ -56,18 +56,21 @@ public class SnippetService {
     blobStorageService.uploadSnippet("snippet", "hello.txt", "Hello Bucket");
   }
 
-  public Optional<String> getSnippet(Long snippetId) {
-
+  public Optional<String> getSnippetContent(Long snippetId) {
     Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
     if (snippetOptional.isEmpty()) {
       return Optional.empty();
     }
-
     Snippet snippet = snippetOptional.get();
     String name = snippet.getName();
     String url = snippet.getUrl();
     Optional<String> content = blobStorageService.getSnippet(url, name);
     return content;
+  }
+
+  public Optional<Snippet> getSnippet(Long snippetId) {
+    Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
+    return snippetOptional;
   }
 
   public Snippet createSnippet(SnippetDto snippetDto, String userId) {

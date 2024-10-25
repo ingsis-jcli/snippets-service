@@ -56,7 +56,7 @@ class SnippetServiceTest {
     when(blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()))
         .thenReturn(Optional.of("Snippet content"));
 
-    Optional<String> result = snippetService.getSnippet(id);
+    Optional<String> result = snippetService.getSnippetContent(id);
     assertTrue(result.isPresent());
     assertEquals("Snippet content", result.get());
   }
@@ -66,7 +66,7 @@ class SnippetServiceTest {
     Long id = 1L;
 
     when(snippetRepository.findSnippetById(id)).thenReturn(Optional.empty());
-    Optional<String> result = snippetService.getSnippet(id);
+    Optional<String> result = snippetService.getSnippetContent(id);
     assertTrue(result.isEmpty());
   }
 

@@ -2,13 +2,17 @@ package com.ingsis.jcli.snippets.models;
 
 import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import lombok.Data;
 
 @Generated
@@ -28,6 +32,9 @@ public class Snippet {
   @NotBlank private String owner;
 
   @Embedded private LanguageVersion languageVersion;
+
+  @OneToMany(mappedBy = "snippet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<TestCase> testCases;
 
   public Snippet() {}
 

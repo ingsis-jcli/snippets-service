@@ -49,7 +49,7 @@ public class SnippetController {
 
     String userId = jwtService.extractUserId(token);
 
-    Optional<String> snippet = snippetService.getSnippet(snippetId);
+    Optional<String> snippet = snippetService.getSnippetContent(snippetId);
     if (snippet.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
