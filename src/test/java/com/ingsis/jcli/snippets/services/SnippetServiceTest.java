@@ -42,7 +42,6 @@ class SnippetServiceTest {
   private static final String versionOk = "1.1";
   private static final LanguageVersion languageVersionOk =
       new LanguageVersion(languageOk, versionOk);
-  private static final String languageUrl = "http://printscript:8080/";
   private static final String userId = "123";
 
   @Test
@@ -73,19 +72,26 @@ class SnippetServiceTest {
 
   @Test
   void createSnippetOk() {
+    Long snippetId = 1L;
     String name = "name";
     String content = "content";
     String userId = "123";
-    
+
     SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
     Snippet expected = new Snippet(name, getBaseUrl(snippetDto), userId, languageVersionOk);
     expected.setId(1L);
-    
-    when(snippetRepository.save(any(Snippet.class))).thenReturn(expected);
+
+    when(snippetRepository.save(any(Snippet.class)))
+        .thenAnswer(
+            invocation -> {
+              Snippet savedSnippet = invocation.getArgument(0);
+              savedSnippet.setId(snippetId);
+              return savedSnippet;
+            });
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(expected, languageVersionOk))
+    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
-    
+
     Snippet actualSnippet = snippetService.createSnippet(snippetDto);
     assertEquals(expected, actualSnippet);
     verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto), name, content);
@@ -101,7 +107,8 @@ class SnippetServiceTest {
     Snippet snippet = new Snippet(name, "url", userId, languageVersionOk);
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(snippet, languageVersionOk))
+
+    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageError(errorMessage));
 
     InvalidSnippetException exception =
@@ -115,27 +122,34 @@ class SnippetServiceTest {
   void editSnippetOk() {
     Long snippetId = 1L;
     String initialName = "name";
+    String initialUrl = "snippets/printscript-1.1-123";
     String userId = "123";
 
-    SnippetDto snippetDto1 = new SnippetDto(initialName, "content", userId, languageOk, versionOk);
-    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "1234", languageOk, versionOk);
-
-    Snippet initialSnippet =
-        new Snippet(initialName, getBaseUrl(snippetDto1), userId, languageVersionOk);
-    Snippet finalSnippet = new Snippet("name2", getBaseUrl(snippetDto2), "1234", languageVersionOk);
-
-    finalSnippet.setId(snippetId);
+    Snippet initialSnippet = new Snippet(initialName, initialUrl, userId, languageVersionOk);
     initialSnippet.setId(snippetId);
+
+    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "1234", languageOk, versionOk);
+    String newUrl = getBaseUrl(snippetDto2);
+
+    Snippet finalSnippet = new Snippet("name2", newUrl, "1234", languageVersionOk);
+    finalSnippet.setId(snippetId);
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(finalSnippet, languageVersionOk))
+    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
-    when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
+    when(snippetRepository.save(any(Snippet.class)))
+        .thenAnswer(
+            invocation -> {
+              Snippet savedSnippet = invocation.getArgument(0);
+              savedSnippet.setId(snippetId);
+              return savedSnippet;
+            });
 
     Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2);
 
-    verify(blobStorageService).deleteSnippet(initialSnippet.getUrl(), initialSnippet.getName());
+    verify(blobStorageService).uploadSnippet(newUrl, "name2", "content2");
+
     assertEquals(finalSnippet, actualSnippet);
   }
 

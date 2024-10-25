@@ -12,7 +12,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/rules")
@@ -39,12 +45,12 @@ public class RuleController {
       @RequestParam(value = "language", defaultValue = "printscript") String language,
       @RequestParam(value = "version", defaultValue = "1.1") String version,
       @RequestHeader("Authorization") String token) {
-    
+
     String userId = jwtService.extractUserId(token);
-    
+
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
-    
+
     return new ResponseEntity<>(rules, HttpStatus.OK);
   }
 
@@ -53,12 +59,12 @@ public class RuleController {
       @RequestParam(value = "language", defaultValue = "printscript") String language,
       @RequestParam(value = "version", defaultValue = "1.1") String version,
       @RequestHeader("Authorization") String token) {
-    
+
     String userId = jwtService.extractUserId(token);
-    
+
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
-    
+
     return new ResponseEntity<>(rules, HttpStatus.OK);
   }
 
@@ -68,13 +74,13 @@ public class RuleController {
       @RequestParam(value = "language", defaultValue = "printscript") String language,
       @RequestParam(value = "version", defaultValue = "1.1") String version,
       @RequestHeader("Authorization") String token) {
-    
+
     String userId = jwtService.extractUserId(token);
-    
+
     rulesService.updateFormattingRules(rulesDto.getUserId(), rulesDto.getRules());
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     snippetService.lintUserSnippets(userId, languageVersion);
-    
+
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

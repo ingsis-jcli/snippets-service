@@ -32,17 +32,18 @@ public class PermissionServiceTest {
 
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
 
-//  @Test
-//  public void hasPermissionOwner() {
-//    Long snippetId = 1L;
-//    String userId = "123";
-//    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
-//    snippet.setId(snippetId);
-//
-//    when(snippetService.isOwner(snippetId, userId)).thenReturn(true);
-//
-//    assertTrue(permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId));
-//  }
+  //  @Test
+  //  public void hasPermissionOwner() {
+  //    Long snippetId = 1L;
+  //    String userId = "123";
+  //    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
+  //    snippet.setId(snippetId);
+  //
+  //    when(snippetService.isOwner(snippetId, userId)).thenReturn(true);
+  //
+  //    assertTrue(permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId,
+  // userId));
+  //  }
 
   @Test
   public void hasPermissionOther() {

@@ -76,20 +76,20 @@ public class LanguageService {
   public List<DefaultRule> getFormattingRules(LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Get Rules");
     log.info(marker, "Getting rules for language version: " + languageVersion);
-    
+
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
-    
+
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
     String baseUrl = urls.get(language);
     log.info(marker, "Base url: " + baseUrl);
-    
+
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     List<DefaultRule> response = client.getFormattingRules(version);
     log.info(marker, "Response from language: " + response);
-    
+
     return response;
   }
 
@@ -99,17 +99,17 @@ public class LanguageService {
 
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
-    
+
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
     String baseUrl = urls.get(language);
     log.info(marker, "Base url: " + baseUrl);
-    
+
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     List<DefaultRule> response = client.getLintingRules(version);
     log.info(marker, "Response from language: " + response);
-    
+
     return response;
   }
 }

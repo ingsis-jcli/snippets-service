@@ -13,7 +13,10 @@ import com.ingsis.jcli.snippets.producers.FormatSnippetsProducer;
 import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,12 +57,12 @@ public class SnippetService {
   }
 
   public Optional<String> getSnippet(Long snippetId) {
-    
+
     Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
     if (snippetOptional.isEmpty()) {
       return Optional.empty();
     }
-    
+
     Snippet snippet = snippetOptional.get();
     String name = snippet.getName();
     String url = snippet.getUrl();
@@ -70,16 +73,17 @@ public class SnippetService {
   public Snippet createSnippet(SnippetDto snippetDto) {
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
-    
+
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
-    
-    Snippet snippet = new Snippet(
+
+    Snippet snippet =
+        new Snippet(
             snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
-    
+
     snippetRepository.save(snippet);
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
-    
+
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
@@ -161,7 +165,7 @@ public class SnippetService {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
     List<RuleDto> dtos = rules.stream().map(RuleDto::of).toList();
-    
+
     snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos));
   }
 
@@ -169,7 +173,7 @@ public class SnippetService {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
     List<RuleDto> dtos = rules.stream().map(RuleDto::of).toList();
-    
-    snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos));  // TODO: change to format
+
+    snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos)); // TODO: change to format
   }
 }

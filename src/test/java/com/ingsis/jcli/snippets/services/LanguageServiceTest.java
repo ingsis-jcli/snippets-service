@@ -15,9 +15,8 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
-import java.util.List;
-
 import com.ingsis.jcli.snippets.models.Snippet;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -69,12 +68,12 @@ public class LanguageServiceTest {
   public void validateSnippetOk() {
     Snippet snippet = new Snippet("name", "url", "userId", languageVersionOk);
     ValidateRequest request = new ValidateRequest(snippet.getName(), snippet.getUrl(), versionOk);
-    ErrorResponse response = new ErrorResponse("");
-    ResponseEntity<ErrorResponse> httpResponse = new ResponseEntity<>(response, HttpStatus.OK);
+
+    ErrorResponse response = new ErrorResponse(null);
 
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
-    when(languageRestClient.validate(request)).thenReturn(httpResponse.getBody());
-    
+    when(languageRestClient.validate(request)).thenReturn(response);
+
     assertEquals(
         new LanguageSuccess(), languageService.validateSnippet(snippet, languageVersionOk));
   }
@@ -99,14 +98,14 @@ public class LanguageServiceTest {
         List.of(
             new DefaultRule("declaration_space_before_colon", true, null),
             new DefaultRule("declaration_space_after_colon", true, null));
-    
+
     ResponseEntity<List<DefaultRule>> httpResponse =
         new ResponseEntity<>(expectedRules, HttpStatus.OK);
-    
+
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.getFormattingRules("1.1")).thenReturn(httpResponse.getBody());
     List<DefaultRule> result = languageService.getFormattingRules(languageVersionOk);
-    
+
     assertEquals(expectedRules, result);
   }
 
@@ -116,11 +115,11 @@ public class LanguageServiceTest {
         List.of(
             new DefaultRule("declaration_space_before_colon", true, null),
             new DefaultRule("declaration_space_after_colon", true, null));
-    
+
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.getLintingRules("1.1")).thenReturn(expectedRules);
     List<DefaultRule> result = languageService.getLintingRules(languageVersionOk);
-    
+
     assertEquals(expectedRules, result);
   }
 
@@ -128,11 +127,11 @@ public class LanguageServiceTest {
   public void getLintingRulesNoSuchLanguageException() {
     String language = "unknown";
     LanguageVersion languageVersion = new LanguageVersion(language, versionOk);
-    
+
     NoSuchLanguageException exception =
         assertThrows(
             NoSuchLanguageException.class, () -> languageService.getLintingRules(languageVersion));
-    
+
     assertEquals(language, exception.getLanguage());
   }
 
@@ -140,31 +139,14 @@ public class LanguageServiceTest {
   public void getFormattingRulesNoSuchLanguageException() {
     String language = "unknown";
     LanguageVersion languageVersion = new LanguageVersion(language, versionOk);
-    
+
     NoSuchLanguageException exception =
         assertThrows(
             NoSuchLanguageException.class,
             () -> languageService.getFormattingRules(languageVersion));
-    
+
     assertEquals(language, exception.getLanguage());
   }
-
-//  @Test
-//  public void getFormattingRulesFeignException() throws FeignException {
-//    when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
-//    JsonObject errorPayload = new JsonObject();
-//    errorPayload.addProperty("error", "Internal server error");
-//
-//    ResponseEntity<JsonObject> errorResponseEntity =
-//        new ResponseEntity<>(errorPayload, HttpStatus.INTERNAL_SERVER_ERROR);
-//
-//    FeignException feignException = new FeignException(errorResponseEntity);
-//    when(languageRestClient.getFormattingRules("1.1")).thenThrow(feignException);
-//    ErrorFetchingClientData exception =
-//        assertThrows(
-//            ErrorFetchingClientData.class,
-//            () -> languageService.getFormattingRules(languageVersionOk));
-//  }
 
   @Test
   public void getLanguageVersionMissingUrl() {
@@ -180,15 +162,13 @@ public class LanguageServiceTest {
   }
 
   @Test
-  public void validateSnippetSuccess() throws FeignException {
+  public void validateSnippetSuccess() {
     Snippet snippet = new Snippet("name", "url", "userId", languageVersionOk);
     ValidateRequest request = new ValidateRequest(snippet.getName(), snippet.getUrl(), versionOk);
-    ErrorResponse successResponse = new ErrorResponse("");
-    ResponseEntity<ErrorResponse> httpResponse =
-        new ResponseEntity<>(successResponse, HttpStatus.OK);
+    ErrorResponse successResponse = new ErrorResponse(null);
 
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
-    when(languageRestClient.validate(request)).thenReturn(httpResponse.getBody());
+    when(languageRestClient.validate(request)).thenReturn(successResponse);
 
     LanguageResponse response = languageService.validateSnippet(snippet, languageVersionOk);
     assertEquals(new LanguageSuccess(), response);
