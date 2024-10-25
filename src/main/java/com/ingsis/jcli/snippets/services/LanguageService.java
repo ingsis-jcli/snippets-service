@@ -11,11 +11,9 @@ import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
+import com.ingsis.jcli.snippets.models.Snippet;
 import java.util.List;
 import java.util.Map;
-
-import com.ingsis.jcli.snippets.dto.SnippetDto;
-import com.ingsis.jcli.snippets.models.Snippet;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -61,7 +59,8 @@ public class LanguageService {
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     log.info(marker, "Client base url: " + baseUrl);
 
-    ValidateRequest validateRequest = new ValidateRequest(snippet.getName(), snippet.getUrl(), version);
+    ValidateRequest validateRequest =
+        new ValidateRequest(snippet.getName(), snippet.getUrl(), version);
     log.info(marker, "Validate request: " + validateRequest);
 
     ErrorResponse response = client.validate(validateRequest);
@@ -77,16 +76,20 @@ public class LanguageService {
   public List<DefaultRule> getFormattingRules(LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Get Rules");
     log.info(marker, "Getting rules for language version: " + languageVersion);
+    
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
+    
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
     String baseUrl = urls.get(language);
     log.info(marker, "Base url: " + baseUrl);
+    
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     List<DefaultRule> response = client.getFormattingRules(version);
     log.info(marker, "Response from language: " + response);
+    
     return response;
   }
 
@@ -96,14 +99,17 @@ public class LanguageService {
 
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
+    
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
     String baseUrl = urls.get(language);
     log.info(marker, "Base url: " + baseUrl);
+    
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     List<DefaultRule> response = client.getLintingRules(version);
     log.info(marker, "Response from language: " + response);
+    
     return response;
   }
 }

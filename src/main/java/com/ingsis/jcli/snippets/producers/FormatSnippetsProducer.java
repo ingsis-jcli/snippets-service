@@ -1,6 +1,5 @@
 package com.ingsis.jcli.snippets.producers;
 
-import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
 import java.util.List;
@@ -19,6 +18,6 @@ public class FormatSnippetsProducer extends JavaRedisStreamProducer {
   }
 
   public void format(SnippetDto snippetDto, List<Rule> rules) {
-    //emit(new FormatRequest(snippetDto, rules));
+    // emit(new FormatRequest(snippetDto, rules));
   }
 }

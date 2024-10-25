@@ -1,11 +1,7 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
-import com.ingsis.jcli.snippets.dto.RulesDto;
-import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.dto.UpdateRulesDto;
-import com.ingsis.jcli.snippets.models.FormattingRules;
-import com.ingsis.jcli.snippets.models.LintingRules;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
@@ -40,36 +36,45 @@ public class RuleController {
 
   @GetMapping("/formatting")
   public ResponseEntity<List<Rule>> getFormattingRules(
-    @RequestParam(value = "language", defaultValue = "printscript") String language,
-    @RequestParam(value = "version", defaultValue = "1.1") String version,
-    @RequestHeader("Authorization") String token) {
+      @RequestParam(value = "language", defaultValue = "printscript") String language,
+      @RequestParam(value = "version", defaultValue = "1.1") String version,
+      @RequestHeader("Authorization") String token) {
+    
     String userId = jwtService.extractUserId(token);
+    
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
+    
     return new ResponseEntity<>(rules, HttpStatus.OK);
   }
 
   @GetMapping("/linting")
   public ResponseEntity<List<Rule>> getLintingRules(
-    @RequestParam(value = "language", defaultValue = "printscript") String language,
-    @RequestParam(value = "version", defaultValue = "1.1") String version,
-    @RequestHeader("Authorization") String token) {
+      @RequestParam(value = "language", defaultValue = "printscript") String language,
+      @RequestParam(value = "version", defaultValue = "1.1") String version,
+      @RequestHeader("Authorization") String token) {
+    
     String userId = jwtService.extractUserId(token);
+    
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    
     return new ResponseEntity<>(rules, HttpStatus.OK);
   }
 
   @PutMapping("/formatting")
   public ResponseEntity<Void> updateFormattingRules(
-    @RequestBody @Valid UpdateRulesDto rulesDto,
-    @RequestParam(value = "language", defaultValue = "printscript") String language,
-    @RequestParam(value = "version", defaultValue = "1.1") String version,
-    @RequestHeader("Authorization") String token) {
+      @RequestBody @Valid UpdateRulesDto rulesDto,
+      @RequestParam(value = "language", defaultValue = "printscript") String language,
+      @RequestParam(value = "version", defaultValue = "1.1") String version,
+      @RequestHeader("Authorization") String token) {
+    
     String userId = jwtService.extractUserId(token);
+    
     rulesService.updateFormattingRules(rulesDto.getUserId(), rulesDto.getRules());
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     snippetService.lintUserSnippets(userId, languageVersion);
+    
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
@@ -79,10 +84,13 @@ public class RuleController {
       @RequestParam(value = "language", defaultValue = "printscript") String language,
       @RequestParam(value = "version", defaultValue = "1.1") String version,
       @RequestHeader("Authorization") String token) {
+
     String userId = jwtService.extractUserId(token);
+
     rulesService.updateLintingRules(rulesDto.getUserId(), rulesDto.getRules());
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
     snippetService.formatUserSnippets(userId, languageVersion);
+
     return new ResponseEntity<>(HttpStatus.OK);
   }
 }

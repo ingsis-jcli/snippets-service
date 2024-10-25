@@ -2,7 +2,6 @@ package com.ingsis.jcli.snippets.services;
 
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.responses.DefaultRule;
-import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.FormattingRules;
 import com.ingsis.jcli.snippets.models.LintingRules;
 import com.ingsis.jcli.snippets.models.Rule;
@@ -72,9 +71,9 @@ public class RulesService {
 
     List<DefaultRule> defaultRules = languageService.getLintingRules(languageVersion);
     List<Rule> ruleEntities =
-      defaultRules.stream()
-        .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
-        .collect(Collectors.toList());
+        defaultRules.stream()
+            .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
+            .collect(Collectors.toList());
 
     ruleRepository.saveAll(ruleEntities);
 
@@ -92,9 +91,9 @@ public class RulesService {
 
     List<DefaultRule> defaultRules = languageService.getFormattingRules(languageVersion);
     List<Rule> ruleEntities =
-      defaultRules.stream()
-        .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
-        .collect(Collectors.toList());
+        defaultRules.stream()
+            .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
+            .collect(Collectors.toList());
 
     ruleRepository.saveAll(ruleEntities);
 

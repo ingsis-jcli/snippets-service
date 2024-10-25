@@ -63,15 +63,14 @@ public class SnippetService {
 
   public Snippet createSnippet(SnippetDto snippetDto) {
     LanguageVersion languageVersion =
-      languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+        languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
     blobStorageService.uploadSnippet(
-      getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
+        getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
     Snippet snippet =
-      new Snippet(
-        snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
+        new Snippet(
+            snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
     snippetRepository.save(snippet);
-    LanguageResponse isValid =
-        languageService.validateSnippet(snippet, languageVersion);
+    LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }

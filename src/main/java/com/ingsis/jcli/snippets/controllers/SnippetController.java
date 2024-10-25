@@ -45,8 +45,7 @@ public class SnippetController {
 
   @GetMapping()
   public ResponseEntity<String> getSnippet(
-      @RequestParam Long snippetId,
-      @RequestHeader("Authorization") String token) {
+      @RequestParam Long snippetId, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
 
@@ -66,8 +65,7 @@ public class SnippetController {
 
   @PostMapping()
   public ResponseEntity<Long> createSnippet(
-      @RequestBody @Valid SnippetDto snippetDto,
-      @RequestHeader("Authorization") String token) {
+      @RequestBody @Valid SnippetDto snippetDto, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
 
@@ -79,7 +77,7 @@ public class SnippetController {
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
       @RequestParam Long snippetId,
-      @RequestHeader(name="Authorization") String token) {
+      @RequestHeader(name = "Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
 
