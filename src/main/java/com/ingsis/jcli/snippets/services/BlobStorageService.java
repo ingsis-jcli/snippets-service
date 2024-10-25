@@ -12,12 +12,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class BlobStorageService {
 
-  private final BucketRestTemplateFactory bucketRestTemplateFactory;
   private final BucketRestClient bucketClient;
 
   @Autowired
   public BlobStorageService(BucketRestTemplateFactory bucketRestTemplateFactory) {
-    this.bucketRestTemplateFactory = bucketRestTemplateFactory;
     this.bucketClient = bucketRestTemplateFactory.createClient();
   }
 
