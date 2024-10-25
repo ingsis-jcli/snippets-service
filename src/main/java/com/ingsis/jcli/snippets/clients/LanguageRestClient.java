@@ -48,6 +48,12 @@ public class LanguageRestClient {
     HttpEntity<ValidateRequest> requestEntity = new HttpEntity<>(validateRequest, headers);
     ResponseEntity<ErrorResponse> response =
         restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
+    System.out.println("Request Headers: " + headers);
+    if (response.getBody() == null) {
+      return new ErrorResponse("No response received");
+    }
+    System.out.println("Response Headers: " + response.getHeaders());
+
     return response.getBody();
   }
 }
