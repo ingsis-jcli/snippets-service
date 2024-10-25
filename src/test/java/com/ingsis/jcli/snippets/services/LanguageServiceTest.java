@@ -99,8 +99,7 @@ public class LanguageServiceTest {
             new RuleDto(true, "declaration_space_before_colon", null),
             new RuleDto(true, "declaration_space_after_colon", null));
 
-    ResponseEntity<List<RuleDto>> httpResponse =
-        new ResponseEntity<>(expectedRules, HttpStatus.OK);
+    ResponseEntity<List<RuleDto>> httpResponse = new ResponseEntity<>(expectedRules, HttpStatus.OK);
 
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.getFormattingRules("1.1")).thenReturn(httpResponse.getBody());
