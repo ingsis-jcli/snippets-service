@@ -1,6 +1,8 @@
 package com.ingsis.jcli.snippets.common.responses;
 
-import com.ingsis.jcli.snippets.common.Generated;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Generated
-public record ErrorResponse(String error) {}
+public record ErrorResponse(
+  @JsonProperty("error") String error
+) {}
+
