@@ -4,6 +4,7 @@ import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.repositories.TestCaseRepository;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,5 +28,9 @@ public class TestCaseService {
             testCaseDto.type());
     testCaseRepository.save(testCase);
     return testCase.getId();
+  }
+
+  public Optional<TestCase> getTestCase(Long id) {
+    return testCaseRepository.findById(id);
   }
 }

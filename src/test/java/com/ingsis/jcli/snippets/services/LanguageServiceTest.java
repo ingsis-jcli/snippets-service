@@ -13,9 +13,12 @@ import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
+import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.models.TestCase;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,5 +185,58 @@ public class LanguageServiceTest {
         "Error getting data from the client LanguageVersion"
             + "(language=printscript, version=1.1) : Internal server error",
         exception.getMessage());
+  }
+
+  @Test
+  void runTestCaseSuccess() {
+    LanguageVersion languageVersion = new LanguageVersion(languageOk, versionOk);
+    Snippet snippet = new Snippet("SnippetName", "SnippetUrl", "UserId", languageVersion);
+    TestCase testCase =
+        new TestCase(snippet, "Test Case", List.of("input1"), List.of("output1"), TestType.VALID);
+
+    TestCaseRequest request =
+        new TestCaseRequest(
+            "SnippetName", "SnippetUrl", versionOk, List.of("input1"), List.of("output1"));
+
+    when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
+    when(languageRestClient.runTestCase(request)).thenReturn(TestType.VALID);
+    boolean result = languageService.runTestCase(testCase);
+    assertEquals(true, result);
+  }
+
+  @Test
+  void runTestCaseNoSuchLanguageException() {
+    LanguageVersion invalidVersion = new LanguageVersion("unknownLanguage", versionOk);
+    Snippet snippet = new Snippet("SnippetName", "SnippetUrl", "UserId", invalidVersion);
+    TestCase testCase =
+        new TestCase(snippet, "Test Case", List.of("input1"), List.of("output1"), TestType.VALID);
+
+    NoSuchLanguageException exception =
+        assertThrows(
+            NoSuchLanguageException.class,
+            () -> {
+              languageService.runTestCase(testCase);
+            });
+
+    assertEquals("unknownLanguage", exception.getLanguage());
+  }
+
+  @Test
+  void runTestCaseClientError() {
+    LanguageVersion languageVersion = new LanguageVersion(languageOk, versionOk);
+    Snippet snippet = new Snippet("SnippetName", "SnippetUrl", "UserId", languageVersion);
+    TestCase testCase =
+        new TestCase(snippet, "Test Case", List.of("input1"), List.of("output1"), TestType.VALID);
+
+    TestCaseRequest request =
+        new TestCaseRequest(
+            "SnippetName", "SnippetUrl", versionOk, List.of("input1"), List.of("output1"));
+
+    when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
+    when(languageRestClient.runTestCase(request)).thenReturn(TestType.INVALID);
+
+    boolean result = languageService.runTestCase(testCase);
+
+    assertEquals(false, result);
   }
 }

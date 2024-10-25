@@ -8,10 +8,13 @@ import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
+import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.models.TestCase;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -111,5 +114,29 @@ public class LanguageService {
     log.info(marker, "Response from language: " + response);
 
     return response;
+  }
+
+  public boolean runTestCase(TestCase testCase) {
+    LanguageVersion languageVersion = testCase.getSnippet().getLanguageVersion();
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+
+    if (!urls.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+
+    String baseUrl = urls.get(language);
+
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
+
+    String snippetName = testCase.getSnippet().getName();
+    String url = testCase.getSnippet().getUrl();
+    List<String> input = testCase.getInputs();
+    List<String> output = testCase.getOutputs();
+
+    TestType result =
+        client.runTestCase(new TestCaseRequest(snippetName, url, version, input, output));
+
+    return result.equals(testCase.getType());
   }
 }

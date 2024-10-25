@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.services;
 
+import static org.hibernate.validator.internal.util.Contracts.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +10,7 @@ import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.repositories.TestCaseRepository;
 import java.util.Arrays;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -46,5 +48,27 @@ class TestCaseServiceTest {
 
     Long id = testCaseService.createTestCase(testCaseDto, snippet);
     assertEquals(testCase.getId(), id);
+  }
+
+  @Test
+  void testGetTestCase() {
+    Long testCaseId = 1L;
+    Snippet snippet = new Snippet();
+    snippet.setId(1L);
+
+    TestCase testCase =
+        new TestCase(
+            snippet,
+            "Test Case",
+            Arrays.asList("input1"),
+            Arrays.asList("output1"),
+            TestType.VALID);
+    testCase.setId(testCaseId);
+
+    when(testCaseRepository.findById(testCaseId)).thenReturn(Optional.of(testCase));
+
+    Optional<TestCase> result = testCaseService.getTestCase(testCaseId);
+    assertTrue(result.isPresent(), "Test case should be present");
+    assertEquals(testCaseId, result.get().getId(), "Test case ID should match");
   }
 }

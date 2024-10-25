@@ -1,6 +1,8 @@
 package com.ingsis.jcli.snippets.clients;
 
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
+import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import java.util.List;
@@ -55,6 +57,21 @@ public class LanguageRestClient {
     if (response.getBody() == null) {
       return new ErrorResponse("No response received");
     }
+    return response.getBody();
+  }
+
+  public TestType runTestCase(TestCaseRequest testCaseRequest) {
+    String url = String.format("%s/test", baseUrl);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<TestCaseRequest> requestEntity = new HttpEntity<>(testCaseRequest, headers);
+
+    ResponseEntity<TestType> response =
+        restTemplate.exchange(
+            url, HttpMethod.POST, requestEntity, new ParameterizedTypeReference<TestType>() {});
+
+    // TODO : implement this endpoint in the printscript-service
+
     return response.getBody();
   }
 }
