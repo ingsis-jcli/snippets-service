@@ -76,13 +76,16 @@ class SnippetServiceTest {
     String name = "name";
     String content = "content";
     String userId = "123";
+    
     SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
     Snippet expected = new Snippet(name, getBaseUrl(snippetDto), userId, languageVersionOk);
     expected.setId(1L);
+    
     when(snippetRepository.save(any(Snippet.class))).thenReturn(expected);
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(snippetDto.getContent(), languageVersionOk))
+    when(languageService.validateSnippet(expected, languageVersionOk))
         .thenReturn(new LanguageSuccess());
+    
     Snippet actualSnippet = snippetService.createSnippet(snippetDto);
     assertEquals(expected, actualSnippet);
     verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto), name, content);
@@ -95,9 +98,10 @@ class SnippetServiceTest {
     String errorMessage = "Invalid snippet error";
 
     SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
+    Snippet snippet = new Snippet(name, "url", userId, languageVersionOk);
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(snippetDto.getContent(), languageVersionOk))
+    when(languageService.validateSnippet(snippet, languageVersionOk))
         .thenReturn(new LanguageError(errorMessage));
 
     InvalidSnippetException exception =
@@ -125,7 +129,7 @@ class SnippetServiceTest {
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(snippetDto2.getContent(), languageVersionOk))
+    when(languageService.validateSnippet(finalSnippet, languageVersionOk))
         .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
 

@@ -50,27 +50,32 @@ public class SnippetService {
   }
 
   public Optional<String> getSnippet(Long snippetId) {
+    
     Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
-    if (snippetOptional.isPresent()) {
-      Snippet snippet = snippetOptional.get();
-      String name = snippet.getName();
-      String url = snippet.getUrl();
-      Optional<String> content = blobStorageService.getSnippet(url, name);
-      return content;
+    if (snippetOptional.isEmpty()) {
+      return Optional.empty();
     }
-    return Optional.empty();
+    
+    Snippet snippet = snippetOptional.get();
+    String name = snippet.getName();
+    String url = snippet.getUrl();
+    Optional<String> content = blobStorageService.getSnippet(url, name);
+    return content;
   }
 
   public Snippet createSnippet(SnippetDto snippetDto) {
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+    
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
-    Snippet snippet =
-        new Snippet(
+    
+    Snippet snippet = new Snippet(
             snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
+    
     snippetRepository.save(snippet);
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
+    
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }

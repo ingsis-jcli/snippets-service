@@ -19,6 +19,8 @@ import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.DefaultRule;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import java.util.List;
+
+import com.ingsis.jcli.snippets.models.Snippet;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,8 +74,8 @@ public class LanguageServiceTest {
 
   @Test
   public void validateSnippetOk() {
-    String snippet = "content";
-    ValidateRequest request = new ValidateRequest(snippet, versionOk);
+    Snippet snippet = new Snippet("name", "url", "userId", languageVersionOk);
+    ValidateRequest request = new ValidateRequest(snippet.getName(), snippet.getUrl(), versionOk);
     ErrorResponse response = new ErrorResponse("");
     ResponseEntity<ErrorResponse> httpResponse = new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -90,9 +92,9 @@ public class LanguageServiceTest {
 
   @Test
   public void validateSnippetException() {
-    String snippet = "content";
     String language = "lua";
     LanguageVersion languageVersion = new LanguageVersion(language, "123");
+    Snippet snippet = new Snippet("name", "url", "userId", languageVersion);
 
     NoSuchLanguageException exception =
         assertThrows(
@@ -179,8 +181,8 @@ public class LanguageServiceTest {
 
   @Test
   public void validateSnippetSuccess() throws FeignException {
-    String snippet = "valid content";
-    ValidateRequest request = new ValidateRequest(snippet, versionOk);
+    Snippet snippet = new Snippet("name", "url", "userId", languageVersionOk);
+    ValidateRequest request = new ValidateRequest(snippet.getName(), snippet.getUrl(), versionOk);
     ErrorResponse successResponse = new ErrorResponse("");
     ResponseEntity<ErrorResponse> httpResponse =
         new ResponseEntity<>(successResponse, HttpStatus.OK);
@@ -201,15 +203,5 @@ public class LanguageServiceTest {
         "Error getting data from the client LanguageVersion"
             + "(language=printscript, version=1.1) : Internal server error",
         exception.getMessage());
-  }
-
-  @Test
-  public void getResponseNon2xx() {
-    String errorMessage = "Bad Request";
-    ErrorResponse errorResponse = new ErrorResponse(errorMessage);
-    ResponseEntity<ErrorResponse> responseEntity =
-        new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    LanguageResponse response = languageService.getResponse(responseEntity);
-    assertEquals(errorMessage, response.getError());
   }
 }

@@ -114,7 +114,7 @@ class SnippetControllerTest {
     snippet.setId(id);
 
     when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
-    when(languageService.validateSnippet(snippetDto.getContent(), languageVersion))
+    when(languageService.validateSnippet(snippet, languageVersion))
         .thenReturn(new LanguageSuccess());
 
     mockMvc
