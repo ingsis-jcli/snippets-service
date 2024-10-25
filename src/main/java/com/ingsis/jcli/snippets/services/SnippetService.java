@@ -70,16 +70,16 @@ public class SnippetService {
     return content;
   }
 
-  public Snippet createSnippet(SnippetDto snippetDto) {
+  public Snippet createSnippet(SnippetDto snippetDto, String userId) {
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
 
     blobStorageService.uploadSnippet(
-        getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
+        getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
 
     Snippet snippet =
         new Snippet(
-            snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
+            snippetDto.getName(), getBaseUrl(snippetDto, userId), userId, languageVersion);
 
     snippetRepository.save(snippet);
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
@@ -95,12 +95,12 @@ public class SnippetService {
     return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
   }
 
-  public Snippet editSnippet(Long snippetId, SnippetDto snippetDto) {
+  public Snippet editSnippet(Long snippetId, SnippetDto snippetDto, String userId) {
     Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
     if (snippet.isEmpty()) {
       throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
     }
-    return createSnippet(snippetDto);
+    return createSnippet(snippetDto, userId);
   }
 
   public List<SnippetDto> getAllSnippets(String userId) {

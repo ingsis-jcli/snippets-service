@@ -132,13 +132,13 @@ class SnippetControllerTest {
   void createSnippetSuccess() throws Exception {
     String userId = "123";
     SnippetDto snippetDto = new SnippetDto("name", "content", userId, "printscript", "1.1");
-    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto), userId, languageVersion);
+    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.createSnippet(snippetDto)).thenReturn(snippet);
+    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippet);
     when(languageService.validateSnippet(snippet, languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
@@ -184,7 +184,7 @@ class SnippetControllerTest {
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(permissionService.hasPermissionOnSnippet(PermissionType.WRITE, id, userId))
         .thenReturn(true);
-    when(snippetService.editSnippet(id, snippetDto)).thenReturn(snippet);
+    when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc

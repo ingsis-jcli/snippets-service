@@ -19,13 +19,13 @@ public class BlobStorageService {
     this.bucketClient = bucketClient;
   }
 
-  public static String getBaseUrl(SnippetDto snippetDto) {
+  public static String getBaseUrl(SnippetDto snippetDto, String userId) {
     return "snippets/"
         + snippetDto.getLanguage()
         + "-"
         + snippetDto.getVersion()
         + "-"
-        + snippetDto.getOwner();
+        + userId;
   }
 
   public void uploadSnippet(String container, String name, String content) {

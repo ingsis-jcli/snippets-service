@@ -15,8 +15,6 @@ public class SnippetDto {
   @NotNull(message = "Content cannot be null")
   private String content;
 
-  private String owner;
-
   @NotBlank(message = "Has to specify program language")
   private String language;
 
@@ -28,7 +26,6 @@ public class SnippetDto {
   public SnippetDto(String name, String content, String owner, String language, String version) {
     this.name = name;
     this.content = content;
-    this.owner = owner;
     this.language = language;
     this.version = version;
   }

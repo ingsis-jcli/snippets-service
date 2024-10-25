@@ -69,7 +69,7 @@ public class SnippetController {
 
     String userId = jwtService.extractUserId(token);
 
-    Snippet snippet = snippetService.createSnippet(snippetDto);
+    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
@@ -87,7 +87,7 @@ public class SnippetController {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto);
+    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
   }
 

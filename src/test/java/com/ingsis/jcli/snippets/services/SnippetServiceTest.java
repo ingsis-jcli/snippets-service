@@ -78,7 +78,7 @@ class SnippetServiceTest {
     String userId = "123";
 
     SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
-    Snippet expected = new Snippet(name, getBaseUrl(snippetDto), userId, languageVersionOk);
+    Snippet expected = new Snippet(name, getBaseUrl(snippetDto, userId), userId, languageVersionOk);
     expected.setId(1L);
 
     when(snippetRepository.save(any(Snippet.class)))
@@ -92,9 +92,9 @@ class SnippetServiceTest {
     when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
 
-    Snippet actualSnippet = snippetService.createSnippet(snippetDto);
+    Snippet actualSnippet = snippetService.createSnippet(snippetDto, userId);
     assertEquals(expected, actualSnippet);
-    verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto), name, content);
+    verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto, userId), name, content);
   }
 
   @Test
@@ -112,7 +112,7 @@ class SnippetServiceTest {
         .thenReturn(new LanguageError(errorMessage));
 
     InvalidSnippetException exception =
-        assertThrows(InvalidSnippetException.class, () -> snippetService.createSnippet(snippetDto));
+        assertThrows(InvalidSnippetException.class, () -> snippetService.createSnippet(snippetDto, userId));
 
     assertEquals(errorMessage, exception.getError());
     assertEquals(languageVersionOk, exception.getLanguageVersion());
@@ -128,10 +128,10 @@ class SnippetServiceTest {
     Snippet initialSnippet = new Snippet(initialName, initialUrl, userId, languageVersionOk);
     initialSnippet.setId(snippetId);
 
-    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "1234", languageOk, versionOk);
-    String newUrl = getBaseUrl(snippetDto2);
+    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "123", languageOk, versionOk);
+    String newUrl = getBaseUrl(snippetDto2, userId);
 
-    Snippet finalSnippet = new Snippet("name2", newUrl, "1234", languageVersionOk);
+    Snippet finalSnippet = new Snippet("name2", newUrl, "123", languageVersionOk);
     finalSnippet.setId(snippetId);
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
@@ -146,7 +146,7 @@ class SnippetServiceTest {
               return savedSnippet;
             });
 
-    Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2);
+    Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2, userId);
 
     verify(blobStorageService).uploadSnippet(newUrl, "name2", "content2");
 
@@ -161,6 +161,6 @@ class SnippetServiceTest {
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.empty());
 
     assertThrows(
-        NoSuchElementException.class, () -> snippetService.editSnippet(snippetId, snippetDto));
+        NoSuchElementException.class, () -> snippetService.editSnippet(snippetId, snippetDto, userId));
   }
 }
