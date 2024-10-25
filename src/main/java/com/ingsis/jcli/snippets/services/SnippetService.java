@@ -9,6 +9,7 @@ import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.producers.FormatSnippetsProducer;
 import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
@@ -28,6 +29,7 @@ public class SnippetService {
   private final PermissionService permissionService;
   private final RulesService rulesService;
   private final LintSnippetsProducer lintSnippetsProducer;
+  private final FormatSnippetsProducer formatSnippetsProducer;
 
   @Autowired
   public SnippetService(
@@ -36,13 +38,15 @@ public class SnippetService {
       LanguageService languageService,
       PermissionService permissionService,
       RulesService rulesService,
-      LintSnippetsProducer lintSnippetsProducer) {
+      LintSnippetsProducer lintSnippetsProducer,
+      FormatSnippetsProducer formatSnippetsProducer) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
     this.permissionService = permissionService;
     this.rulesService = rulesService;
     this.lintSnippetsProducer = lintSnippetsProducer;
+    this.formatSnippetsProducer = formatSnippetsProducer;
   }
 
   public void helloBucket() {
@@ -156,24 +160,16 @@ public class SnippetService {
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
-    for (Snippet snippet : snippets) {
-      lintSnippetsProducer.lint(snippet, getRuleDtosFromRules(rules));
-    }
+    List<RuleDto> dtos = rules.stream().map(RuleDto::of).toList();
+    
+    snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos));
   }
 
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
-    for (Snippet snippet : snippets) {
-      lintSnippetsProducer.lint(snippet, getRuleDtosFromRules(rules));
-    }
-  }
-
-  public List<RuleDto> getRuleDtosFromRules(List<Rule> rules) {
-    List<RuleDto> ruleDtos = new ArrayList<>();
-    for (Rule rule : rules) {
-      ruleDtos.add(new RuleDto(rule.isActive(), rule.getName(), rule.getValue()));
-    }
-    return ruleDtos;
+    List<RuleDto> dtos = rules.stream().map(RuleDto::of).toList();
+    
+    snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos));  // TODO: change to format
   }
 }
