@@ -32,5 +32,7 @@ public class TestCaseRunProducer extends JavaRedisStreamProducer {
       outputArray.add(output);
     }
     jsonObject.add("output", outputArray);
+    System.out.println("Producing test case run: " + jsonObject);
+    emit(jsonObject);
   }
 }
