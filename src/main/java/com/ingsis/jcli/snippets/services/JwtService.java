@@ -16,12 +16,12 @@ public class JwtService {
   }
 
   public Jwt extractJwt(String authHeader) {
-    String jwt = authHeader.substring(7 + 6); // Bearer auth0|...
+    String jwt = authHeader.substring(7);
     return jwtDecoder.decode(jwt);
   }
 
   public String extractUserId(String authHeader) {
     Jwt jwt = extractJwt(authHeader);
-    return jwt.getSubject();
+    return jwt.getSubject().substring(6);
   }
 }
