@@ -71,10 +71,10 @@ public class LanguageService {
 
     log.info(marker, "Response: " + response);
 
-    if (response.error() == null) {
-      return new LanguageSuccess();
+    if (response.hasError()) {
+      return new LanguageError(response.error());
     }
-    return new LanguageError(response.error());
+    return new LanguageSuccess();
   }
 
   public List<RuleDto> getFormattingRules(LanguageVersion languageVersion) {

@@ -52,7 +52,7 @@ public class LanguageRestClient {
     ResponseEntity<ErrorResponse> response =
         restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
     if (response.getStatusCode() == HttpStatus.OK) {
-      return new ErrorResponse("");
+      return new ErrorResponse();
     }
     if (response.getBody() == null) {
       return new ErrorResponse("No response received");
