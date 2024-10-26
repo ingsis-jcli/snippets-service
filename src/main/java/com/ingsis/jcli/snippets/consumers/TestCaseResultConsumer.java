@@ -64,9 +64,10 @@ public class TestCaseResultConsumer extends RedisStreamConsumer<String> {
       if (type == testCase.getType()) {
         testCaseService.updateTestCaseState(testCase, TestState.SUCCESS);
         System.out.println("Test case " + testCase.getId() + " passed");
+      } else {
+        testCaseService.updateTestCaseState(testCase, TestState.FAILURE);
+        System.out.println("Test case " + testCase.getId() + " failed");
       }
-      testCaseService.updateTestCaseState(testCase, TestState.FAILURE);
-      System.out.println("Test case " + testCase.getId() + " failed");
     }
   }
 }
