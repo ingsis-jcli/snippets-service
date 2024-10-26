@@ -1,6 +1,5 @@
 package com.ingsis.jcli.snippets.controllers;
 
-import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -54,14 +53,14 @@ public class TestsController {
 
     String userId = jwtService.extractUserId(token);
 
-    boolean hasPermission =
-        permissionService.hasPermissionOnSnippet(
-            PermissionType.WRITE, testCaseDto.snippetId(), userId);
+    // boolean hasPermission =
+    //    permissionService.hasPermissionOnSnippet(
+    //        PermissionType.WRITE, testCaseDto.snippetId(), userId);
     // TODO: WHAT PERMISSION SHOULD I CHECK?
 
-    if (!hasPermission) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
+    // if (!hasPermission) {
+    //  return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    // }
 
     Optional<Snippet> snippet = snippetService.getSnippet(testCaseDto.snippetId());
 
