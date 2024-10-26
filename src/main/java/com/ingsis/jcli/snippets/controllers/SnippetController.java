@@ -7,6 +7,7 @@ import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
+import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
@@ -28,14 +29,19 @@ public class SnippetController {
 
   private final SnippetService snippetService;
   private final PermissionService permissionService;
+  private final TestCaseService testCaseService;
   private final JwtService jwtService;
 
   @Autowired
   public SnippetController(
-      SnippetService snippetService, PermissionService permissionService, JwtService jwtService) {
+      SnippetService snippetService,
+      PermissionService permissionService,
+      JwtService jwtService,
+      TestCaseService testCaseService) {
     this.snippetService = snippetService;
     this.permissionService = permissionService;
     this.jwtService = jwtService;
+    this.testCaseService = testCaseService;
   }
 
   @PostMapping("/hello-bucket")
@@ -89,6 +95,7 @@ public class SnippetController {
     }
 
     Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
+    testCaseService.runAllTestCases(snippet);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
   }
 

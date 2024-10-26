@@ -22,6 +22,7 @@ import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
+import com.ingsis.jcli.snippets.services.TestCaseService;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ class SnippetControllerTest {
   @MockBean private LanguageService languageService;
   @MockBean private JwtDecoder jwtDecoder;
   @MockBean private JwtService jwtService;
+  @MockBean private TestCaseService testCaseService;
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -72,14 +74,13 @@ class SnippetControllerTest {
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(true);
     when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(expectedSnippetContent));
-    when(jwtDecoder.decode(anyString()))
-        .thenReturn(mockJwt); // Mock JwtDecoder to return the mockJwt
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
         .perform(
             get(path)
                 .param("snippetId", id.toString())
-                .header("Authorization", "Bearer mock-token") // Set the Authorization header
+                .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
         .andExpect(content().string(expectedSnippetContent));

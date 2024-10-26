@@ -1,8 +1,6 @@
 package com.ingsis.jcli.snippets.services;
 
 import com.ingsis.jcli.snippets.clients.BucketClient;
-import com.ingsis.jcli.snippets.clients.BucketRestClient;
-import com.ingsis.jcli.snippets.clients.BucketRestTemplateFactory;
 import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import java.util.Optional;
