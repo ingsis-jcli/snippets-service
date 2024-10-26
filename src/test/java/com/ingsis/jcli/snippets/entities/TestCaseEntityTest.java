@@ -1,6 +1,8 @@
 package com.ingsis.jcli.snippets.entities;
 
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
@@ -28,5 +30,50 @@ class TestCaseEntityTest {
     assertEquals(outputs, testCase.getOutputs());
     assertEquals(type, testCase.getType());
     assertEquals(state, testCase.getState());
+  }
+
+  @Test
+  void testGettersAndSetters() {
+    Snippet snippet = new Snippet();
+    TestCase testCase = new TestCase();
+    testCase.setId(1L);
+    testCase.setSnippet(snippet);
+    testCase.setName("Test Case Name");
+    testCase.setInputs(List.of("input1"));
+    testCase.setOutputs(List.of("output1"));
+    testCase.setType(TestType.VALID);
+    testCase.setState(TestState.SUCCESS);
+
+    assertEquals(1L, testCase.getId());
+    assertEquals(snippet, testCase.getSnippet());
+    assertEquals("Test Case Name", testCase.getName());
+    assertEquals(List.of("input1"), testCase.getInputs());
+    assertEquals(List.of("output1"), testCase.getOutputs());
+    assertEquals(TestType.VALID, testCase.getType());
+    assertEquals(TestState.SUCCESS, testCase.getState());
+  }
+
+  @Test
+  void testDefaultConstructor() {
+    TestCase testCase = new TestCase();
+    assertNotNull(testCase);
+  }
+
+  @Test
+  void testSettersForNullValues() {
+    TestCase testCase = new TestCase();
+    testCase.setSnippet(null);
+    testCase.setName(null);
+    testCase.setInputs(null);
+    testCase.setOutputs(null);
+    testCase.setType(null);
+    testCase.setState(null);
+
+    assertNull(testCase.getSnippet());
+    assertNull(testCase.getName());
+    assertNull(testCase.getInputs());
+    assertNull(testCase.getOutputs());
+    assertNull(testCase.getType());
+    assertNull(testCase.getState());
   }
 }

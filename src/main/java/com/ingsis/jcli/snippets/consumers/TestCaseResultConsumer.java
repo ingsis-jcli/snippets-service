@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.consumers;
 
 import static com.ingsis.jcli.snippets.consumers.DeserializerUtil.deserializeIntoTestResult;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.responses.TestCaseResultProduct;
@@ -20,6 +21,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.stereotype.Component;
 
+@Generated
 @Profile("!test")
 @Slf4j
 @Component
@@ -50,23 +52,18 @@ public class TestCaseResultConsumer extends RedisStreamConsumer<String> {
   protected void onMessage(@NotNull ObjectRecord<String, String> objectRecord) {
     String testResult = objectRecord.getValue();
     if (testResult == null) {
-      log.error("Received null testCase, check the serialization and JSON structure");
       return;
     }
     TestCaseResultProduct testCaseProduct = deserializeIntoTestResult(testResult);
-    log.info("Saving test state: " + testCaseProduct.getTestCaseId());
     Long id = testCaseProduct.getTestCaseId();
     Optional<TestCase> testCaseOpt = testCaseService.getTestCase(id);
-
     if (testCaseOpt.isPresent()) {
       TestType type = testCaseProduct.getType();
       TestCase testCase = testCaseOpt.get();
       if (type == testCase.getType()) {
         testCaseService.updateTestCaseState(testCase, TestState.SUCCESS);
-        System.out.println("Test case " + testCase.getId() + " passed");
       } else {
         testCaseService.updateTestCaseState(testCase, TestState.FAILURE);
-        System.out.println("Test case " + testCase.getId() + " failed");
       }
     }
   }

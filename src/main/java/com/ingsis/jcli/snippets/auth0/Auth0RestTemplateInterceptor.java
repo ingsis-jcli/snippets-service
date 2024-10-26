@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.auth0;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +13,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+@Generated
 @Component
 public class Auth0RestTemplateInterceptor implements ClientHttpRequestInterceptor {
 

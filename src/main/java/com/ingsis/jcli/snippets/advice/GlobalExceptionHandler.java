@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.advice;
 
+import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
@@ -10,8 +11,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 
+@Generated
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+  // TODO : TEST THIS CLASS
 
   @ExceptionHandler(InvalidSnippetException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -23,7 +27,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(NoSuchLanguageException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<String> handleNoSuchLanguageException(
-      InvalidSnippetException ex, WebRequest request) {
+      NoSuchLanguageException ex, WebRequest request) {
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
   }
 

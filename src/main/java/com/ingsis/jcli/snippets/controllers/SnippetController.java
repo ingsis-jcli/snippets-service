@@ -44,12 +44,6 @@ public class SnippetController {
     this.testCaseService = testCaseService;
   }
 
-  @PostMapping("/hello-bucket")
-  public ResponseEntity<String> helloBucket() {
-    snippetService.helloBucket();
-    return new ResponseEntity<>("Hello Bucket", HttpStatus.OK);
-  }
-
   @GetMapping()
   public ResponseEntity<String> getSnippet(
       @RequestParam Long snippetId, @RequestHeader("Authorization") String token) {

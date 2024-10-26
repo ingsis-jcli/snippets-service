@@ -115,4 +115,26 @@ class TestCaseServiceTest {
     verify(testCaseRunProducer, times(1)).run(testCase1, "1.1");
     verify(testCaseRunProducer, times(1)).run(testCase2, "1.1");
   }
+
+  @Test
+  void testUpdateTestCaseState() {
+    Long testCaseId = 1L;
+    Snippet snippet = new Snippet();
+    snippet.setId(1L);
+
+    TestCase testCase =
+        new TestCase(
+            snippet,
+            "Test Case",
+            Arrays.asList("input1"),
+            Arrays.asList("output1"),
+            TestType.VALID,
+            TestState.PENDING);
+    testCase.setId(testCaseId);
+
+    when(testCaseRepository.save(testCase)).thenReturn(testCase);
+    testCaseService.updateTestCaseState(testCase, TestState.SUCCESS);
+    assertEquals(TestState.SUCCESS, testCase.getState(), "Test state should be updated to SUCCESS");
+    verify(testCaseRepository, times(1)).save(testCase);
+  }
 }

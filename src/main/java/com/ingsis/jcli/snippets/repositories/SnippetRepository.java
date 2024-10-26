@@ -13,4 +13,6 @@ public interface SnippetRepository
   Optional<Snippet> findSnippetById(Long id);
 
   List<Snippet> findAllByOwner(String userId);
+
+  List<Snippet> findAllByLanguageVersion_Language(String language);
 }

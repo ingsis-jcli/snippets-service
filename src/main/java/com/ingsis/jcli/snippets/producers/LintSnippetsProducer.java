@@ -1,8 +1,9 @@
 package com.ingsis.jcli.snippets.producers;
 
-import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
-import com.ingsis.jcli.snippets.producers.products.PendingSnippetLint;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +19,20 @@ public class LintSnippetsProducer extends JavaRedisStreamProducer {
     super(streamKey, redis);
   }
 
-  public void lint(Snippet snippet, List<RuleDto> rules) {
-    emit(
-        new PendingSnippetLint(
-            snippet.getId(),
-            snippet.getName(),
-            snippet.getUrl(),
-            rules,
-            snippet.getLanguageVersion().getVersion()));
+  public void lint(Snippet snippet, List<Rule> rules) {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("snippetId", snippet.getId());
+    jsonObject.addProperty("name", snippet.getName());
+    jsonObject.addProperty("url", snippet.getUrl());
+    jsonObject.addProperty("version", snippet.getLanguageVersion().getVersion());
+    JsonArray rulesArray = new JsonArray();
+    for (Rule rule : rules) {
+      JsonObject ruleObject = new JsonObject();
+      ruleObject.addProperty("isActive", rule.isActive());
+      ruleObject.addProperty("name", rule.getName());
+      ruleObject.addProperty("value", rule.getValue());
+      rulesArray.add(ruleObject);
+    }
+    emit(jsonObject.toString());
   }
 }

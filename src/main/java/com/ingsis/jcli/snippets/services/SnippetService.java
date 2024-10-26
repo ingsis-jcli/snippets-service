@@ -5,7 +5,6 @@ import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
-import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
@@ -199,16 +198,12 @@ public class SnippetService {
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
-    List<RuleDto> dtos = rules.stream().map(RuleDto::of).toList();
-
-    snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos));
+    snippets.forEach(s -> lintSnippetsProducer.lint(s, rules));
   }
 
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
-    List<RuleDto> dtos = rules.stream().map(RuleDto::of).toList();
-
-    snippets.forEach(s -> lintSnippetsProducer.lint(s, dtos)); // TODO: change to format
+    snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
   }
 }
