@@ -88,11 +88,11 @@ public class SnippetController {
 
     String userId = jwtService.extractUserId(token);
 
-    boolean hasPermission =
-        permissionService.hasPermissionOnSnippet(PermissionType.WRITE, snippetId, userId);
-    if (!hasPermission) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
+    //    boolean hasPermission =
+    //        permissionService.hasPermissionOnSnippet(PermissionType.WRITE, snippetId, userId);
+    //    if (!hasPermission) {
+    //      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    //    }
 
     Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
     testCaseService.runAllTestCases(snippet);

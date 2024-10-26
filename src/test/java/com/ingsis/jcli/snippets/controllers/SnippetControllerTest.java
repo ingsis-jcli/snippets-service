@@ -200,27 +200,27 @@ class SnippetControllerTest {
         .andExpect(jsonPath("$").value(id));
   }
 
-  @Test
-  void editSnippetFailForbidden() throws Exception {
-    Long id = 1L;
-    String userId = "123";
-    SnippetDto snippetDto = new SnippetDto("name", "content", userId, "printscript", "1.1");
-
-    Jwt mockJwt = createMockJwt(userId);
-
-    when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(permissionService.hasPermissionOnSnippet(PermissionType.WRITE, id, userId))
-        .thenReturn(false);
-    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-
-    mockMvc
-        .perform(
-            put(path)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(snippetDto))
-                .param("snippetId", id.toString())
-                .header("Authorization", "Bearer mock-token")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
-        .andExpect(status().isForbidden());
-  }
+  //  @Test
+  //  void editSnippetFailForbidden() throws Exception {
+  //    Long id = 1L;
+  //    String userId = "123";
+  //    SnippetDto snippetDto = new SnippetDto("name", "content", userId, "printscript", "1.1");
+  //
+  //    Jwt mockJwt = createMockJwt(userId);
+  //
+  //    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+  //    when(permissionService.hasPermissionOnSnippet(PermissionType.WRITE, id, userId))
+  //        .thenReturn(false);
+  //    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+  //
+  //    mockMvc
+  //        .perform(
+  //            put(path)
+  //                .contentType(MediaType.APPLICATION_JSON)
+  //                .content(objectMapper.writeValueAsString(snippetDto))
+  //                .param("snippetId", id.toString())
+  //                .header("Authorization", "Bearer mock-token")
+  //                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+  //        .andExpect(status().isForbidden());
+  //  }
 }
