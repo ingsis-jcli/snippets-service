@@ -4,13 +4,24 @@ import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.producers.products.PendingTestCaseRun;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TestCaseRunProducer extends JavaRedisStreamProducer {
 
-  // TODO CONSUMER IN PRINTSCRIPT-SERVICE
+  @Bean
+  public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+    RedisTemplate<String, Object> template = new RedisTemplate<>();
+    template.setConnectionFactory(connectionFactory);
+    template.setKeySerializer(new StringRedisSerializer());
+    template.setValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
+    return template;
+  }
 
   @Autowired
   public TestCaseRunProducer(
