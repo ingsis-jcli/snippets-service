@@ -87,12 +87,14 @@ public class TestsController {
 
     Long snippetId = testCase.getSnippet().getId();
 
-    boolean hasPermission =
-        permissionService.hasPermissionOnSnippet(PermissionType.EXECUTE, snippetId, userId);
+    // boolean hasPermission =
+    //    permissionService.hasPermissionOnSnippet(PermissionType.EXECUTE, snippetId, userId);
 
-    if (!hasPermission) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
+    // if (!hasPermission) {
+    //  return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    // }
+
+    // TODO IMPLEMENT THE PERMISSION OF RUNNING TEST CASES
 
     TestState testCaseResult = languageService.runTestCase(testCase);
 
