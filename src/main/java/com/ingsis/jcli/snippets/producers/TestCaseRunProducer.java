@@ -1,7 +1,8 @@
 package com.ingsis.jcli.snippets.producers;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.ingsis.jcli.snippets.models.TestCase;
-import com.ingsis.jcli.snippets.producers.products.PendingTestCaseProduct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,14 +18,19 @@ public class TestCaseRunProducer extends JavaRedisStreamProducer {
   }
 
   public void run(TestCase testCase) {
-    PendingTestCaseProduct pendingTestCaseProduct =
-        new PendingTestCaseProduct(
-            testCase.getId(),
-            testCase.getSnippet().getName(),
-            testCase.getSnippet().getUrl(),
-            testCase.getSnippet().getLanguageVersion().getVersion(),
-            testCase.getInputs(),
-            testCase.getOutputs());
-    emit(pendingTestCaseProduct);
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("id", testCase.getId());
+    jsonObject.addProperty("snippetName", testCase.getSnippet().getName());
+    jsonObject.addProperty("url", testCase.getSnippet().getUrl());
+    JsonArray inputArray = new JsonArray();
+    for (String input : testCase.getInputs()) {
+      inputArray.add(input);
+    }
+    jsonObject.add("input", inputArray);
+    JsonArray outputArray = new JsonArray();
+    for (String output : testCase.getOutputs()) {
+      outputArray.add(output);
+    }
+    jsonObject.add("output", outputArray);
   }
 }
