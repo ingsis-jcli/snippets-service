@@ -16,7 +16,7 @@ public class JwtService {
   }
 
   public Jwt extractJwt(String authHeader) {
-    String jwt = authHeader.substring(7);
+    String jwt = authHeader.substring(7 + 6); // Bearer auth0|...
     return jwtDecoder.decode(jwt);
   }
 

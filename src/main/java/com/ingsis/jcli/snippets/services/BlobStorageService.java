@@ -1,22 +1,24 @@
 package com.ingsis.jcli.snippets.services;
 
+import com.ingsis.jcli.snippets.clients.BucketClient;
 import com.ingsis.jcli.snippets.clients.BucketRestClient;
 import com.ingsis.jcli.snippets.clients.BucketRestTemplateFactory;
 import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Generated
 @Service
 public class BlobStorageService {
 
-  private final BucketRestClient bucketClient;
+  private final BucketClient bucketClient;
 
   @Autowired
-  public BlobStorageService(BucketRestTemplateFactory bucketRestTemplateFactory) {
-    this.bucketClient = bucketRestTemplateFactory.createClient();
+  public BlobStorageService(BucketClient bucketClient) {
+    this.bucketClient = bucketClient;
   }
 
   public static String getBaseUrl(SnippetDto snippetDto, String userId) {
@@ -28,8 +30,11 @@ public class BlobStorageService {
   }
 
   public Optional<String> getSnippet(String container, String name) {
-    String snippet = bucketClient.getSnippet(container, name);
-    return Optional.ofNullable(snippet);
+    ResponseEntity<String> response = bucketClient.getSnippet(container, name);
+    if (response.hasBody()) {
+      return Optional.ofNullable(response.getBody());
+    }
+    return Optional.empty();
   }
 
   public void deleteSnippet(String container, String name) {
