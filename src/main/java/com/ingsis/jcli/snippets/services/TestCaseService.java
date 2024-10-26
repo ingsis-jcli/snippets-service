@@ -49,7 +49,7 @@ public class TestCaseService {
   public void runAllTestCases(Snippet snippet) {
     List<TestCase> testCaseList = testCaseRepository.findAllBySnippet(snippet);
     for (TestCase testCase : testCaseList) {
-      testCaseRunProducer.run(testCase);
+      testCaseRunProducer.run(testCase, snippet.getLanguageVersion().getVersion());
     }
   }
 }

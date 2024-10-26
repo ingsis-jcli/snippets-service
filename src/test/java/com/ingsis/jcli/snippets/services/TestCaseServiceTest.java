@@ -6,6 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
@@ -82,8 +83,7 @@ class TestCaseServiceTest {
 
   @Test
   void testRunAllTestCases() {
-    // Arrange
-    Snippet snippet = new Snippet();
+    Snippet snippet = new Snippet("name", "url", "1", new LanguageVersion("printscript", "1.1"));
     snippet.setId(1L);
 
     TestCase testCase1 =
@@ -110,11 +110,9 @@ class TestCaseServiceTest {
 
     when(testCaseRepository.findAllBySnippet(snippet)).thenReturn(testCaseList);
 
-    // Act
     testCaseService.runAllTestCases(snippet);
 
-    // Assert
-    verify(testCaseRunProducer, times(1)).run(testCase1);
-    verify(testCaseRunProducer, times(1)).run(testCase2);
+    verify(testCaseRunProducer, times(1)).run(testCase1, "1.1");
+    verify(testCaseRunProducer, times(1)).run(testCase2, "1.1");
   }
 }

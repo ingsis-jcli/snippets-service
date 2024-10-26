@@ -19,7 +19,7 @@ public class TestCaseRunProducer extends JavaRedisStreamProducer {
     super(streamKey, redis);
   }
 
-  public void run(TestCase testCase) {
+  public void run(TestCase testCase, String version) {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("id", testCase.getId());
     jsonObject.addProperty("snippetName", testCase.getSnippet().getName());
@@ -34,8 +34,8 @@ public class TestCaseRunProducer extends JavaRedisStreamProducer {
       outputArray.add(output);
     }
     jsonObject.add("output", outputArray);
+    jsonObject.addProperty("version", version);
     System.out.println(jsonObject);
     emit(jsonObject.toString());
-
   }
 }
