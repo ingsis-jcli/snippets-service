@@ -20,8 +20,8 @@ public class PendingTestCaseRunTest {
     List<String> input = List.of("input1", "input2");
     List<String> output = List.of("output1");
 
-    PendingTestCaseRun pendingTestCaseRun =
-        new PendingTestCaseRun(id, snippetName, url, version, input, output);
+    PendingTestCaseProduct pendingTestCaseRun =
+        new PendingTestCaseProduct(id, snippetName, url, version, input, output);
 
     assertEquals(id, pendingTestCaseRun.id());
     assertEquals(snippetName, pendingTestCaseRun.snippetName());
@@ -33,8 +33,8 @@ public class PendingTestCaseRunTest {
 
   @Test
   void testPendingTestCaseRunSerialization() throws Exception {
-    PendingTestCaseRun pendingTestCaseRun =
-        new PendingTestCaseRun(
+    PendingTestCaseProduct pendingTestCaseRun =
+        new PendingTestCaseProduct(
             1L,
             "test-snippet",
             "http://example.com/snippet",
@@ -76,7 +76,8 @@ public class PendingTestCaseRunTest {
       }
         """;
 
-    PendingTestCaseRun pendingTestCaseRun = objectMapper.readValue(json, PendingTestCaseRun.class);
+    PendingTestCaseProduct pendingTestCaseRun =
+        objectMapper.readValue(json, PendingTestCaseProduct.class);
     assertNotNull(pendingTestCaseRun);
     assertEquals(1L, pendingTestCaseRun.id());
     assertEquals("test-snippet", pendingTestCaseRun.snippetName());
