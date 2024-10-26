@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class TestCaseRunProducer extends JavaRedisStreamProducer {
 
-  // TODO CONSUMER IN PRINTSCRIPT-SERVICE
-
   @Autowired
   public TestCaseRunProducer(
       @Value("${test_case_stream.key}") String streamKey, RedisTemplate<String, String> redis) {
