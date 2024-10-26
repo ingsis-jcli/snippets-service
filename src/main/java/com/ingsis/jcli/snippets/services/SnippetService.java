@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -75,22 +76,34 @@ public class SnippetService {
   }
 
   public Snippet createSnippet(SnippetDto snippetDto, String userId) {
+    saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+    Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
+    validateSnippet(snippet, languageVersion);
+    return snippet;
+  }
 
-    blobStorageService.uploadSnippet(
-        getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
-
-    Snippet snippet =
-        new Snippet(snippetDto.getName(), getBaseUrl(snippetDto, userId), userId, languageVersion);
-
-    snippetRepository.save(snippet);
+  private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
 
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
+  }
+
+  private @NotNull Snippet saveInDbTable(
+      SnippetDto snippetDto, String userId, LanguageVersion languageVersion) {
+    Snippet snippet =
+        new Snippet(snippetDto.getName(), getBaseUrl(snippetDto, userId), userId, languageVersion);
+
+    snippetRepository.save(snippet);
     return snippet;
+  }
+
+  private void saveInBucket(SnippetDto snippetDto, String userId) {
+    blobStorageService.uploadSnippet(
+        getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
   }
 
   public boolean isOwner(Long snippetId, String userId) {
@@ -99,11 +112,36 @@ public class SnippetService {
   }
 
   public Snippet editSnippet(Long snippetId, SnippetDto snippetDto, String userId) {
-    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
-    if (snippet.isEmpty()) {
+    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOpt.isEmpty()) {
       throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
     }
-    return createSnippet(snippetDto, userId);
+
+    Snippet snippet = snippetOpt.get();
+    blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+
+    LanguageVersion languageVersion =
+        languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
+
+    updateSnippetInDbTable(snippetDto, userId, snippet, languageVersion);
+
+    saveInBucket(snippetDto, userId);
+
+    return snippet;
+  }
+
+  private void updateSnippetInDbTable(
+      SnippetDto snippetDto, String userId, Snippet snippet, LanguageVersion languageVersion) {
+    snippet.setName(snippetDto.getName());
+    snippet.setUrl(getBaseUrl(snippetDto, userId));
+    snippet.setLanguageVersion(languageVersion);
+
+    LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
+    if (isValid.hasError()) {
+      throw new InvalidSnippetException(isValid.getError(), languageVersion);
+    }
+
+    snippetRepository.save(snippet);
   }
 
   public List<SnippetDto> getAllSnippets(String userId) {

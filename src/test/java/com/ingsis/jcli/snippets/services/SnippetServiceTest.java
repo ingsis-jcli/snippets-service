@@ -139,19 +139,18 @@ class SnippetServiceTest {
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
-    when(snippetRepository.save(any(Snippet.class)))
-        .thenAnswer(
-            invocation -> {
-              Snippet savedSnippet = invocation.getArgument(0);
-              savedSnippet.setId(snippetId);
-              return savedSnippet;
-            });
+    when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
 
     Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2, userId);
 
+    verify(blobStorageService).deleteSnippet(initialUrl, initialName);
     verify(blobStorageService).uploadSnippet(newUrl, "name2", "content2");
 
-    assertEquals(finalSnippet, actualSnippet);
+    assertEquals(finalSnippet.getId(), actualSnippet.getId());
+    assertEquals(finalSnippet.getName(), actualSnippet.getName());
+    assertEquals(finalSnippet.getUrl(), actualSnippet.getUrl());
+    assertEquals(finalSnippet.getOwner(), actualSnippet.getOwner());
+    assertEquals(finalSnippet.getLanguageVersion(), actualSnippet.getLanguageVersion());
   }
 
   @Test
