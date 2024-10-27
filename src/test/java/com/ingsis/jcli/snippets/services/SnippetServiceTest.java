@@ -9,9 +9,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
+import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
+import com.ingsis.jcli.snippets.common.status.Status;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
@@ -163,5 +166,63 @@ class SnippetServiceTest {
     assertThrows(
         NoSuchElementException.class,
         () -> snippetService.editSnippet(snippetId, snippetDto, userId));
+  }
+
+  @Test
+  void updateLintingStateNotFound() {
+    Long snippetId = 1L;
+    when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.empty());
+
+    assertThrows(
+        SnippetNotFoundException.class,
+        () -> snippetService.updateLintingStatus(ProcessStatus.COMPLIANT, snippetId));
+  }
+
+  @Test
+  void updateFormattingStatusNotFound() {
+    Long snippetId = 1L;
+    when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.empty());
+
+    assertThrows(
+        SnippetNotFoundException.class,
+        () -> snippetService.updateFormattingStatus(ProcessStatus.COMPLIANT, snippetId));
+  }
+
+  @Test
+  void updateLintingStatusNotFound() {
+    Long snippetId = 1L;
+    when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.empty());
+
+    assertThrows(
+        SnippetNotFoundException.class,
+        () -> snippetService.updateLintingStatus(ProcessStatus.COMPLIANT, snippetId));
+  }
+
+  @Test
+  void updateFormattingStatusSuccess() {
+    Snippet snippet = new Snippet();
+    Status status = new Status();
+    status.setFormatting(ProcessStatus.NON_COMPLIANT);
+    status.setLinting(ProcessStatus.NON_COMPLIANT);
+    snippet.setStatus(status);
+    Long snippetId = 1L;
+    snippet.setId(snippetId);
+    when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(snippet));
+    snippetService.updateFormattingStatus(ProcessStatus.COMPLIANT, snippetId);
+    assertEquals(ProcessStatus.COMPLIANT, snippet.getStatus().getFormatting());
+  }
+
+  @Test
+  void updateLintingStatusSuccess() {
+    Snippet snippet = new Snippet();
+    Status status = new Status();
+    status.setFormatting(ProcessStatus.NON_COMPLIANT);
+    status.setLinting(ProcessStatus.NON_COMPLIANT);
+    snippet.setStatus(status);
+    Long snippetId = 1L;
+    snippet.setId(snippetId);
+    when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(snippet));
+    snippetService.updateLintingStatus(ProcessStatus.COMPLIANT, snippetId);
+    assertEquals(ProcessStatus.COMPLIANT, snippet.getStatus().getLinting());
   }
 }

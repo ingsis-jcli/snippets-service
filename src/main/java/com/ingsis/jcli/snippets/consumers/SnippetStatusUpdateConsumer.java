@@ -59,6 +59,12 @@ public class SnippetStatusUpdateConsumer extends RedisStreamConsumer<String> {
             + " status to "
             + snippetStatusUpdateProduct.getStatus());
 
-    // TODO UPDATE STATUS
+    if (snippetStatusUpdateProduct.getOperation().equals("format")) {
+      snippetService.updateFormattingStatus(
+          snippetStatusUpdateProduct.getStatus(), snippetStatusUpdateProduct.getSnippetId());
+    } else if (snippetStatusUpdateProduct.getOperation().equals("lint")) {
+      snippetService.updateLintingStatus(
+          snippetStatusUpdateProduct.getStatus(), snippetStatusUpdateProduct.getSnippetId());
+    }
   }
 }

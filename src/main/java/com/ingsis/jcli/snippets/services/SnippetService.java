@@ -6,9 +6,11 @@ import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.exceptions.DeniedAction;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
+import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
+import com.ingsis.jcli.snippets.common.status.Status;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -233,5 +235,27 @@ public class SnippetService {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
     snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
+  }
+
+  public void updateLintingStatus(ProcessStatus processStatus, Long snippetId) {
+    Optional<Snippet> optionalSnippet = getSnippet(snippetId);
+    if (optionalSnippet.isEmpty()) {
+      throw new SnippetNotFoundException(snippetId);
+    }
+    Snippet snippet = optionalSnippet.get();
+    Status status = snippet.getStatus();
+    status.setLinting(processStatus);
+    snippetRepository.save(snippet);
+  }
+
+  public void updateFormattingStatus(ProcessStatus processStatus, Long snippetId) {
+    Optional<Snippet> optionalSnippet = getSnippet(snippetId);
+    if (optionalSnippet.isEmpty()) {
+      throw new SnippetNotFoundException(snippetId);
+    }
+    Snippet snippet = optionalSnippet.get();
+    Status status = snippet.getStatus();
+    status.setFormatting(processStatus);
+    snippetRepository.save(snippet);
   }
 }
