@@ -73,7 +73,7 @@ class TestCaseControllerTest {
     Jwt mockJwt = createMockJwt("userId");
 
     when(jwtService.extractUserId(token)).thenReturn("userId");
-    when(permissionService.hasPermissionOnSnippet(any(), any(), any())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), any())).thenReturn(true);
     when(snippetService.getSnippet(testCaseDto.snippetId())).thenReturn(Optional.of(snippet));
     when(testCaseService.createTestCase(testCaseDto, snippet)).thenReturn(1L);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
@@ -118,7 +118,7 @@ class TestCaseControllerTest {
 
     Jwt mockJwt = createMockJwt("userId");
     when(jwtService.extractUserId(token)).thenReturn("userId");
-    when(permissionService.hasPermissionOnSnippet(any(), any(), any())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), any())).thenReturn(true);
     when(snippetService.getSnippet(testCaseDto.snippetId())).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -183,7 +183,7 @@ class TestCaseControllerTest {
 
     when(jwtService.extractUserId(token)).thenReturn("userId");
     when(testCaseService.getTestCase(testCaseId)).thenReturn(Optional.of(testCase));
-    when(permissionService.hasPermissionOnSnippet(any(), any(), any())).thenReturn(true);
+    when(permissionService.hasPermissionOnSnippet(any(), any())).thenReturn(true);
     when(languageService.runTestCase(testCase)).thenReturn(TestState.SUCCESS);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 

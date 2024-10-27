@@ -1,5 +1,6 @@
-package com.ingsis.jcli.snippets.clients;
+package com.ingsis.jcli.snippets.clients.factory;
 
+import com.ingsis.jcli.snippets.clients.LanguageRestClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 

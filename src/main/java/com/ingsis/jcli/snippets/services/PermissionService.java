@@ -17,9 +17,8 @@ public class PermissionService {
     this.permissionsClient = permissionsClient;
   }
 
-  public boolean hasPermissionOnSnippet(PermissionType type, Long snippetId, String userId) {
-    ResponseEntity<Boolean> response =
-        permissionsClient.hasPermission(type.name, snippetId, userId);
+  public boolean hasPermissionOnSnippet(PermissionType type, Long snippetId) {
+    ResponseEntity<Boolean> response = permissionsClient.hasPermission(type.name, snippetId);
     if (response == null || response.getStatusCode().isError()) {
       // TODO
       return false;

@@ -121,7 +121,7 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(false);
+    when(permissionService.hasPermissionOnSnippet(any(), anyLong())).thenReturn(false);
     when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(""));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 

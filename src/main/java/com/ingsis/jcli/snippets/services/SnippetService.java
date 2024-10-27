@@ -123,7 +123,7 @@ public class SnippetService {
       return true;
     }
 
-    return permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippetId, userId);
+    return permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippetId);
   }
 
   public boolean canEditSnippet(Long snippetId, String userId) {

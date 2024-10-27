@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.ingsis.jcli.snippets.clients.LanguageRestClient;
-import com.ingsis.jcli.snippets.clients.LanguageRestTemplateFactory;
 import com.ingsis.jcli.snippets.clients.factory.FeignException;
+import com.ingsis.jcli.snippets.clients.factory.LanguageRestTemplateFactory;
 import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;

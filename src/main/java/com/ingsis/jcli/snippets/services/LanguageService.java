@@ -1,7 +1,7 @@
 package com.ingsis.jcli.snippets.services;
 
 import com.ingsis.jcli.snippets.clients.LanguageRestClient;
-import com.ingsis.jcli.snippets.clients.LanguageRestTemplateFactory;
+import com.ingsis.jcli.snippets.clients.factory.LanguageRestTemplateFactory;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
 import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
