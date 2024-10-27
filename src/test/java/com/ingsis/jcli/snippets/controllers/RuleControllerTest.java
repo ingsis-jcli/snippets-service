@@ -52,33 +52,12 @@ class RuleControllerTest {
   }
 
   @Test
-  void getFormattingRulesSuccess() throws Exception {
-    String userId = "123";
-    Jwt mockJwt = createMockJwt(userId);
-    LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-    List<Rule> rules = List.of(new Rule("Rule1", true, "1"));
-
-    when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(languageService.getLanguageVersion(anyString(), anyString())).thenReturn(languageVersion);
-    when(rulesService.getFormattingRules(anyString(), any(LanguageVersion.class)))
-        .thenReturn(rules);
-    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-
-    mockMvc
-        .perform(
-            get("/rules/formatting")
-                .header("Authorization", "Bearer mock-token")
-                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("Rule1"));
-  }
-
-  @Test
   void updateFormattingRulesSuccess() throws Exception {
     String userId = "123";
     Jwt mockJwt = createMockJwt(userId);
     LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-    List<Rule> rules = List.of(new Rule("rule1", true, "1"));
+    List<Rule> rules =
+        List.of(new Rule("rule1", "value1", true), new Rule("rule2", "value2", false));
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(languageService.getLanguageVersion(anyString(), anyString())).thenReturn(languageVersion);
@@ -95,11 +74,37 @@ class RuleControllerTest {
   }
 
   @Test
+  void getFormattingRulesSuccess() throws Exception {
+    String userId = "123";
+    Jwt mockJwt = createMockJwt(userId);
+    LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
+    List<Rule> rules =
+        List.of(new Rule("rule1", "value1", true), new Rule("rule2", "value2", false));
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(languageService.getLanguageVersion(anyString(), anyString())).thenReturn(languageVersion);
+    when(rulesService.getFormattingRules(anyString(), any(LanguageVersion.class)))
+        .thenReturn(rules);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            get("/rules/formatting")
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].name").value("rule1")) // Corrected the value based on mock data
+        .andExpect(jsonPath("$[0].value").value("value1")) // Added validation for value
+        .andExpect(jsonPath("$[0].isActive").value(true)); // Added validation for isActive
+  }
+
+  @Test
   void getLintingRulesSuccess() throws Exception {
     String userId = "123";
     Jwt mockJwt = createMockJwt(userId);
     LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-    List<Rule> rules = List.of(new Rule("LintRule", true, "1"));
+    List<Rule> rules =
+        List.of(new Rule("rule1", "value1", true), new Rule("rule2", "value2", false));
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(languageService.getLanguageVersion(anyString(), anyString())).thenReturn(languageVersion);
@@ -112,7 +117,9 @@ class RuleControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("LintRule"));
+        .andExpect(jsonPath("$[0].name").value("rule1")) // Corrected the value based on mock data
+        .andExpect(jsonPath("$[0].value").value("value1")) // Added validation for value
+        .andExpect(jsonPath("$[0].isActive").value(true)); // Added validation for isActive
   }
 
   @Test
@@ -120,7 +127,8 @@ class RuleControllerTest {
     String userId = "123";
     Jwt mockJwt = createMockJwt(userId);
     LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-    List<Rule> rules = List.of(new Rule("LintRule", true, "1"));
+    List<Rule> rules =
+        List.of(new Rule("rule1", "value1", true), new Rule("rule2", "value2", false));
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(languageService.getLanguageVersion(anyString(), anyString())).thenReturn(languageVersion);

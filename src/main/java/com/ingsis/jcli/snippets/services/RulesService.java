@@ -72,7 +72,18 @@ public class RulesService {
     List<RuleDto> defaultRules = languageService.getLintingRules(languageVersion);
     List<Rule> ruleEntities =
         defaultRules.stream()
-            .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
+            .map(
+                ruleDto -> {
+                  try {
+                    Integer numericValue = Integer.parseInt(ruleDto.value());
+                    return new Rule(ruleDto.name(), numericValue, ruleDto.isActive());
+                  } catch (NumberFormatException e) {
+                    if (ruleDto.value() == null) {
+                      return new Rule(ruleDto.name(), ruleDto.isActive());
+                    }
+                    return new Rule(ruleDto.name(), ruleDto.value(), ruleDto.isActive());
+                  }
+                })
             .collect(Collectors.toList());
 
     ruleRepository.saveAll(ruleEntities);
@@ -92,7 +103,15 @@ public class RulesService {
     List<RuleDto> defaultRules = languageService.getFormattingRules(languageVersion);
     List<Rule> ruleEntities =
         defaultRules.stream()
-            .map(ruleDto -> new Rule(ruleDto.name(), ruleDto.isActive(), ruleDto.value()))
+            .map(
+                ruleDto -> {
+                  try {
+                    Integer numericValue = Integer.parseInt(ruleDto.value());
+                    return new Rule(ruleDto.name(), numericValue, ruleDto.isActive());
+                  } catch (NumberFormatException e) {
+                    return new Rule(ruleDto.name(), ruleDto.isActive());
+                  }
+                })
             .collect(Collectors.toList());
 
     ruleRepository.saveAll(ruleEntities);

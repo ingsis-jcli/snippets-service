@@ -13,9 +13,9 @@ class LintingRulesTest {
 
   @Test
   void testEqualsAndHashCode() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
-    Rule rule2 = new Rule("rule2", true, "NoConsoleLog");
+    Rule rule2 = new Rule("rule2", "NoConsoleLog", true);
     rule2.setId(2L);
 
     LintingRules lintingRules1 = new LintingRules("user123", List.of(rule1, rule2));
@@ -30,12 +30,16 @@ class LintingRulesTest {
 
   @Test
   void testToString() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
+
     LintingRules lintingRules = new LintingRules("user123", List.of(rule1));
+
     String expectedString =
-        "LintingRules(userId=user123, rules="
-            + "[Rule(id=1, name=rule1, isActive=true, value=NoConsoleLog)])";
+        "LintingRules(userId=user123, "
+            + "rules=[Rule(id=1, name=rule1, isActive=true, "
+            + "value=NoConsoleLog, numericValue=null)])";
+
     assertEquals(expectedString, lintingRules.toString());
   }
 
@@ -49,8 +53,9 @@ class LintingRulesTest {
 
   @Test
   void testSetRules() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
+
     LintingRules lintingRules = new LintingRules();
     lintingRules.setRules(List.of(rule1));
 
@@ -61,12 +66,14 @@ class LintingRulesTest {
   @Test
   void testNoArgsConstructor() {
     LintingRules lintingRules = new LintingRules();
+
     assertNotNull(lintingRules);
   }
 
   @Test
   void testAllArgsConstructor() {
-    Rule rule = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule = new Rule("rule1", "NoConsoleLog", true);
+
     LintingRules lintingRules = new LintingRules("user123", List.of(rule));
 
     assertEquals("user123", lintingRules.getUserId());

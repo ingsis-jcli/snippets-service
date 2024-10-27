@@ -13,9 +13,9 @@ class FormattingRulesTest {
 
   @Test
   void testEqualsAndHashCode() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
-    Rule rule2 = new Rule("rule2", true, "NoConsoleLog");
+    Rule rule2 = new Rule("rule2", "NoConsoleLog", true);
     rule2.setId(2L);
 
     FormattingRules formattingRules1 = new FormattingRules("user123", List.of(rule1, rule2));
@@ -30,12 +30,16 @@ class FormattingRulesTest {
 
   @Test
   void testToString() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
+
     FormattingRules formattingRules = new FormattingRules("user123", List.of(rule1));
+
     String expectedString =
         "FormattingRules(userId=user123, "
-            + "rules=[Rule(id=1, name=rule1, isActive=true, value=NoConsoleLog)])";
+            + "rules=[Rule(id=1, name=rule1, "
+            + "isActive=true, value=NoConsoleLog, numericValue=null)])";
+
     assertEquals(expectedString, formattingRules.toString());
   }
 
@@ -49,8 +53,9 @@ class FormattingRulesTest {
 
   @Test
   void testSetRules() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
+
     FormattingRules formattingRules = new FormattingRules();
     formattingRules.setRules(List.of(rule1));
 
@@ -61,13 +66,15 @@ class FormattingRulesTest {
   @Test
   void testNoArgsConstructor() {
     FormattingRules formattingRules = new FormattingRules();
+
     assertNotNull(formattingRules);
   }
 
   @Test
   void testAllArgsConstructor() {
-    Rule rule = new Rule("rule1", true, "NoConsoleLog");
-    FormattingRules formattingRules = new FormattingRules("user123", List.of(rule));
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
+
+    FormattingRules formattingRules = new FormattingRules("user123", List.of(rule1));
 
     assertEquals("user123", formattingRules.getUserId());
     assertEquals(1, formattingRules.getRules().size());

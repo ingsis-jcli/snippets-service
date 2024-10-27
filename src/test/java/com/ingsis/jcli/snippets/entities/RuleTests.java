@@ -9,18 +9,18 @@ class RuleTests {
   @Test
   void testConstructorWithNumberValue() {
     Number value = 42;
-    Rule rule = new Rule("ruleWithNumber", true, value);
+    Rule rule = new Rule("ruleWithNumber", value, true);
     Assertions.assertEquals("ruleWithNumber", rule.getName());
     Assertions.assertTrue(rule.isActive());
-    Assertions.assertEquals(value.toString(), rule.getValue());
+    Assertions.assertNull(rule.getValue());
 
     Assertions.assertEquals(value.doubleValue(), rule.getNumericValue().doubleValue(), 0.0);
   }
 
   @Test
   void testGetNumericValue() {
-    Rule ruleWithNumber = new Rule("ruleWithNumber", true, 42);
-    Rule ruleWithNonNumber = new Rule("ruleWithNonNumber", true, "NoConsoleLog");
+    Rule ruleWithNumber = new Rule("ruleWithNumber", 42, true);
+    Rule ruleWithNonNumber = new Rule("ruleWithNonNumber", "NoConsoleLog", true);
 
     Assertions.assertEquals(42.0, ruleWithNumber.getNumericValue().doubleValue(), 0.0);
     Assertions.assertNull(ruleWithNonNumber.getNumericValue());
@@ -28,11 +28,11 @@ class RuleTests {
 
   @Test
   void testEqualsAndHashCode() {
-    Rule rule1 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule1 = new Rule("rule1", "NoConsoleLog", true);
     rule1.setId(1L);
-    Rule rule2 = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule2 = new Rule("rule1", "NoConsoleLog", true);
     rule2.setId(1L);
-    Rule rule3 = new Rule("rule3", false, "NoConsoleLog");
+    Rule rule3 = new Rule("rule3", "NoConsoleLog", true);
     rule3.setId(2L);
 
     Assertions.assertEquals(rule1, rule2);
@@ -42,9 +42,10 @@ class RuleTests {
 
   @Test
   void testToString() {
-    Rule rule = new Rule("rule1", true, "NoConsoleLog");
+    Rule rule = new Rule("rule1", "NoConsoleLog", true);
     rule.setId(1L);
-    String expectedString = "Rule(id=1, name=rule1, isActive=true, value=NoConsoleLog)";
+    String expectedString =
+        "Rule(id=1, name=rule1, isActive=true, value=NoConsoleLog, numericValue=null)";
     Assertions.assertEquals(expectedString, rule.toString());
   }
 
@@ -65,10 +66,11 @@ class RuleTests {
   @Test
   void testConstructorWithStringValue() {
     String value = "NoConsoleLog";
-    Rule rule = new Rule("ruleWithString", true, value);
+    Rule rule = new Rule("ruleWithString", value, true);
     Assertions.assertEquals("ruleWithString", rule.getName());
     Assertions.assertTrue(rule.isActive());
     Assertions.assertEquals(value, rule.getValue());
+    Assertions.assertNull(rule.getNumericValue());
   }
 
   @Test

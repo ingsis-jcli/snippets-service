@@ -35,10 +35,7 @@ public class LintSnippetsProducerTest {
   @Test
   void testLint() {
     List<Rule> rules =
-        List.of(
-            new Rule("rule1", true, "value1"),
-            new Rule("rule2", false, "value2"),
-            new Rule("rule3", true, "value3"));
+        List.of(new Rule("rule1", "value1", true), new Rule("rule2", "value2", false));
 
     Snippet snippet = new Snippet();
     snippet.setLanguageVersion(new LanguageVersion("printscript", "1.1"));
