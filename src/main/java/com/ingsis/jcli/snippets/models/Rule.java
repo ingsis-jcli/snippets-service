@@ -27,7 +27,7 @@ public class Rule {
 
   @Getter private String value;
 
-  @Getter private Double numericValue;
+  @Getter private Integer numericValue;
 
   public Rule(String name, String value, boolean isActive) {
     this.name = name;
@@ -40,9 +40,9 @@ public class Rule {
     this.isActive = isActive;
   }
 
-  public Rule(String name, Number numericValue, boolean isActive) {
+  public Rule(String name, Integer numericValue, boolean isActive) {
     this.name = name;
     this.isActive = isActive;
-    this.numericValue = numericValue != null ? numericValue.doubleValue() : null;
+    this.numericValue = numericValue != null ? numericValue.intValue() : null;
   }
 }

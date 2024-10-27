@@ -48,5 +48,4 @@ public class SerializerUtil {
     jsonObject.add("rules", rulesArray);
     return jsonObject.toString();
   }
-
 }

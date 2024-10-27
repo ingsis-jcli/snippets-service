@@ -8,7 +8,7 @@ class RuleTests {
 
   @Test
   void testConstructorWithNumberValue() {
-    Number value = 42;
+    Integer value = 42;
     Rule rule = new Rule("ruleWithNumber", value, true);
     Assertions.assertEquals("ruleWithNumber", rule.getName());
     Assertions.assertTrue(rule.isActive());
