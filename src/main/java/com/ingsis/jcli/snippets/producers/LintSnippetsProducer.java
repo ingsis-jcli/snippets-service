@@ -21,7 +21,7 @@ public class LintSnippetsProducer extends JavaRedisStreamProducer {
 
   public void lint(Snippet snippet, List<Rule> rules) {
     String message = serializeFromLintOrFormatRequest(rules, snippet);
-    System.out.println("Message emited: " + message);
+    System.out.println("Message emited for lint: " + message);
     emit(message);
   }
 }

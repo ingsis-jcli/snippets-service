@@ -21,7 +21,7 @@ public class FormatSnippetsProducer extends JavaRedisStreamProducer {
 
   public void format(Snippet snippet, List<Rule> rules) {
     String message = serializeFromLintOrFormatRequest(rules, snippet);
-    System.out.println("Message emited: " + message);
+    System.out.println("Message emited for format: " + message);
     emit(message);
   }
 }

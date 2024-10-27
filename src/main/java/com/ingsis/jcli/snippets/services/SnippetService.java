@@ -231,7 +231,7 @@ public class SnippetService {
 
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
-    List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
     snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
   }
 }
