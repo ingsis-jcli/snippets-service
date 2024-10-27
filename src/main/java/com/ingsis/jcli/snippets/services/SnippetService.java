@@ -56,8 +56,9 @@ public class SnippetService {
     this.formatSnippetsProducer = formatSnippetsProducer;
   }
 
-  public void helloBucket() {
-    blobStorageService.uploadSnippet("snippet", "hello.txt", "Hello Bucket");
+  public Optional<Snippet> getSnippet(Long snippetId) {
+    Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
+    return snippetOptional;
   }
 
   public Optional<String> getSnippetContent(Long snippetId) {
@@ -72,11 +73,6 @@ public class SnippetService {
     return content;
   }
 
-  public Optional<Snippet> getSnippet(Long snippetId) {
-    Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
-    return snippetOptional;
-  }
-
   public Snippet createSnippet(SnippetDto snippetDto, String userId) {
     saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
@@ -88,7 +84,6 @@ public class SnippetService {
 
   private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
-
     if (isValid.hasError()) {
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
@@ -108,21 +103,19 @@ public class SnippetService {
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
   }
 
-  public boolean isOwner(Long snippetId, String userId) {
-    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
-    return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
+  public boolean isOwner(Snippet snippet, String userId) {
+    return snippet.getOwner().equals(userId);
   }
 
   public boolean canGetSnippet(Long snippetId, String userId) {
-    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
-    if (snippet.isEmpty()) {
+    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOpt.isEmpty()) {
       throw new NoSuchElementException("Snippet not found");
     }
-
-    if (snippet.get().getOwner().equals(userId)) {
+    Snippet snippet = snippetOpt.get();
+    if (isOwner(snippet, userId)) {
       return true;
     }
-
     return permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippetId);
   }
 
@@ -160,11 +153,6 @@ public class SnippetService {
     snippet.setUrl(getBaseUrl(snippetDto, userId));
     snippet.setLanguageVersion(languageVersion);
     snippetRepository.save(snippet);
-  }
-
-  public List<SnippetDto> getAllSnippets(String userId) {
-    List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
-    return snippets.stream().map(this::getSnippetDto).toList();
   }
 
   public SnippetDto getSnippetDto(Snippet snippet) {

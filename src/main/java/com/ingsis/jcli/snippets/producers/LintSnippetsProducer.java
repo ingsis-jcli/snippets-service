@@ -33,6 +33,8 @@ public class LintSnippetsProducer extends JavaRedisStreamProducer {
       ruleObject.addProperty("value", rule.getValue());
       rulesArray.add(ruleObject);
     }
+    jsonObject.addProperty("rules", rulesArray.toString());
+    System.out.println("Message emited: " + jsonObject.toString());
     emit(jsonObject.toString());
   }
 }

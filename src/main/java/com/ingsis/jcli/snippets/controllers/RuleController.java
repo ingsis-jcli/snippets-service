@@ -78,7 +78,7 @@ public class RuleController {
 
     rulesService.updateFormattingRules(userId, rules);
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
-    snippetService.lintUserSnippets(userId, languageVersion);
+    snippetService.formatUserSnippets(userId, languageVersion);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -94,7 +94,7 @@ public class RuleController {
 
     rulesService.updateLintingRules(userId, rules);
     LanguageVersion languageVersion = languageService.getLanguageVersion(language, version);
-    snippetService.formatUserSnippets(userId, languageVersion);
+    snippetService.lintUserSnippets(userId, languageVersion);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
