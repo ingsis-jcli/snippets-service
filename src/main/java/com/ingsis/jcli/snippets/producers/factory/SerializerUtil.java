@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets.producers;
+package com.ingsis.jcli.snippets.producers.factory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

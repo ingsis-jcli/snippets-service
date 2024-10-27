@@ -16,6 +16,7 @@ import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.producers.FormatSnippetsProducer;
 import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
+import com.ingsis.jcli.snippets.producers.factory.LanguageProducerFactory;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
 import java.util.ArrayList;
@@ -37,8 +38,7 @@ public class SnippetService {
   private final LanguageService languageService;
   private final PermissionService permissionService;
   private final RulesService rulesService;
-  private final LintSnippetsProducer lintSnippetsProducer;
-  private final FormatSnippetsProducer formatSnippetsProducer;
+  private final LanguageProducerFactory languageProducerFactory;
 
   @Autowired
   public SnippetService(
@@ -47,15 +47,13 @@ public class SnippetService {
       LanguageService languageService,
       PermissionService permissionService,
       RulesService rulesService,
-      LintSnippetsProducer lintSnippetsProducer,
-      FormatSnippetsProducer formatSnippetsProducer) {
+      LanguageProducerFactory languageProducerFactory) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
     this.permissionService = permissionService;
     this.rulesService = rulesService;
-    this.lintSnippetsProducer = lintSnippetsProducer;
-    this.formatSnippetsProducer = formatSnippetsProducer;
+    this.languageProducerFactory = languageProducerFactory;
   }
 
   public Optional<Snippet> getSnippet(Long snippetId) {
@@ -228,12 +226,16 @@ public class SnippetService {
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    LintSnippetsProducer lintSnippetsProducer =
+        languageProducerFactory.getLintProducer(languageVersion.getLanguage());
     snippets.forEach(s -> lintSnippetsProducer.lint(s, rules));
   }
 
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
+    FormatSnippetsProducer formatSnippetsProducer =
+        languageProducerFactory.getFormatProducer(languageVersion.getLanguage());
     snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
   }
 
@@ -246,7 +248,6 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setLinting(processStatus);
     snippetRepository.save(snippet);
-    System.out.println("Snippet lint for " + snippet.getId() + " : " + snippet.getStatus());
   }
 
   public void updateFormattingStatus(ProcessStatus processStatus, Long snippetId) {
@@ -258,6 +259,5 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setFormatting(processStatus);
     snippetRepository.save(snippet);
-    System.out.println("Snippet format for " + snippet.getId() + " : " + snippet.getStatus());
   }
 }

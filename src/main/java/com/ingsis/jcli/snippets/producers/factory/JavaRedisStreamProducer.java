@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets.producers;
+package com.ingsis.jcli.snippets.producers.factory;
 
 import com.ingsis.jcli.snippets.common.Generated;
 import org.springframework.data.redis.connection.stream.RecordId;
