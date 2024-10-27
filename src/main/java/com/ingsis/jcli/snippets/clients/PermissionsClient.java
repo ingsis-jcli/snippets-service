@@ -24,5 +24,5 @@ public interface PermissionsClient {
       @RequestParam("snippetId") Long snippetId, @RequestParam("userId") String userId);
 
   @RequestMapping(method = RequestMethod.GET, value = "/permissions/user")
-  ResponseEntity<List<Long>> getSnippetsSharedWithUser(@RequestParam("userId") String userId);
+  ResponseEntity<List<Long>> getSnippetsSharedWithUser();
 }

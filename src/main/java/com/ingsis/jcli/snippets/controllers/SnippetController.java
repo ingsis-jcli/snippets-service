@@ -1,6 +1,5 @@
 package com.ingsis.jcli.snippets.controllers;
 
-import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -46,23 +45,19 @@ public class SnippetController {
   }
 
   @GetMapping()
-  public ResponseEntity<String> getSnippet(
+  public ResponseEntity<SnippetDto> getSnippet(
       @RequestParam Long snippetId, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
 
-    Optional<String> snippet = snippetService.getSnippetContent(snippetId);
-    if (snippet.isEmpty()) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+    SnippetDto snippet = snippetService.getSnippetDto(snippetId);
 
-    boolean hasPermission =
-        permissionService.hasPermissionOnSnippet(PermissionType.READ, snippetId, userId);
+    boolean hasPermission = snippetService.canGetSnippet(snippetId, userId);
     if (!hasPermission) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    return new ResponseEntity<>(snippet.get(), HttpStatus.OK);
+    return new ResponseEntity<>(snippet, HttpStatus.OK);
   }
 
   @PostMapping()
@@ -83,12 +78,6 @@ public class SnippetController {
 
     String userId = jwtService.extractUserId(token);
 
-    //    boolean hasPermission =
-    //        permissionService.hasPermissionOnSnippet(PermissionType.WRITE, snippetId, userId);
-    //    if (!hasPermission) {
-    //      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    //    }
-
     Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
     testCaseService.runAllTestCases(snippet);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
@@ -104,6 +93,7 @@ public class SnippetController {
       @RequestParam("name") Optional<String> name,
       @RequestParam("language") Optional<String> language,
       @RequestHeader("Authorization") String token) {
+    // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
     List<SnippetDto> snippets =

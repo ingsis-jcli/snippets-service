@@ -8,21 +8,21 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.services.BlobStorageService;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +46,7 @@ class SnippetControllerTest {
   @MockBean private SnippetService snippetService;
   @MockBean private PermissionService permissionService;
   @MockBean private LanguageService languageService;
+  @MockBean private BlobStorageService blobStorageService;
   @MockBean private JwtDecoder jwtDecoder;
   @MockBean private JwtService jwtService;
   @MockBean private TestCaseService testCaseService;
@@ -67,14 +68,16 @@ class SnippetControllerTest {
   void getSnippetOk() throws Exception {
     Long id = 1L;
     String userId = "123";
-    String expectedSnippetContent = "This is the content of the snippet.";
+    String content = "This is the content of the snippet.";
+    SnippetDto expected = new SnippetDto("name", content, userId, "java", "21");
 
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(permissionService.hasPermissionOnSnippet(any(), anyLong(), anyString())).thenReturn(true);
-    when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(expectedSnippetContent));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
+    when(snippetService.getSnippetDto(id)).thenReturn(expected);
 
     mockMvc
         .perform(
@@ -83,7 +86,10 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
-        .andExpect(content().string(expectedSnippetContent));
+        .andExpect(jsonPath("$.name").value("name"))
+        .andExpect(jsonPath("$.content").value(content))
+        .andExpect(jsonPath("$.language").value("java"))
+        .andExpect(jsonPath("$.version").value("21"));
   }
 
   @Test
@@ -94,8 +100,7 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(permissionService.hasPermissionOnSnippet(PermissionType.READ, id, userId))
-        .thenReturn(true);
+    when(snippetService.canGetSnippet(id, userId)).thenThrow(NoSuchElementException.class);
     when(snippetService.getSnippetContent(id)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -183,8 +188,7 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(permissionService.hasPermissionOnSnippet(PermissionType.WRITE, id, userId))
-        .thenReturn(true);
+    when(snippetService.canEditSnippet(id, userId)).thenReturn(true);
     when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 

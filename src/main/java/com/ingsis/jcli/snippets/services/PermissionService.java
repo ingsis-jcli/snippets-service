@@ -27,7 +27,7 @@ public class PermissionService {
     return response.getBody() != null && response.getBody();
   }
 
-  public List<Long> getSnippetsSharedWithUser(String userId) {
-    return permissionsClient.getSnippetsSharedWithUser(userId).getBody();
+  public List<Long> getSnippetsSharedWithUser(String userId) { // token is added to request ?
+    return permissionsClient.getSnippetsSharedWithUser().getBody();
   }
 }

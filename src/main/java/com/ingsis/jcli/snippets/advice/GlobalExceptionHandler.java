@@ -4,6 +4,8 @@ import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.exceptions.ErrorFetchingClientData;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.NoSuchLanguageException;
+import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
+import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -36,5 +38,19 @@ public class GlobalExceptionHandler {
   public ResponseEntity<String> handleErrorFetchingClientData(
       ErrorFetchingClientData ex, WebRequest request) {
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(NoSuchElementException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ResponseEntity<String> handleNoSuchElementException(
+      NoSuchElementException ex, WebRequest request) {
+    return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(PermissionDeniedException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ResponseEntity<String> handlePermissionDeniedException(
+      PermissionDeniedException ex, WebRequest request) {
+    return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
   }
 }

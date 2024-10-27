@@ -3,10 +3,7 @@ package com.ingsis.jcli.snippets.common;
 @Generated
 public enum PermissionType {
   OWNER("owner"),
-  READ("read"),
-  WRITE("write"),
-  EXECUTE("execute"),
-  SHARE("share");
+  SHARED("shared");
 
   public final String name;
 

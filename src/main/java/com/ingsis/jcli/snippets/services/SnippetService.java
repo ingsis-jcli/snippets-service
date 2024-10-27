@@ -2,7 +2,10 @@ package com.ingsis.jcli.snippets.services;
 
 import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 
+import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.common.exceptions.DeniedAction;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
+import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
@@ -110,13 +113,34 @@ public class SnippetService {
     return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
   }
 
-  public Snippet editSnippet(Long snippetId, SnippetDto snippetDto, String userId) {
-    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
-    if (snippetOpt.isEmpty()) {
-      throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
+  public boolean canGetSnippet(Long snippetId, String userId) {
+    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
+    if (snippet.isEmpty()) {
+      throw new NoSuchElementException("Snippet not found");
     }
 
-    Snippet snippet = snippetOpt.get();
+    if (snippet.get().getOwner().equals(userId)) {
+      return true;
+    }
+
+    return permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippetId, userId);
+  }
+
+  public boolean canEditSnippet(Long snippetId, String userId) {
+    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
+    if (snippet.isEmpty()) {
+      throw new NoSuchElementException("Snippet not found");
+    }
+    return snippet.get().getOwner().equals(userId);
+  }
+
+  public Snippet editSnippet(Long snippetId, SnippetDto snippetDto, String userId) {
+    boolean canEdit = canEditSnippet(snippetId, userId);
+    if (!canEdit) {
+      throw new PermissionDeniedException(DeniedAction.EDIT_SNIPPET);
+    }
+
+    Snippet snippet = getSnippet(snippetId).get();
     blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
     saveInBucket(snippetDto, userId);
 
@@ -144,6 +168,17 @@ public class SnippetService {
   }
 
   public SnippetDto getSnippetDto(Snippet snippet) {
+    String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
+    return new SnippetDto(
+        snippet.getName(),
+        content,
+        snippet.getOwner(),
+        snippet.getLanguageVersion().getLanguage(),
+        snippet.getLanguageVersion().getVersion());
+  }
+
+  public SnippetDto getSnippetDto(Long snippetId) {
+    Snippet snippet = getSnippet(snippetId).orElseThrow(NoSuchElementException::new);
     String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
     return new SnippetDto(
         snippet.getName(),
