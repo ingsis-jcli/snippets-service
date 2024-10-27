@@ -26,8 +26,6 @@ public class Rule {
   @JsonProperty("isActive")
   private boolean isActive;
 
-  @Column(name = "rule_value")
-  private String value;
   @Getter private String value;
 
   @Getter private Double numericValue;
