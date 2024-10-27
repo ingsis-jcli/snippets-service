@@ -246,6 +246,7 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setLinting(processStatus);
     snippetRepository.save(snippet);
+    System.out.println("Snippet lint for " + snippet.getId() + " : " + snippet.getStatus());
   }
 
   public void updateFormattingStatus(ProcessStatus processStatus, Long snippetId) {
@@ -257,5 +258,6 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setFormatting(processStatus);
     snippetRepository.save(snippet);
+    System.out.println("Snippet format for " + snippet.getId() + " : " + snippet.getStatus());
   }
 }
