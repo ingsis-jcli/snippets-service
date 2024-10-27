@@ -1,6 +1,5 @@
 package com.ingsis.jcli.snippets.models;
 
-import jakarta.persistence.Column;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
