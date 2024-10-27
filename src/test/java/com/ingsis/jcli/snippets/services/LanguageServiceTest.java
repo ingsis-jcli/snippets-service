@@ -57,7 +57,7 @@ public class LanguageServiceTest {
 
   @Test
   public void getLanguageVersionException() {
-    String language = "java";
+    String language = "notjava";
     String version = "8";
 
     NoSuchLanguageException exception =
@@ -84,7 +84,7 @@ public class LanguageServiceTest {
 
   @Test
   public void validateSnippetException() {
-    String language = "lua";
+    String language = "languageThatDoesNotExist";
     LanguageVersion languageVersion = new LanguageVersion(language, "123");
     Snippet snippet = new Snippet("name", "url", "userId", languageVersion);
 
@@ -93,7 +93,7 @@ public class LanguageServiceTest {
             NoSuchLanguageException.class,
             () -> languageService.validateSnippet(snippet, languageVersion));
 
-    assertEquals(language, exception.getLanguage());
+    assertEquals(language.toLowerCase(), exception.getLanguage());
   }
 
   @Test
@@ -231,7 +231,7 @@ public class LanguageServiceTest {
               languageService.runTestCase(testCase);
             });
 
-    assertEquals("unknownLanguage", exception.getLanguage());
+    assertEquals("unknownLanguage".toLowerCase(), exception.getLanguage());
   }
 
   @Test

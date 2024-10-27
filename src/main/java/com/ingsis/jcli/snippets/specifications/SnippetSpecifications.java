@@ -16,7 +16,8 @@ public class SnippetSpecifications {
   }
 
   public static Specification<Snippet> isLanguage(String language) {
-    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("language"), language);
+    return (root, query, criteriaBuilder) ->
+        criteriaBuilder.equal(root.get("languageVersion").get("language"), language.toLowerCase());
   }
 
   public static Specification<Snippet> nameHasWordThatStartsWith(String match) {

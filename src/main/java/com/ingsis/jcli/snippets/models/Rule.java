@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +22,7 @@ public class Rule {
 
   @NotNull private boolean isActive;
 
+  @Column(name = "rule_value")
   private String value;
 
   public Rule(String name, boolean isActive, String value) {

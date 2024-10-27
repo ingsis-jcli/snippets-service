@@ -9,6 +9,7 @@ import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,8 +96,8 @@ public class SnippetController {
 
   @GetMapping("/search")
   public ResponseEntity<List<SnippetDto>> getSnippetsBy(
-      @RequestParam(value = "page", defaultValue = "0") int page,
-      @RequestParam(value = "size", defaultValue = "10") int pageSize,
+      @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
+      @RequestParam(value = "size", defaultValue = "10") @Min(1) int pageSize,
       @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
       @RequestParam(value = "shared", defaultValue = "true") boolean isShared,
       @RequestParam("lintingStatus") Optional<ProcessStatus> lintingStatus,

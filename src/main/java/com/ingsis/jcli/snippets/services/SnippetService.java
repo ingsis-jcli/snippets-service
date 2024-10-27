@@ -167,28 +167,33 @@ public class SnippetService {
 
     List<Specification<Snippet>> specs = new ArrayList<>();
 
-    Specification<Snippet> spec =
-        isOwner
-            ? SnippetSpecifications.isOwner(userId)
-            : Specification.not(SnippetSpecifications.isOwner(userId));
-    specs.add(spec);
+    Specification<Snippet> specOwner = Specification.where(null);
+    Specification<Snippet> specShared = Specification.where(null);
 
-    List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
-    specs.add(SnippetSpecifications.isShared(sharedWithUser));
-    spec =
-        isShared
-            ? SnippetSpecifications.isShared(sharedWithUser)
-            : Specification.not(SnippetSpecifications.isShared(sharedWithUser));
-    specs.add(spec);
+    if (isOwner) {
+      specOwner = SnippetSpecifications.isOwner(userId);
+    }
+
+    if (isShared) {
+      List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
+      specShared = SnippetSpecifications.isShared(sharedWithUser);
+    }
+
+    specs.add(Specification.where(specOwner).or(specShared));
 
     lintingStatus.ifPresent(
         status -> specs.add(SnippetSpecifications.snippetsLintingStatusIs(status)));
 
     name.ifPresent(match -> specs.add(SnippetSpecifications.nameHasWordThatStartsWith(match)));
 
-    language.ifPresent(lang -> specs.add(SnippetSpecifications.isLanguage(lang)));
+    language.ifPresent(
+        lang -> {
+          languageService.validateLanguage(lang.toLowerCase());
+          specs.add(SnippetSpecifications.isLanguage(lang));
+        });
 
-    Specification<Snippet> finalSpec = specs.stream().reduce(Specification::and).orElse(null);
+    Specification<Snippet> finalSpec =
+        specs.stream().reduce(Specification::and).orElse(Specification.where(null));
 
     List<Snippet> snippets = snippetRepository.findAll(finalSpec, pageable).getContent();
 

@@ -39,11 +39,17 @@ public class LanguageService {
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {
-    if (!urls.containsKey(languageName)) {
+    if (!urls.containsKey(languageName.toLowerCase())) {
       throw new NoSuchLanguageException(languageName);
     }
 
     return new LanguageVersion(languageName, versionName);
+  }
+
+  public void validateLanguage(String languageName) {
+    if (!urls.containsKey(languageName.toLowerCase())) {
+      throw new NoSuchLanguageException(languageName);
+    }
   }
 
   public LanguageResponse validateSnippet(Snippet snippet, LanguageVersion languageVersion) {

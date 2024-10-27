@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.models;
 
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,9 +33,13 @@ public class TestCase {
 
   @ElementCollection @NotNull private List<String> outputs;
 
-  @NotNull private TestType type;
+  @Column(columnDefinition = "INTEGER")
+  @NotNull
+  private TestType type;
 
-  @NotNull private TestState state;
+  @Column(columnDefinition = "INTEGER")
+  @NotNull
+  private TestState state;
 
   public TestCase() {}
 

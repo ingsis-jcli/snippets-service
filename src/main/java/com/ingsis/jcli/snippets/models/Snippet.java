@@ -34,7 +34,7 @@ public class Snippet {
 
   @Embedded private LanguageVersion languageVersion;
 
-  @Embedded private Status status;
+  @Embedded private Status status = new Status();
 
   @OneToMany(mappedBy = "snippet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<TestCase> testCases;
