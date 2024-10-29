@@ -93,8 +93,14 @@ public class SnippetService {
 
   private @NotNull Snippet saveInDbTable(
       SnippetDto snippetDto, String userId, LanguageVersion languageVersion) {
+
     Snippet snippet =
-        new Snippet(snippetDto.getName(), getBaseUrl(snippetDto, userId), userId, languageVersion);
+        new Snippet(
+            snippetDto.getName(),
+            snippetDto.getDescription(),
+            getBaseUrl(snippetDto, userId),
+            userId,
+            languageVersion);
 
     snippetRepository.save(snippet);
     return snippet;
@@ -161,8 +167,8 @@ public class SnippetService {
     String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
     return new SnippetDto(
         snippet.getName(),
+        snippet.getDescription(),
         content,
-        snippet.getOwner(),
         snippet.getLanguageVersion().getLanguage(),
         snippet.getLanguageVersion().getVersion());
   }
@@ -172,8 +178,8 @@ public class SnippetService {
     String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
     return new SnippetDto(
         snippet.getName(),
+        snippet.getDescription(),
         content,
-        snippet.getOwner(),
         snippet.getLanguageVersion().getLanguage(),
         snippet.getLanguageVersion().getVersion());
   }

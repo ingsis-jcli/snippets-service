@@ -77,11 +77,13 @@ class SnippetServiceTest {
   void createSnippetOk() {
     Long snippetId = 1L;
     String name = "name";
+    String description = "description";
     String content = "content";
     String userId = "123";
 
-    SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
-    Snippet expected = new Snippet(name, getBaseUrl(snippetDto, userId), userId, languageVersionOk);
+    SnippetDto snippetDto = new SnippetDto(name, description, content, languageOk, versionOk);
+    Snippet expected =
+        new Snippet(name, description, getBaseUrl(snippetDto, userId), userId, languageVersionOk);
     expected.setId(1L);
 
     when(snippetRepository.save(any(Snippet.class)))
@@ -106,7 +108,7 @@ class SnippetServiceTest {
     String content = "content";
     String errorMessage = "Invalid snippet error";
 
-    SnippetDto snippetDto = new SnippetDto(name, content, userId, languageOk, versionOk);
+    SnippetDto snippetDto = new SnippetDto(name, content, languageOk, versionOk);
     Snippet snippet = new Snippet(name, "url", userId, languageVersionOk);
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
@@ -132,7 +134,7 @@ class SnippetServiceTest {
     Snippet initialSnippet = new Snippet(initialName, initialUrl, userId, languageVersionOk);
     initialSnippet.setId(snippetId);
 
-    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", "123", languageOk, versionOk);
+    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", languageOk, versionOk);
     String newUrl = getBaseUrl(snippetDto2, userId);
 
     Snippet finalSnippet = new Snippet("name2", newUrl, "123", languageVersionOk);
@@ -159,7 +161,7 @@ class SnippetServiceTest {
   @Test
   void editSnippetNotFound() {
     Long snippetId = 1L;
-    SnippetDto snippetDto = new SnippetDto("name", "content", userId, languageOk, versionOk);
+    SnippetDto snippetDto = new SnippetDto("name", "content", languageOk, versionOk);
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.empty());
 

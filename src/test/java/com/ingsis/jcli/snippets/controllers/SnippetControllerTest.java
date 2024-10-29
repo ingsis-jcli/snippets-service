@@ -71,7 +71,7 @@ class SnippetControllerTest {
     Long id = 1L;
     String userId = "123";
     String content = "This is the content of the snippet.";
-    SnippetDto expected = new SnippetDto("name", content, userId, "java", "21");
+    SnippetDto expected = new SnippetDto("name", content, "java", "21");
 
     Jwt mockJwt = createMockJwt(userId);
 
@@ -139,7 +139,7 @@ class SnippetControllerTest {
   @Test
   void createSnippetSuccess() throws Exception {
     String userId = "123";
-    SnippetDto snippetDto = new SnippetDto("name", "content", userId, "printscript", "1.1");
+    SnippetDto snippetDto = new SnippetDto("name", "content", "printscript", "1.1");
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
@@ -164,7 +164,7 @@ class SnippetControllerTest {
 
   @Test
   void createSnippetFailBlankDto() throws Exception {
-    SnippetDto snippetDto = new SnippetDto("", "", "123", "", "");
+    SnippetDto snippetDto = new SnippetDto("", "", "", "");
 
     Jwt mockJwt = createMockJwt("123");
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
@@ -183,7 +183,7 @@ class SnippetControllerTest {
   void editSnippetSuccess() throws Exception {
     Long id = 1L;
     String userId = "123";
-    SnippetDto snippetDto = new SnippetDto("name", "content", userId, "printscript", "1.1");
+    SnippetDto snippetDto = new SnippetDto("name", "content", "printscript", "1.1");
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
 
@@ -210,7 +210,7 @@ class SnippetControllerTest {
   void createSnippetFromUpload() throws Exception {
     String userId = "123";
     String content = "content";
-    SnippetDto snippetDto = new SnippetDto("name", content, userId, "printscript", "1.1");
+    SnippetDto snippetDto = new SnippetDto("name", content, "printscript", "1.1");
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
@@ -248,7 +248,7 @@ class SnippetControllerTest {
     Long id = 1L;
     String userId = "123";
     String content = "content";
-    SnippetDto snippetDto = new SnippetDto("name", content, userId, "printscript", "1.1");
+    SnippetDto snippetDto = new SnippetDto("name", content, "printscript", "1.1");
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
@@ -290,7 +290,7 @@ class SnippetControllerTest {
   //  void editSnippetFailForbidden() throws Exception {
   //    Long id = 1L;
   //    String userId = "123";
-  //    SnippetDto snippetDto = new SnippetDto("name", "content", userId, "printscript", "1.1");
+  //    SnippetDto snippetDto = new SnippetDto("name", "content", "printscript", "1.1");
   //
   //    Jwt mockJwt = createMockJwt(userId);
   //

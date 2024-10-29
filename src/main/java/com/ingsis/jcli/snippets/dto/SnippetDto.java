@@ -12,6 +12,8 @@ public class SnippetDto {
   @NotBlank(message = "Name cannot be blank")
   private String name;
 
+  private String description = "";
+
   @NotNull(message = "Content cannot be null")
   private String content;
 
@@ -23,8 +25,14 @@ public class SnippetDto {
 
   public SnippetDto() {}
 
-  public SnippetDto(String name, String content, String owner, String language, String version) {
+  public SnippetDto(String name, String content, String language, String version) {
+    this(name, "", content, language, version);
+  }
+
+  public SnippetDto(
+      String name, String description, String content, String language, String version) {
     this.name = name;
+    this.description = description;
     this.content = content;
     this.language = language;
     this.version = version;

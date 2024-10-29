@@ -76,9 +76,10 @@ public class SnippetController {
 
   @PostMapping(value = "/upload", consumes = "multipart/form-data")
   public ResponseEntity<Long> createSnippetFromFile(
-      @RequestParam("name") String name,
-      @RequestParam("language") String language,
-      @RequestParam("version") String version,
+      @RequestParam String name,
+      @RequestParam(required = false, defaultValue = "") String description,
+      @RequestParam String language,
+      @RequestParam String version,
       @RequestPart("file") MultipartFile file,
       @RequestHeader("Authorization") String token)
       throws IOException {
@@ -86,7 +87,7 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
 
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
-    SnippetDto snippetDto = new SnippetDto(name, content, userId, language, version);
+    SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
 
     Snippet snippet = snippetService.createSnippet(snippetDto, userId);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
@@ -108,6 +109,7 @@ public class SnippetController {
   @PutMapping(value = "/upload", consumes = "multipart/form-data")
   public ResponseEntity<Long> editSnippetFromFile(
       @RequestParam Long snippetId,
+      @RequestParam(required = false, defaultValue = "") String description,
       @RequestParam String name,
       @RequestParam String language,
       @RequestParam String version,
@@ -118,7 +120,7 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
 
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
-    SnippetDto snippetDto = new SnippetDto(name, content, userId, language, version);
+    SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
 
     Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
     testCaseService.runAllTestCases(snippet);
