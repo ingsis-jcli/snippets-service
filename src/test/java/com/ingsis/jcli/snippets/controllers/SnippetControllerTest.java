@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,6 +31,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -202,6 +204,86 @@ class SnippetControllerTest {
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").value(id));
+  }
+
+  @Test
+  void createSnippetFromUpload() throws Exception {
+    String userId = "123";
+    String content = "content";
+    SnippetDto snippetDto = new SnippetDto("name", content, userId, "printscript", "1.1");
+    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
+    snippet.setId(1L);
+
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", // param name
+            "snippet.txt",
+            "text/plain",
+            content.getBytes());
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippet);
+    when(languageService.validateSnippet(snippet, languageVersion))
+        .thenReturn(new LanguageSuccess());
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            multipart(path + "/upload")
+                .file(file)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .param("name", snippetDto.getName())
+                .param("language", snippetDto.getLanguage())
+                .param("version", snippetDto.getVersion())
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$").value(1L));
+  }
+
+  @Test
+  void editSnippetFromUpload() throws Exception {
+    Long id = 1L;
+    String userId = "123";
+    String content = "content";
+    SnippetDto snippetDto = new SnippetDto("name", content, userId, "printscript", "1.1");
+    Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
+    snippet.setId(1L);
+
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", // param name
+            "snippet.txt",
+            "text/plain",
+            content.getBytes());
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.canEditSnippet(id, userId)).thenReturn(true);
+    when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            multipart(path + "/upload")
+                .file(file)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .param("snippetId", id.toString())
+                .param("name", snippetDto.getName())
+                .param("language", snippetDto.getLanguage())
+                .param("version", snippetDto.getVersion())
+                .header("Authorization", "Bearer mock-token")
+                .with(
+                    request -> {
+                      request.setMethod("PUT");
+                      return request;
+                    })
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$").value(1L));
   }
 
   //  @Test

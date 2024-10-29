@@ -9,6 +9,8 @@ import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/snippet")
@@ -70,6 +74,24 @@ public class SnippetController {
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
+  @PostMapping(value = "/upload", consumes = "multipart/form-data")
+  public ResponseEntity<Long> createSnippetFromFile(
+      @RequestParam("name") String name,
+      @RequestParam("language") String language,
+      @RequestParam("version") String version,
+      @RequestPart("file") MultipartFile file,
+      @RequestHeader("Authorization") String token)
+      throws IOException {
+
+    String userId = jwtService.extractUserId(token);
+
+    String content = new String(file.getBytes(), StandardCharsets.UTF_8);
+    SnippetDto snippetDto = new SnippetDto(name, content, userId, language, version);
+
+    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+  }
+
   @PutMapping()
   public ResponseEntity<Long> editSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
@@ -81,6 +103,26 @@ public class SnippetController {
     Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
     testCaseService.runAllTestCases(snippet);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
+  }
+
+  @PutMapping(value = "/upload", consumes = "multipart/form-data")
+  public ResponseEntity<Long> editSnippetFromFile(
+      @RequestParam Long snippetId,
+      @RequestParam String name,
+      @RequestParam String language,
+      @RequestParam String version,
+      @RequestPart("file") MultipartFile file,
+      @RequestHeader("Authorization") String token)
+      throws IOException {
+
+    String userId = jwtService.extractUserId(token);
+
+    String content = new String(file.getBytes(), StandardCharsets.UTF_8);
+    SnippetDto snippetDto = new SnippetDto(name, content, userId, language, version);
+
+    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
+    testCaseService.runAllTestCases(snippet);
+    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
   @GetMapping("/search")
