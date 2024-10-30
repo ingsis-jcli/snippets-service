@@ -28,6 +28,8 @@ public class Snippet {
 
   @NotBlank private String name;
 
+  private String description;
+
   @NotBlank private String url;
 
   @NotBlank private String owner;
@@ -42,7 +44,13 @@ public class Snippet {
   public Snippet() {}
 
   public Snippet(String name, String url, String owner, LanguageVersion languageVersion) {
+    this(name, "", url, owner, languageVersion);
+  }
+
+  public Snippet(
+      String name, String description, String url, String owner, LanguageVersion languageVersion) {
     this.name = name;
+    this.description = description;
     this.url = url;
     this.owner = owner;
     this.languageVersion = languageVersion;

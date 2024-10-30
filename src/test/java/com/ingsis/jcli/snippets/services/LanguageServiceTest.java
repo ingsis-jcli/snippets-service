@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.ingsis.jcli.snippets.clients.LanguageRestClient;
@@ -18,6 +19,8 @@ import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import java.util.List;
@@ -257,5 +260,21 @@ public class LanguageServiceTest {
     TestState result = languageService.runTestCase(testCase);
 
     assertEquals(TestState.FAILURE, result);
+  }
+
+  @Test
+  void formatSnippetSuccess() {
+    List<RuleDto> rules = List.of(new RuleDto(true, "rule1", "value1"));
+    Snippet snippet = new Snippet("SnippetName", "url", "userId", languageVersionOk);
+    FormatResponse expectedResponse =
+        new FormatResponse("formatted content", ProcessStatus.COMPLIANT);
+
+    when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
+    when(languageRestClient.format(any())).thenReturn(expectedResponse);
+
+    FormatResponse response = languageService.formatSnippet(rules, snippet, languageVersionOk);
+
+    assertEquals(expectedResponse.content(), response.content());
+    assertEquals(expectedResponse.status(), response.status());
   }
 }

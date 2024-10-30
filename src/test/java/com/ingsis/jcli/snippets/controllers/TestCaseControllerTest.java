@@ -69,11 +69,12 @@ class TestCaseControllerTest {
             "Test Case", 1L, Arrays.asList("input1"), Arrays.asList("output1"), TestType.VALID);
     Snippet snippet = new Snippet();
     snippet.setId(1L);
+    snippet.setOwner("userId");
 
     Jwt mockJwt = createMockJwt("userId");
 
     when(jwtService.extractUserId(token)).thenReturn("userId");
-    when(permissionService.hasPermissionOnSnippet(any(), any())).thenReturn(true);
+    when(snippetService.isOwner(snippet, "userId")).thenReturn(true);
     when(snippetService.getSnippet(testCaseDto.snippetId())).thenReturn(Optional.of(snippet));
     when(testCaseService.createTestCase(testCaseDto, snippet)).thenReturn(1L);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);

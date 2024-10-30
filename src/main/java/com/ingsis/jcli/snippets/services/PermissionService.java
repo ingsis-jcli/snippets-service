@@ -29,4 +29,8 @@ public class PermissionService {
   public List<Long> getSnippetsSharedWithUser(String userId) { // token is added to request ?
     return permissionsClient.getSnippetsSharedWithUser().getBody();
   }
+
+  public void grantOwnerPermission(Long snippetId) {
+    permissionsClient.addSnippet(snippetId);
+  }
 }

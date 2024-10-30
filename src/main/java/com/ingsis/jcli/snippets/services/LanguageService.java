@@ -7,12 +7,14 @@ import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -148,5 +150,24 @@ public class LanguageService {
       return TestState.SUCCESS;
     }
     return TestState.FAILURE;
+  }
+
+  public FormatResponse formatSnippet(
+      List<RuleDto> rules, Snippet snippet, LanguageVersion languageVersion) {
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+
+    if (!urls.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+
+    String baseUrl = urls.get(language);
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
+
+    FormatRequest request = new FormatRequest(snippet.getName(), snippet.getUrl(), rules, version);
+
+    FormatResponse response = client.format(request);
+
+    return response;
   }
 }
