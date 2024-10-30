@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class LanguageRestClient {
@@ -51,17 +52,30 @@ public class LanguageRestClient {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<ValidateRequest> requestEntity = new HttpEntity<>(validateRequest, headers);
-    ResponseEntity<ErrorResponse> response =
+
+    try {
+      ResponseEntity<ErrorResponse> response =
         restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
-    if (response.getStatusCode() == HttpStatus.OK) {
-      return new ErrorResponse();
+      if (response.getStatusCode() == HttpStatus.OK) {
+        return new ErrorResponse();
+      }
+      if (response.getBody() == null) {
+        return new ErrorResponse("No response received");
+      }
+      System.out.println("Received: " + response.getBody());
+      return response.getBody();
+    } catch (HttpClientErrorException e) {
+      if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        System.out.println("Bad request during validation: " + e.getResponseBodyAsString());
+        return new ErrorResponse("Bad request: " + e.getResponseBodyAsString());
+      } else {
+        return new ErrorResponse("Client error: " + e.getResponseBodyAsString());
+      }
+    } catch (Exception e) {
+      return new ErrorResponse("Unexpected error occurred: " + e.getMessage());
     }
-    if (response.getBody() == null) {
-      return new ErrorResponse("No response received");
-    }
-    System.out.println("Received: " + response.getBody());
-    return response.getBody();
   }
+
 
   public FormatResponse format(FormatRequest formatRequest) {
     String url = String.format("%s/format", baseUrl);
