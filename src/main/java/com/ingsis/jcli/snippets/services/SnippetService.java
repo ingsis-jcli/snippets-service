@@ -86,6 +86,7 @@ public class SnippetService {
       deleteSnippet(snippet);
       throw e;
     }
+    permissionService.grantOwnerPermission(snippet.getId());
     return snippet;
   }
 

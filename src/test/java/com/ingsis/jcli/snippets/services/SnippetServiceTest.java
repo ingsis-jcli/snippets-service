@@ -39,6 +39,8 @@ class SnippetServiceTest {
 
   @MockBean private LanguageService languageService;
 
+  @MockBean private PermissionService permissionService;
+
   @MockBean private JwtDecoder jwtDecoder;
 
   private static final String languageOk = "printscript";
