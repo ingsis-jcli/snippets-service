@@ -80,13 +80,12 @@ public class SnippetService {
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
     Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
-    validateSnippet(snippet, languageVersion);
-//    try {
-//      validateSnippet(snippet, languageVersion);
-//    } catch (InvalidSnippetException e) {
-//      deleteSnippet(snippet);
-//      throw e;
-//    }
+    try {
+      validateSnippet(snippet, languageVersion);
+    } catch (InvalidSnippetException e) {
+      deleteSnippet(snippet);
+      throw e;
+    }
     permissionService.grantOwnerPermission(snippet.getId());
     return snippet;
   }
@@ -94,6 +93,7 @@ public class SnippetService {
   private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
     LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
     if (isValid.hasError()) {
+      System.out.println("Is throwing the corresponding exception");
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
   }

@@ -59,6 +59,7 @@ public class LanguageRestClient {
     if (response.getBody() == null) {
       return new ErrorResponse("No response received");
     }
+    System.out.println("Received: " + response.getBody());
     return response.getBody();
   }
 
