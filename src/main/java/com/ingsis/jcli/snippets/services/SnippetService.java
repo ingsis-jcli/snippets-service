@@ -81,8 +81,6 @@ public class SnippetService {
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
     Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
     validateSnippet(snippet, languageVersion);
-
-
 //    try {
 //      validateSnippet(snippet, languageVersion);
 //    } catch (InvalidSnippetException e) {
