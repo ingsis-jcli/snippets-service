@@ -80,7 +80,12 @@ public class SnippetService {
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
     Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
-    validateSnippet(snippet, languageVersion);
+    try {
+      validateSnippet(snippet, languageVersion);
+    } catch (InvalidSnippetException e) {
+      deleteSnippet(snippet);
+      throw e;
+    }
     return snippet;
   }
 
@@ -109,6 +114,11 @@ public class SnippetService {
   private void saveInBucket(SnippetDto snippetDto, String userId) {
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
+  }
+
+  private void deleteSnippet(Snippet snippet) {
+    blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+    snippetRepository.delete(snippet);
   }
 
   public boolean isOwner(Snippet snippet, String userId) {
@@ -142,15 +152,27 @@ public class SnippetService {
     }
 
     Snippet snippet = getSnippet(snippetId).get();
+    SnippetDto oldSnippetDto =
+        new SnippetDto(
+            snippet.getName(),
+            snippet.getDescription(),
+            blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).get(),
+            snippet.getLanguageVersion().getLanguage(),
+            snippet.getLanguageVersion().getVersion());
+
     blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
     saveInBucket(snippetDto, userId);
-
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
-
     updateSnippetInDbTable(snippetDto, userId, snippet, languageVersion);
 
-    validateSnippet(snippet, languageVersion);
+    try {
+      validateSnippet(snippet, languageVersion);
+    } catch (InvalidSnippetException e) {
+      deleteSnippet(snippet);
+      createSnippet(oldSnippetDto, userId);
+      throw e;
+    }
 
     return snippet;
   }

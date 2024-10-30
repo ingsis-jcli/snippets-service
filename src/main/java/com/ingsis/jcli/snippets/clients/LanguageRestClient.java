@@ -1,10 +1,12 @@
 package com.ingsis.jcli.snippets.clients;
 
+import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -60,6 +62,16 @@ public class LanguageRestClient {
     return response.getBody();
   }
 
+  public FormatResponse format(FormatRequest formatRequest) {
+    String url = String.format("%s/format", baseUrl);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<FormatRequest> requestEntity = new HttpEntity<>(formatRequest, headers);
+    ResponseEntity<FormatResponse> response =
+        restTemplate.exchange(url, HttpMethod.POST, requestEntity, FormatResponse.class);
+    return response.getBody();
+  }
+
   public TestType runTestCase(TestCaseRequest testCaseRequest) {
     String url = String.format("%s/test", baseUrl);
     HttpHeaders headers = new HttpHeaders();
@@ -69,8 +81,6 @@ public class LanguageRestClient {
     ResponseEntity<TestType> response =
         restTemplate.exchange(
             url, HttpMethod.POST, requestEntity, new ParameterizedTypeReference<TestType>() {});
-
-    // TODO : implement this endpoint in the printscript-service
 
     return response.getBody();
   }

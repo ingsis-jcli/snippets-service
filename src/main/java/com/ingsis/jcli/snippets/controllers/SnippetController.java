@@ -1,10 +1,14 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
+import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
-import com.ingsis.jcli.snippets.services.PermissionService;
+import com.ingsis.jcli.snippets.services.LanguageService;
+import com.ingsis.jcli.snippets.services.RulesService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
@@ -14,9 +18,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,20 +41,23 @@ import org.springframework.web.multipart.MultipartFile;
 public class SnippetController {
 
   private final SnippetService snippetService;
-  private final PermissionService permissionService;
   private final TestCaseService testCaseService;
   private final JwtService jwtService;
+  private final RulesService rulesService;
+  private final LanguageService languageService;
 
   @Autowired
   public SnippetController(
       SnippetService snippetService,
-      PermissionService permissionService,
       JwtService jwtService,
-      TestCaseService testCaseService) {
+      TestCaseService testCaseService,
+      RulesService rulesService,
+      LanguageService languageService) {
     this.snippetService = snippetService;
-    this.permissionService = permissionService;
     this.jwtService = jwtService;
     this.testCaseService = testCaseService;
+    this.rulesService = rulesService;
+    this.languageService = languageService;
   }
 
   @GetMapping()
@@ -145,5 +157,48 @@ public class SnippetController {
             userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
 
     return new ResponseEntity<>(snippets, HttpStatus.OK);
+  }
+
+  @GetMapping("/download/{snippetId}")
+  public ResponseEntity<Resource> downloadSnippet(
+      @PathVariable Long snippetId,
+      @RequestParam boolean formatted,
+      @RequestHeader("Authorization") String token) {
+
+    String userId = jwtService.extractUserId(token);
+
+    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
+    if (snippetOpt.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    Snippet snippet = snippetOpt.get();
+
+    boolean hasPermission = snippetService.canGetSnippet(snippetId, userId);
+    if (!hasPermission) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    Resource file;
+    if (formatted) {
+      List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
+      List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+      FormatResponse formatResponse =
+          languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+      file = new ByteArrayResource(formatResponse.content().getBytes(StandardCharsets.UTF_8));
+    } else {
+      Optional<String> snippetContent = snippetService.getSnippetContent(snippetId);
+      if (snippetContent.isEmpty()) {
+        return ResponseEntity.notFound().build();
+      }
+      file = new ByteArrayResource(snippetContent.get().getBytes(StandardCharsets.UTF_8));
+    }
+
+    return ResponseEntity.ok()
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + snippet.getName() + ".txt\"")
+        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        .body(file);
   }
 }

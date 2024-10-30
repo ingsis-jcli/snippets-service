@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -286,27 +289,74 @@ class SnippetControllerTest {
         .andExpect(jsonPath("$").value(1L));
   }
 
-  //  @Test
-  //  void editSnippetFailForbidden() throws Exception {
-  //    Long id = 1L;
-  //    String userId = "123";
-  //    SnippetDto snippetDto = new SnippetDto("name", "content", "printscript", "1.1");
-  //
-  //    Jwt mockJwt = createMockJwt(userId);
-  //
-  //    when(jwtService.extractUserId(anyString())).thenReturn(userId);
-  //    when(permissionService.hasPermissionOnSnippet(PermissionType.WRITE, id, userId))
-  //        .thenReturn(false);
-  //    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-  //
-  //    mockMvc
-  //        .perform(
-  //            put(path)
-  //                .contentType(MediaType.APPLICATION_JSON)
-  //                .content(objectMapper.writeValueAsString(snippetDto))
-  //                .param("snippetId", id.toString())
-  //                .header("Authorization", "Bearer mock-token")
-  //                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
-  //        .andExpect(status().isForbidden());
-  //  }
+  @Test
+  void downloadSnippetSuccess() throws Exception {
+    Long id = 1L;
+    String userId = "123";
+    String content = "This is the content of the snippet.";
+    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
+    snippet.setId(id);
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
+    when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(content));
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            get(path + "/download/{snippetId}", id)
+                .param("formatted", "false")
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk())
+        .andExpect(
+            header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"name.txt\""))
+        .andExpect(content().string(content));
+  }
+
+  @Test
+  void downloadSnippetNotFound() throws Exception {
+    Long id = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.getSnippet(id)).thenReturn(Optional.empty());
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            get(path + "/download/{snippetId}", id)
+                .param("formatted", "false")
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void downloadSnippetForbidden() throws Exception {
+    Long id = 1L;
+    String userId = "123";
+    Snippet snippet = new Snippet("name", "url", userId, languageVersion);
+    snippet.setId(id);
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(false);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            get(path + "/download/{snippetId}", id)
+                .param("formatted", "false")
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isForbidden());
+  }
 }

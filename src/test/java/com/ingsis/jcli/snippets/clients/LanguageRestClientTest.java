@@ -9,11 +9,14 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.services.JwtService;
 import java.util.Collections;
 import java.util.List;
@@ -114,5 +117,22 @@ class LanguageRestClientTest {
     TestType result = languageRestClient.runTestCase(testCaseRequest);
     assertNotNull(result);
     assertEquals(TestType.VALID, result);
+  }
+
+  @Test
+  void testFormat() {
+    FormatRequest formatRequest = new FormatRequest("input code", "language", List.of(), "version");
+    FormatResponse mockFormatResponse =
+        new FormatResponse("formatted code", ProcessStatus.COMPLIANT);
+    ResponseEntity<FormatResponse> responseEntity = ResponseEntity.ok(mockFormatResponse);
+
+    when(restTemplate.exchange(
+            anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(FormatResponse.class)))
+        .thenReturn(responseEntity);
+
+    FormatResponse result = languageRestClient.format(formatRequest);
+
+    assertNotNull(result);
+    assertEquals("formatted code", result.content());
   }
 }

@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(value = "permissions", url = "http://infra-permissions-api:8080/")
 public interface PermissionsClient {
 
-  @RequestMapping(method = RequestMethod.GET, value = "/hello")
-  String hello();
-
   @RequestMapping(method = RequestMethod.GET, value = "/permissions/")
   ResponseEntity<Boolean> hasPermission(
       @RequestParam("type") String type, @RequestParam("snippetId") Long snippetId);
