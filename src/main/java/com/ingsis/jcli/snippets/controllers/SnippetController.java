@@ -221,4 +221,6 @@ public class SnippetController {
         languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
     return formatResponse;
   }
+
+  // TODO: delete snippet by id
 }
