@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -53,22 +54,19 @@ public class TestsController {
 
     String userId = jwtService.extractUserId(token);
 
-    // boolean hasPermission =
-    //    permissionService.hasPermissionOnSnippet(
-    //        PermissionType.WRITE, testCaseDto.snippetId(), userId);
-    // TODO: WHAT PERMISSION SHOULD I CHECK?
+    Optional<Snippet> snippetOpt = snippetService.getSnippet(testCaseDto.snippetId());
 
-    // if (!hasPermission) {
-    //  return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    // }
-
-    Optional<Snippet> snippet = snippetService.getSnippet(testCaseDto.snippetId());
-
-    if (snippet.isEmpty()) {
+    if (snippetOpt.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    Long id = testCaseService.createTestCase(testCaseDto, snippet.get());
+    Snippet snippet = snippetOpt.get();
+
+    if (!snippetService.isOwner(snippet, userId)) {
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+
+    Long id = testCaseService.createTestCase(testCaseDto, snippet);
     return new ResponseEntity<>(id, HttpStatus.CREATED);
   }
 
@@ -84,16 +82,14 @@ public class TestsController {
     }
     TestCase testCase = testCaseOp.get();
 
-    Long snippetId = testCase.getSnippet().getId();
+    Snippet snippet = testCase.getSnippet();
 
-    // boolean hasPermission =
-    //    permissionService.hasPermissionOnSnippet(PermissionType.EXECUTE, snippetId, userId);
-
-    // if (!hasPermission) {
-    //  return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    // }
-
-    // TODO IMPLEMENT THE PERMISSION OF RUNNING TEST CASES
+    boolean hasPermission =
+        snippetService.isOwner(snippet, userId)
+            || permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippet.getId());
+    if (!hasPermission) {
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
 
     TestState testCaseResult = languageService.runTestCase(testCase);
 

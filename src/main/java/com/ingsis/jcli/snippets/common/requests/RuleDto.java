@@ -9,6 +9,16 @@ public record RuleDto(
     @JsonProperty("value") String value) {
 
   public static RuleDto of(Rule rule) {
-    return new RuleDto(rule.isActive(), rule.getName(), rule.getValue());
+    String valueToSerialize;
+
+    if (rule.getValue() != null) {
+      valueToSerialize = rule.getValue();
+    } else if (rule.getNumericValue() != null) {
+      valueToSerialize = rule.getNumericValue().toString();
+    } else {
+      valueToSerialize = null;
+    }
+
+    return new RuleDto(rule.isActive(), rule.getName(), valueToSerialize);
   }
 }

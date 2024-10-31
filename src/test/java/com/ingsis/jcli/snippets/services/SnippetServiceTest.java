@@ -39,6 +39,8 @@ class SnippetServiceTest {
 
   @MockBean private LanguageService languageService;
 
+  @MockBean private PermissionService permissionService;
+
   @MockBean private JwtDecoder jwtDecoder;
 
   private static final String languageOk = "printscript";
@@ -141,6 +143,9 @@ class SnippetServiceTest {
     finalSnippet.setId(snippetId);
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
+    when(blobStorageService.getSnippet(initialUrl, initialName))
+        .thenReturn(Optional.of("content1"));
+
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());

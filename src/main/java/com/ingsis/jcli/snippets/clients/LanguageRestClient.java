@@ -1,10 +1,12 @@
 package com.ingsis.jcli.snippets.clients;
 
+import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
 import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 public class LanguageRestClient {
@@ -49,14 +52,38 @@ public class LanguageRestClient {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<ValidateRequest> requestEntity = new HttpEntity<>(validateRequest, headers);
-    ResponseEntity<ErrorResponse> response =
+
+    try {
+      ResponseEntity<ErrorResponse> response =
         restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
-    if (response.getStatusCode() == HttpStatus.OK) {
-      return new ErrorResponse();
+      if (response.getStatusCode() == HttpStatus.OK) {
+        return new ErrorResponse();
+      }
+      if (response.getBody() == null) {
+        return new ErrorResponse("No response received");
+      }
+      System.out.println("Received: " + response.getBody());
+      return response.getBody();
+    } catch (HttpClientErrorException e) {
+      if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        System.out.println("Bad request during validation: " + e.getResponseBodyAsString());
+        return new ErrorResponse("Bad request: " + e.getResponseBodyAsString());
+      } else {
+        return new ErrorResponse("Client error: " + e.getResponseBodyAsString());
+      }
+    } catch (Exception e) {
+      return new ErrorResponse("Unexpected error occurred: " + e.getMessage());
     }
-    if (response.getBody() == null) {
-      return new ErrorResponse("No response received");
-    }
+  }
+
+
+  public FormatResponse format(FormatRequest formatRequest) {
+    String url = String.format("%s/format", baseUrl);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<FormatRequest> requestEntity = new HttpEntity<>(formatRequest, headers);
+    ResponseEntity<FormatResponse> response =
+        restTemplate.exchange(url, HttpMethod.POST, requestEntity, FormatResponse.class);
     return response.getBody();
   }
 
@@ -69,8 +96,6 @@ public class LanguageRestClient {
     ResponseEntity<TestType> response =
         restTemplate.exchange(
             url, HttpMethod.POST, requestEntity, new ParameterizedTypeReference<TestType>() {});
-
-    // TODO : implement this endpoint in the printscript-service
 
     return response.getBody();
   }
