@@ -16,6 +16,7 @@ import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -78,9 +79,12 @@ public class SnippetController {
 
   @PostMapping()
   public ResponseEntity<Long> createSnippet(
-      @RequestBody @Valid SnippetDto snippetDto, @RequestHeader("Authorization") String token) {
+      @RequestBody @Valid SnippetDto snippetDto,
+      @RequestParam(value = "version", defaultValue = "1.1") String version,
+      @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
+    snippetDto.setVersion(version);
 
     Snippet snippet = snippetService.createSnippet(snippetDto, userId);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
@@ -159,6 +163,11 @@ public class SnippetController {
     return new ResponseEntity<>(snippets, HttpStatus.OK);
   }
 
+  @GetMapping("/file-types")
+  public ResponseEntity<Map<String, String>> getFileTypes() {
+    return new ResponseEntity<>(languageService.getAllExtensions(), HttpStatus.OK);
+  }
+
   @GetMapping("/download/{snippetId}")
   public ResponseEntity<Resource> downloadSnippet(
       @PathVariable Long snippetId,
@@ -181,10 +190,7 @@ public class SnippetController {
 
     Resource file;
     if (formatted) {
-      List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
-      List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
-      FormatResponse formatResponse =
-          languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+      FormatResponse formatResponse = formatSnippetFromUser(userId, snippet);
       file = new ByteArrayResource(formatResponse.content().getBytes(StandardCharsets.UTF_8));
     } else {
       Optional<String> snippetContent = snippetService.getSnippetContent(snippetId);
@@ -194,11 +200,27 @@ public class SnippetController {
       file = new ByteArrayResource(snippetContent.get().getBytes(StandardCharsets.UTF_8));
     }
 
+    String language = snippet.getLanguageVersion().getLanguage();
+
     return ResponseEntity.ok()
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + snippet.getName() + ".txt\"")
+            "attachment; filename=\""
+                + snippet.getName()
+                + "."
+                + languageService.getExtension(language)
+                + "\"")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file);
   }
+
+  private FormatResponse formatSnippetFromUser(String userId, Snippet snippet) {
+    List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
+    List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+    FormatResponse formatResponse =
+        languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+    return formatResponse;
+  }
+
+  // TODO: delete snippet by id
 }

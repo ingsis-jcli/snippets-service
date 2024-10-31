@@ -25,6 +25,7 @@ import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -304,6 +305,7 @@ class SnippetControllerTest {
     when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
     when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(content));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(languageService.getExtension("printscript")).thenReturn("ps");
 
     mockMvc
         .perform(
@@ -313,7 +315,7 @@ class SnippetControllerTest {
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
         .andExpect(
-            header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"name.txt\""))
+            header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"name.ps\""))
         .andExpect(content().string(content));
   }
 
@@ -350,6 +352,7 @@ class SnippetControllerTest {
     when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
     when(snippetService.canGetSnippet(id, userId)).thenReturn(false);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(languageService.getExtension("printscript")).thenReturn("ps");
 
     mockMvc
         .perform(
@@ -358,5 +361,19 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void getFileTypes() throws Exception {
+    when(languageService.getAllExtensions()).thenReturn(Map.of("printscript", "ps"));
+
+    String userId = "123";
+    Jwt mockJwt = createMockJwt(userId);
+
+    mockMvc
+        .perform(
+            get(path + "/file-types").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.printscript").value("ps"));
   }
 }

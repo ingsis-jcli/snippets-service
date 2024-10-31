@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "languages")
-public class LanguageUrlProperties {
+public class LanguageProperties {
   private Map<String, String> urls;
+  private Map<String, String> extensions;
 }

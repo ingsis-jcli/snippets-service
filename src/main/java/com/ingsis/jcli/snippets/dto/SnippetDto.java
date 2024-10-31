@@ -21,7 +21,8 @@ public class SnippetDto {
   private String language;
 
   @NotBlank(message = "Has to specify program language's version")
-  private String version;
+  //  private String version;
+  private String version = "1.1";
 
   public SnippetDto() {}
 

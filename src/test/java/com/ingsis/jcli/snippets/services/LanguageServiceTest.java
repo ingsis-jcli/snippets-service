@@ -24,6 +24,7 @@ import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -276,5 +277,22 @@ public class LanguageServiceTest {
 
     assertEquals(expectedResponse.content(), response.content());
     assertEquals(expectedResponse.status(), response.status());
+  }
+
+  @Test
+  void testGetAllExtensions() {
+    assertEquals(languageService.getAllExtensions(), Map.of("printscript", "ps"));
+  }
+
+  @Test
+  void testGetPrintScriptExtension() {
+    assertEquals(languageService.getExtension("printscript"), "ps");
+  }
+
+  @Test
+  void testNotValidLanguageExtension() {
+    NoSuchLanguageException exception =
+        assertThrows(NoSuchLanguageException.class, () -> languageService.getExtension("notvalid"));
+    assertEquals("notvalid", exception.getLanguage());
   }
 }
