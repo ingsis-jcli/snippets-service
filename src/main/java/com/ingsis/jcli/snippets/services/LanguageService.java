@@ -15,7 +15,7 @@ import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
-import com.ingsis.jcli.snippets.config.LanguageUrlProperties;
+import com.ingsis.jcli.snippets.config.LanguageProperties;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import java.util.List;
@@ -30,14 +30,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class LanguageService {
   private final Map<String, String> urls;
+  private final Map<String, String> extensions;
   private final LanguageRestTemplateFactory languageRestTemplateFactory;
 
   @Autowired
   public LanguageService(
-      LanguageUrlProperties languageUrlProperties,
+      LanguageProperties languageProperties,
       LanguageRestTemplateFactory languageRestTemplateFactory) {
     this.languageRestTemplateFactory = languageRestTemplateFactory;
-    this.urls = languageUrlProperties.getUrls();
+    this.urls = languageProperties.getUrls();
+    this.extensions = languageProperties.getExtensions();
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {
@@ -160,14 +162,21 @@ public class LanguageService {
     if (!urls.containsKey(language)) {
       throw new NoSuchLanguageException(language);
     }
-
     String baseUrl = urls.get(language);
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
-
     FormatRequest request = new FormatRequest(snippet.getName(), snippet.getUrl(), rules, version);
-
     FormatResponse response = client.format(request);
-
     return response;
+  }
+
+  public Map<String, String> getAllExtensions() {
+    return extensions;
+  }
+
+  public String getExtension(String language) {
+    if (!extensions.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+    return extensions.get(language);
   }
 }

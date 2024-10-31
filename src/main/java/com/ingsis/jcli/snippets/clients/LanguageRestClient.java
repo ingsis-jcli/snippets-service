@@ -55,7 +55,7 @@ public class LanguageRestClient {
 
     try {
       ResponseEntity<ErrorResponse> response =
-        restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
+          restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
       if (response.getStatusCode() == HttpStatus.OK) {
         return new ErrorResponse();
       }
@@ -75,7 +75,6 @@ public class LanguageRestClient {
       return new ErrorResponse("Unexpected error occurred: " + e.getMessage());
     }
   }
-
 
   public FormatResponse format(FormatRequest formatRequest) {
     String url = String.format("%s/format", baseUrl);

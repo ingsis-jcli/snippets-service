@@ -16,7 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource("classpath:languages-test.properties")
 public class LanguageUrlPropertiesTest {
 
-  @Autowired private LanguageUrlProperties languageUrlProperties;
+  @Autowired private LanguageProperties languageUrlProperties;
 
   @MockBean private JwtDecoder jwtDecoder;
 
