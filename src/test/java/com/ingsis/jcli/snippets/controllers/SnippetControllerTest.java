@@ -4,7 +4,10 @@ import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +22,7 @@ import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.services.BlobStorageService;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
@@ -61,6 +65,7 @@ class SnippetControllerTest {
 
   private static final String path = "/snippet";
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
+  @Autowired private SnippetRepository snippetRepository;
 
   private Jwt createMockJwt(String userId) {
     return Jwt.withTokenValue("mock-token")
@@ -375,5 +380,43 @@ class SnippetControllerTest {
             get(path + "/file-types").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.printscript").value("ps"));
+  }
+
+  @Test
+  void deleteSnippetSuccess() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    doNothing().when(snippetService).deleteSnippet(snippetId, userId);
+
+    mockMvc
+        .perform(
+            delete(path + "/" + snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void deleteSnippetNotFound() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    doThrow(new NoSuchElementException()).when(snippetService).deleteSnippet(snippetId, userId);
+
+    mockMvc
+        .perform(
+            delete(path + "/" + snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isNotFound());
   }
 }

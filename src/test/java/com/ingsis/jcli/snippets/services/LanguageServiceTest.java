@@ -281,7 +281,8 @@ public class LanguageServiceTest {
 
   @Test
   void testGetAllExtensions() {
-    assertEquals(languageService.getAllExtensions(), Map.of("printscript1", "ps", "printscript2", "ps"));
+    assertEquals(
+        languageService.getAllExtensions(), Map.of("printscript1", "ps", "printscript2", "ps"));
   }
 
   @Test

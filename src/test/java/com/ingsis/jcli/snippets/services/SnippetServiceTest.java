@@ -232,4 +232,18 @@ class SnippetServiceTest {
     snippetService.updateLintingStatus(ProcessStatus.COMPLIANT, snippetId);
     assertEquals(ProcessStatus.COMPLIANT, snippet.getStatus().getLinting());
   }
+
+  @Test
+  void deleteSnippet() {
+    Long snippetId = 1L;
+    Snippet snippet = new Snippet();
+    snippet.setOwner(userId);
+    snippet.setId(snippetId);
+    snippet.setUrl("http://example.com");
+    snippet.setName("Test Snippet");
+
+    when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(snippet));
+    snippetService.deleteSnippet(snippetId, userId);
+    verify(blobStorageService).deleteSnippet(snippet.getUrl(), snippet.getName());
+  }
 }

@@ -52,4 +52,12 @@ public class TestCaseService {
       testCaseRunProducer.run(testCase, snippet.getLanguageVersion().getVersion());
     }
   }
+
+  public List<TestCase> getTestCaseByUser(String userId) {
+    return testCaseRepository.findAllBySnippet_Owner(userId);
+  }
+
+  public void deleteTestCase(TestCase testCase) {
+    testCaseRepository.delete(testCase);
+  }
 }

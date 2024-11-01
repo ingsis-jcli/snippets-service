@@ -3,6 +3,7 @@ package com.ingsis.jcli.snippets.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -20,6 +21,7 @@ import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -89,27 +91,6 @@ class TestCaseControllerTest {
         .andExpect(content().string("1"));
   }
 
-  //  @Test
-  //  void testCreateTestCase_NoPermission() throws Exception {
-  //    String token = "Bearer mock-token";
-  //    TestCaseDto testCaseDto =
-  //        new TestCaseDto(
-  //            "Test Case", 1L, Arrays.asList("input1"), Arrays.asList("output1"), TestType.VALID);
-  //
-  //    Jwt mockJwt = createMockJwt("userId");
-  //    when(jwtService.extractUserId(token)).thenReturn("userId");
-  //    when(permissionService.hasPermissionOnSnippet(any(), any(), any())).thenReturn(false);
-  //    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-  //
-  //    mockMvc
-  //        .perform(
-  //            post("/test-case")
-  //                .contentType(MediaType.APPLICATION_JSON)
-  //                .content(objectMapper.writeValueAsString(testCaseDto))
-  //                .header("Authorization", token))
-  //        .andExpect(status().isForbidden());
-  //  }
-
   @Test
   void testCreateTestCase_SnippetNotFound() throws Exception {
     String token = "Bearer mock-token";
@@ -148,28 +129,6 @@ class TestCaseControllerTest {
         .andExpect(status().isNotFound());
   }
 
-  //  @Test
-  //  void testRunTestCase_NoPermission() throws Exception {
-  //    String token = "Bearer mock-token";
-  //    Long testCaseId = 1L;
-  //    TestCase testCase = new TestCase();
-  //
-  //    Snippet snippet = new Snippet();
-  //    snippet.setId(1L);
-  //    testCase.setSnippet(snippet);
-  //
-  //    Jwt mockJwt = createMockJwt("userId");
-  //
-  //    when(jwtService.extractUserId(token)).thenReturn("userId");
-  //    when(testCaseService.getTestCase(testCaseId)).thenReturn(Optional.of(testCase));
-  //    when(permissionService.hasPermissionOnSnippet(any(), any(), any())).thenReturn(false);
-  //    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-  //
-  //    mockMvc
-  //        .perform(get("/test-case/" + testCaseId).header("Authorization", token))
-  //        .andExpect(status().isForbidden());
-  //  }
-
   @Test
   void testRunTestCase_Success() throws Exception {
     String token = "Bearer mock-token";
@@ -192,5 +151,41 @@ class TestCaseControllerTest {
         .perform(get("/test-case/" + testCaseId).header("Authorization", token))
         .andExpect(status().isOk())
         .andExpect(content().string("\"" + TestState.SUCCESS.toString() + "\""));
+  }
+
+  @Test
+  void testGetTestCaseByUser_Success() throws Exception {
+    String token = "Bearer mock-token";
+    String userId = "userId";
+
+    Jwt mockJwt = createMockJwt(userId);
+    List<TestCase> testCases = Arrays.asList(new TestCase(), new TestCase());
+
+    when(jwtService.extractUserId(token)).thenReturn(userId);
+    when(testCaseService.getTestCaseByUser(userId)).thenReturn(testCases);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(get("/test-case").header("Authorization", token))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().json(objectMapper.writeValueAsString(testCases)));
+  }
+
+  @Test
+  void testDeleteTestCase_Success() throws Exception {
+    Long testCaseId = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(testCaseService.getTestCase(testCaseId)).thenReturn(Optional.of(new TestCase()));
+    when(snippetService.isOwner(any(), anyString())).thenReturn(true);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(delete("/test-case/" + testCaseId).header("Authorization", "Bearer mock-token"))
+        .andExpect(status().isOk());
   }
 }

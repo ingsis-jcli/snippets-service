@@ -137,4 +137,60 @@ class TestCaseServiceTest {
     assertEquals(TestState.SUCCESS, testCase.getState(), "Test state should be updated to SUCCESS");
     verify(testCaseRepository, times(1)).save(testCase);
   }
+
+  @Test
+  void getTestCasesByUser() {
+    Snippet snippet = new Snippet("name", "url", "1", new LanguageVersion("printscript", "1.1"));
+    snippet.setId(1L);
+
+    TestCase testCase1 =
+        new TestCase(
+            snippet,
+            "Test Case 1",
+            Arrays.asList("input1"),
+            Arrays.asList("output1"),
+            TestType.VALID,
+            TestState.PENDING);
+    testCase1.setId(1L);
+
+    TestCase testCase2 =
+        new TestCase(
+            snippet,
+            "Test Case 2",
+            Arrays.asList("input2"),
+            Arrays.asList("output2"),
+            TestType.INVALID,
+            TestState.PENDING);
+    testCase2.setId(2L);
+
+    List<TestCase> testCaseList = Arrays.asList(testCase1, testCase2);
+
+    when(testCaseRepository.findAllBySnippet_Owner("1")).thenReturn(testCaseList);
+
+    List<TestCase> result = testCaseService.getTestCaseByUser("1");
+    assertEquals(testCaseList, result, "Test cases should match");
+  }
+
+  @Test
+  public void deleteTestCase() {
+    Long testCaseId = 1L;
+    Snippet snippet = new Snippet();
+    snippet.setId(1L);
+
+    TestCase testCase =
+        new TestCase(
+            snippet,
+            "Test Case",
+            Arrays.asList("input1"),
+            Arrays.asList("output1"),
+            TestType.VALID,
+            TestState.PENDING);
+    testCase.setId(testCaseId);
+
+    when(testCaseRepository.findById(testCaseId)).thenReturn(Optional.of(testCase));
+
+    testCaseService.deleteTestCase(testCase);
+
+    verify(testCaseRepository, times(1)).delete(testCase);
+  }
 }
