@@ -62,6 +62,11 @@ public class SnippetController {
     this.languageService = languageService;
   }
 
+  @GetMapping("/filetypes")
+  public ResponseEntity<Map<String, String>> getFileTypes() {
+    return new ResponseEntity<>(languageService.getAllExtensions(), HttpStatus.OK);
+  }
+
   @GetMapping()
   public ResponseEntity<SnippetDto> getSnippet(
       @RequestParam Long snippetId, @RequestHeader("Authorization") String token) {
@@ -162,11 +167,6 @@ public class SnippetController {
             userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
 
     return new ResponseEntity<>(snippets, HttpStatus.OK);
-  }
-
-  @GetMapping("/file-types")
-  public ResponseEntity<Map<String, String>> getFileTypes() {
-    return new ResponseEntity<>(languageService.getAllExtensions(), HttpStatus.OK);
   }
 
   @GetMapping("/download/{snippetId}")
