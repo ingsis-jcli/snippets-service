@@ -121,6 +121,18 @@ public class SnippetService {
     snippetRepository.delete(snippet);
   }
 
+  public void deleteSnippet(Long snippetId, String userId) {
+    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOpt.isEmpty()) {
+      throw new NoSuchElementException("Snippet not found");
+    }
+    Snippet snippet = snippetOpt.get();
+    if (!isOwner(snippet, userId)) {
+      throw new PermissionDeniedException(DeniedAction.DELETE_SNIPPET);
+    }
+    deleteSnippet(snippet);
+  }
+
   public boolean isOwner(Snippet snippet, String userId) {
     return snippet.getOwner().equals(userId);
   }

@@ -11,10 +11,12 @@ import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -98,6 +100,29 @@ public class TestsController {
     return new ResponseEntity<>(testCaseResult, HttpStatus.OK);
   }
 
-  // TODO : get test case by user id
-  // TODO : delete test case by id
+  @GetMapping()
+  public List<TestCase> getTestCaseByUser(@RequestHeader(name = "Authorization") String token) {
+    String userId = jwtService.extractUserId(token);
+    return testCaseService.getTestCaseByUser(userId);
+  }
+
+  @DeleteMapping("/{id}")
+  public void deleteTestCase(
+      @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
+    String userId = jwtService.extractUserId(token);
+    Optional<TestCase> testCaseOp = testCaseService.getTestCase(id);
+
+    if (testCaseOp.isEmpty()) {
+      return;
+    }
+    TestCase testCase = testCaseOp.get();
+
+    Snippet snippet = testCase.getSnippet();
+
+    if (!snippetService.isOwner(snippet, userId)) {
+      return;
+    }
+
+    testCaseService.deleteTestCase(testCase);
+  }
 }

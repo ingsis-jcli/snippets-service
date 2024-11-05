@@ -10,4 +10,6 @@ public interface TestCaseRepository extends JpaRepository<TestCase, Long> {
   Optional<TestCase> findTestCaseById(Long id);
 
   List<TestCase> findAllBySnippet(Snippet snippet);
+
+  List<TestCase> findAllBySnippet_Owner(String owner);
 }
