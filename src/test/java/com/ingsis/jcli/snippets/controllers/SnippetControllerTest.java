@@ -377,7 +377,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            get(path + "/file-types").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+            get(path + "/filetypes").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.printscript").value("ps"));
   }
