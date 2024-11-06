@@ -91,6 +91,8 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
     snippetDto.setVersion(snippetDto.getVersion());
 
+    System.out.println("SnippetDto: " + snippetDto);
+
     Snippet snippet = snippetService.createSnippet(snippetDto, userId);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
