@@ -86,11 +86,10 @@ public class SnippetController {
   @PostMapping()
   public ResponseEntity<Long> createSnippet(
       @RequestBody @Valid SnippetDto snippetDto,
-      @RequestParam(value = "version", defaultValue = "1.1") String version,
       @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
-    snippetDto.setVersion(version);
+    snippetDto.setVersion(snippetDto.getVersion());
 
     Snippet snippet = snippetService.createSnippet(snippetDto, userId);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
