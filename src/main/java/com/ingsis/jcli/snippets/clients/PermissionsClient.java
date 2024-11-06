@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface PermissionsClient {
 
   @RequestMapping(method = RequestMethod.GET, value = "/permissions")
-  ResponseEntity<Boolean> hasPermission(@RequestParam("type") String type, @RequestParam("snippetId") Long snippetId);
+  ResponseEntity<Boolean> hasPermission(
+      @RequestParam("type") String type, @RequestParam("snippetId") Long snippetId);
 
   @RequestMapping(method = RequestMethod.POST, value = "permissions/own")
   ResponseEntity<Void> addSnippet(@RequestParam("snippetId") Long snippetId);
