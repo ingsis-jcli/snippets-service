@@ -3,6 +3,9 @@ package com.ingsis.jcli.snippets.services;
 import com.ingsis.jcli.snippets.clients.BucketClient;
 import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +23,14 @@ public class BlobStorageService {
   }
 
   public static String getBaseUrl(SnippetDto snippetDto, String userId) {
+    String formattedUserId = userId.replace("|", " ");
+    String encodedUserId = URLEncoder.encode(formattedUserId, StandardCharsets.UTF_8);
     return "snippets/"
         + snippetDto.getLanguage()
         + "-"
         + snippetDto.getVersion()
         + "-"
-        + userId.replace("|", " ");
+        + encodedUserId;
   }
 
   public void uploadSnippet(String container, String name, String content) {
