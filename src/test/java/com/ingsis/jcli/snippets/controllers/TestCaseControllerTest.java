@@ -83,7 +83,7 @@ class TestCaseControllerTest {
 
     mockMvc
         .perform(
-            post("/test-case")
+            post("/testcase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testCaseDto))
                 .header("Authorization", token))
@@ -106,7 +106,7 @@ class TestCaseControllerTest {
 
     mockMvc
         .perform(
-            post("/test-case")
+            post("/testcase")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testCaseDto))
                 .header("Authorization", token))
@@ -125,7 +125,7 @@ class TestCaseControllerTest {
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
-        .perform(get("/test-case/" + testCaseId).header("Authorization", token))
+        .perform(get("/testcase/" + testCaseId).header("Authorization", token))
         .andExpect(status().isNotFound());
   }
 
@@ -148,7 +148,7 @@ class TestCaseControllerTest {
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
-        .perform(get("/test-case/" + testCaseId).header("Authorization", token))
+        .perform(get("/testcase/" + testCaseId).header("Authorization", token))
         .andExpect(status().isOk())
         .andExpect(content().string("\"" + TestState.SUCCESS.toString() + "\""));
   }
@@ -166,7 +166,7 @@ class TestCaseControllerTest {
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
-        .perform(get("/test-case").header("Authorization", token))
+        .perform(get("/testcase").header("Authorization", token))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(content().json(objectMapper.writeValueAsString(testCases)));
@@ -185,7 +185,7 @@ class TestCaseControllerTest {
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
-        .perform(delete("/test-case/" + testCaseId).header("Authorization", "Bearer mock-token"))
+        .perform(delete("/testcase/" + testCaseId).header("Authorization", "Bearer mock-token"))
         .andExpect(status().isOk());
   }
 }

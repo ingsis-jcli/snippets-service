@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/test-case")
+@RequestMapping("/testcase")
 public class TestsController {
 
   private final TestCaseService testCaseService;
