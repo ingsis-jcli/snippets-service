@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LanguageService {
   private final Map<String, String> urls;
-  private final Map<String, String> extensions;
+  private final Map<LanguageVersion, String> extensions;
   private final LanguageRestTemplateFactory languageRestTemplateFactory;
 
   @Autowired
@@ -39,7 +39,10 @@ public class LanguageService {
       LanguageRestTemplateFactory languageRestTemplateFactory) {
     this.languageRestTemplateFactory = languageRestTemplateFactory;
     this.urls = languageProperties.getUrls();
-    this.extensions = languageProperties.getExtensions();
+    this.extensions =
+        Map.of(
+            new LanguageVersion("printscript", "1.0"), "ps",
+            new LanguageVersion("printscript", "1.1"), "ps");
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {
@@ -169,13 +172,13 @@ public class LanguageService {
     return response;
   }
 
-  public Map<String, String> getAllExtensions() {
+  public Map<LanguageVersion, String> getAllExtensions() {
     return extensions;
   }
 
-  public String getExtension(String language) {
+  public String getExtension(LanguageVersion language) {
     if (!extensions.containsKey(language)) {
-      throw new NoSuchLanguageException(language);
+      throw new NoSuchLanguageException(language.getLanguage());
     }
     return extensions.get(language);
   }

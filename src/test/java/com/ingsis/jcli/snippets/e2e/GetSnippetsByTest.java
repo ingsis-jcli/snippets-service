@@ -151,9 +151,9 @@ public class GetSnippetsByTest {
     List<Long> snippetIds = snippetRepository.findAll().stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userShared)).thenReturn(snippetIds);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -183,9 +183,9 @@ public class GetSnippetsByTest {
     List<Long> snippetIds = snippetRepository.findAll().stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userShared)).thenReturn(snippetIds);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -211,9 +211,9 @@ public class GetSnippetsByTest {
     String userId = "user1";
     setupJwt(userId);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -243,9 +243,9 @@ public class GetSnippetsByTest {
         snippetRepository.findAllByOwner("user1").stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -275,9 +275,9 @@ public class GetSnippetsByTest {
         snippetRepository.findAllByOwner("user1").stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -308,9 +308,9 @@ public class GetSnippetsByTest {
         snippetRepository.findAllByOwner("user1").stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -337,9 +337,9 @@ public class GetSnippetsByTest {
     String userId = "user2";
     setupJwt(userId);
 
-    when(languageService.getExtension("printscript")).thenReturn("ps");
-    when(languageService.getExtension("lua")).thenReturn("lua");
-    when(languageService.getExtension("java")).thenReturn("java");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(

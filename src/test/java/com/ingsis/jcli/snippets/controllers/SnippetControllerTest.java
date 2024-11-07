@@ -32,6 +32,7 @@ import com.ingsis.jcli.snippets.services.TestCaseService;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -66,6 +67,7 @@ class SnippetControllerTest {
   private static final String path = "/snippet";
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
   @Autowired private SnippetRepository snippetRepository;
+  @Autowired private SnippetController snippetController;
 
   private Jwt createMockJwt(String userId) {
     return Jwt.withTokenValue("mock-token")
@@ -302,6 +304,7 @@ class SnippetControllerTest {
     String content = "This is the content of the snippet.";
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
+    snippet.setLanguageVersion(new LanguageVersion("printscript", "1.0"));
 
     Jwt mockJwt = createMockJwt(userId);
 
@@ -310,7 +313,7 @@ class SnippetControllerTest {
     when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
     when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(content));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-    when(languageService.getExtension("printscript")).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
 
     mockMvc
         .perform(
@@ -357,7 +360,7 @@ class SnippetControllerTest {
     when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
     when(snippetService.canGetSnippet(id, userId)).thenReturn(false);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-    when(languageService.getExtension("printscript")).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
 
     mockMvc
         .perform(
@@ -370,16 +373,34 @@ class SnippetControllerTest {
 
   @Test
   void getFileTypes() throws Exception {
-    when(languageService.getAllExtensions()).thenReturn(Map.of("printscript", "ps"));
+    Map<LanguageVersion, String> map =
+        Map.of(
+            new LanguageVersion("printscript", "1.0"), "ps",
+            new LanguageVersion("printscript", "1.1"), "ps");
+
+    when(languageService.getAllExtensions()).thenReturn(map);
+
+    Map<String, String> stringMap =
+        map.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey().getLanguage() + ":" + entry.getKey().getVersion(),
+                    Map.Entry::getValue));
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(stringMap);
 
     String userId = "123";
     Jwt mockJwt = createMockJwt(userId);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
         .perform(
-            get(path + "/filetypes").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+            get(path + "/filetypes")
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.printscript").value("ps"));
+        .andExpect(content().json(json));
   }
 
   @Test

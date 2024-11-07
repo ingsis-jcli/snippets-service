@@ -277,7 +277,7 @@ public class SnippetService {
               blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
               snippet.getLanguageVersion().getLanguage(),
               snippet.getLanguageVersion().getVersion(),
-              languageService.getExtension(snippet.getLanguageVersion().getLanguage()),
+              languageService.getExtension(snippet.getLanguageVersion()),
               compliance,
               author));
     }

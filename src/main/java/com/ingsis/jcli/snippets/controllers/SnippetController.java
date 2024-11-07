@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -65,7 +67,14 @@ public class SnippetController {
 
   @GetMapping("/filetypes")
   public ResponseEntity<Map<String, String>> getFileTypes() {
-    return new ResponseEntity<>(languageService.getAllExtensions(), HttpStatus.OK);
+    Map<LanguageVersion, String> extensions = languageService.getAllExtensions();
+    Map<String, String> response =
+        extensions.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey().getLanguage() + ":" + entry.getKey().getVersion(),
+                    Map.Entry::getValue));
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @GetMapping()
@@ -202,7 +211,7 @@ public class SnippetController {
       file = new ByteArrayResource(snippetContent.get().getBytes(StandardCharsets.UTF_8));
     }
 
-    String language = snippet.getLanguageVersion().getLanguage();
+    LanguageVersion language = snippet.getLanguageVersion();
 
     return ResponseEntity.ok()
         .header(
