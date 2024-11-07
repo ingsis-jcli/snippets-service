@@ -159,10 +159,13 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
+    SnippetResponse snippetResponse = new SnippetResponse(
+        1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
+
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
     when(languageService.validateSnippet(snippet, languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
@@ -230,6 +233,9 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
+    SnippetResponse snippetResponse = new SnippetResponse(
+        1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
+
     MockMultipartFile file =
         new MockMultipartFile(
             "file", // param name
@@ -240,7 +246,7 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
     when(languageService.validateSnippet(snippet, languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);

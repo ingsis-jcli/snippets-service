@@ -94,20 +94,17 @@ public class SnippetController {
   }
 
   @PostMapping()
-  public ResponseEntity<Long> createSnippet(
+  public ResponseEntity<SnippetResponse> createSnippet(
       @RequestBody @Valid SnippetDto snippetDto, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
     snippetDto.setVersion(snippetDto.getVersion());
-
-    System.out.println("SnippetDto: " + snippetDto);
-
-    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+    SnippetResponse snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet, HttpStatus.CREATED);
   }
 
   @PostMapping(value = "/upload", consumes = "multipart/form-data")
-  public ResponseEntity<Long> createSnippetFromFile(
+  public ResponseEntity<SnippetResponse> createSnippetFromFile(
       @RequestParam String name,
       @RequestParam(required = false, defaultValue = "") String description,
       @RequestParam String language,
@@ -121,8 +118,8 @@ public class SnippetController {
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
     SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
 
-    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+    SnippetResponse snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet, HttpStatus.CREATED);
   }
 
   @PutMapping()

@@ -76,7 +76,7 @@ public class SnippetService {
     return content;
   }
 
-  public Snippet createSnippet(SnippetDto snippetDto, String userId) {
+  public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
     saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
@@ -88,7 +88,15 @@ public class SnippetService {
       throw e;
     }
     permissionService.grantOwnerPermission(snippet.getId());
-    return snippet;
+    return new SnippetResponse(
+      snippet.getId(),
+      snippet.getName(),
+      blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
+      snippet.getLanguageVersion().getLanguage(),
+      snippet.getLanguageVersion().getVersion(),
+      languageService.getExtension(snippet.getLanguageVersion()),
+      snippet.getStatus().getLinting(),
+      snippet.getOwner());
   }
 
   private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
