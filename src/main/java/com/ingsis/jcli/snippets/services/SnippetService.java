@@ -117,6 +117,7 @@ public class SnippetService {
   private void saveInBucket(SnippetDto snippetDto, String userId) {
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
+    System.out.println("Snippet saved in bucket: " + snippetDto.getContent());
   }
 
   private void deleteSnippet(Snippet snippet) {
@@ -161,6 +162,8 @@ public class SnippetService {
   }
 
   public Snippet editSnippet(Long snippetId, String content, String userId) {
+    System.out.println("Editing snippet with id: " + snippetId);
+    System.out.println("Content: " + content);
     boolean canEdit = canEditSnippet(snippetId, userId);
     if (!canEdit) {
       throw new PermissionDeniedException(DeniedAction.EDIT_SNIPPET);
@@ -194,24 +197,6 @@ public class SnippetService {
     }
 
     return snippet;
-  }
-
-  private void updateSnippetInDbTable(
-      SnippetDto snippetDto, String userId, Snippet snippet, LanguageVersion languageVersion) {
-    snippet.setName(snippetDto.getName());
-    snippet.setUrl(getBaseUrl(snippetDto, userId));
-    snippet.setLanguageVersion(languageVersion);
-    snippetRepository.save(snippet);
-  }
-
-  public SnippetDto getSnippetDto(Snippet snippet) {
-    String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
-    return new SnippetDto(
-        snippet.getName(),
-        snippet.getDescription(),
-        content,
-        snippet.getLanguageVersion().getLanguage(),
-        snippet.getLanguageVersion().getVersion());
   }
 
   public SnippetResponse getSnippetDto(Long snippetId) {
