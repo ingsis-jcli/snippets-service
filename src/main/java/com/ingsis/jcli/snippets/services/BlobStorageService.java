@@ -6,10 +6,13 @@ import com.ingsis.jcli.snippets.dto.SnippetDto;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Generated
 @Service
 public class BlobStorageService {
@@ -39,7 +42,8 @@ public class BlobStorageService {
   public Optional<String> getSnippet(String container, String name) {
     ResponseEntity<String> response = bucketClient.getSnippet(container, name);
     if (response.hasBody()) {
-      return Optional.ofNullable(response.getBody());
+      String body = response.getBody();
+      return Optional.ofNullable(body);
     }
     return Optional.empty();
   }
