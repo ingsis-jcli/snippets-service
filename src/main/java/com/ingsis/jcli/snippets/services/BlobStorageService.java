@@ -43,7 +43,7 @@ public class BlobStorageService {
     ResponseEntity<String> response = bucketClient.getSnippet(container, name);
     if (response.hasBody()) {
       String body = response.getBody().substring(1, response.getBody().length() - 1);
-      log.debug("Snippet: " + body);
+      log.info("Snippet: " + body);
       return Optional.ofNullable(body);
     }
     return Optional.empty();
