@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
@@ -85,8 +86,7 @@ public class SnippetController {
 
   @PostMapping()
   public ResponseEntity<Long> createSnippet(
-      @RequestBody @Valid SnippetDto snippetDto,
-      @RequestHeader("Authorization") String token) {
+      @RequestBody @Valid SnippetDto snippetDto, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
     snippetDto.setVersion(snippetDto.getVersion());
@@ -151,7 +151,7 @@ public class SnippetController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<List<SnippetDto>> getSnippetsBy(
+  public ResponseEntity<List<SnippetResponse>> getSnippetsBy(
       @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
       @RequestParam(value = "size", defaultValue = "10") @Min(1) int pageSize,
       @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
@@ -163,7 +163,7 @@ public class SnippetController {
     // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
-    List<SnippetDto> snippets =
+    List<SnippetResponse> snippets =
         snippetService.getSnippetsBy(
             userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
 

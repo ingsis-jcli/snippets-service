@@ -9,6 +9,7 @@ import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.common.status.Status;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
@@ -220,7 +221,7 @@ public class SnippetService {
         snippet.getLanguageVersion().getVersion());
   }
 
-  public List<SnippetDto> getSnippetsBy(
+  public List<SnippetResponse> getSnippetsBy(
       String userId,
       int page,
       int pageSize,
@@ -264,7 +265,24 @@ public class SnippetService {
 
     List<Snippet> snippets = snippetRepository.findAll(finalSpec, pageable).getContent();
 
-    return snippets.stream().map(this::getSnippetDto).toList();
+    List<SnippetResponse> snippetResponses = new ArrayList<>();
+
+    for (Snippet snippet : snippets) {
+      ProcessStatus compliance = snippet.getStatus().getLinting();
+      String author = snippet.getOwner();
+      snippetResponses.add(
+          new SnippetResponse(
+              snippet.getId().toString(),
+              snippet.getName(),
+              blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
+              snippet.getLanguageVersion().getLanguage(),
+              snippet.getLanguageVersion().getVersion(),
+              languageService.getExtension(snippet.getLanguageVersion().getLanguage()),
+              compliance,
+              author));
+    }
+
+    return snippetResponses;
   }
 
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
