@@ -199,22 +199,22 @@ class SnippetControllerTest {
   void editSnippetSuccess() throws Exception {
     Long id = 1L;
     String userId = "123";
-    SnippetDto snippetDto = new SnippetDto("name", "content", "printscript", "1.1");
+    String content = "new content";
+    LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
 
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.canEditSnippet(id, userId)).thenReturn(true);
-    when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.editSnippet(id, content, userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
         .perform(
             put(path)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(snippetDto))
+                .content(content)
                 .param("snippetId", id.toString())
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
@@ -279,7 +279,7 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.canEditSnippet(id, userId)).thenReturn(true);
-    when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.editSnippet(id, snippetDto.getContent(), userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc

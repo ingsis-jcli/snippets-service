@@ -136,25 +136,23 @@ class SnippetServiceTest {
     Snippet initialSnippet = new Snippet(initialName, initialUrl, userId, languageVersionOk);
     initialSnippet.setId(snippetId);
 
-    SnippetDto snippetDto2 = new SnippetDto("name2", "content2", languageOk, versionOk);
-    String newUrl = getBaseUrl(snippetDto2, userId);
+    SnippetDto snippetDto2 = new SnippetDto(initialName, "content2", languageOk, versionOk);
 
-    Snippet finalSnippet = new Snippet("name2", newUrl, "123", languageVersionOk);
+    Snippet finalSnippet = new Snippet(initialName, initialUrl, userId, languageVersionOk);
     finalSnippet.setId(snippetId);
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(initialSnippet));
-    when(blobStorageService.getSnippet(initialUrl, initialName))
-        .thenReturn(Optional.of("content1"));
+    when(blobStorageService.getSnippet(initialUrl, initialName)).thenReturn(Optional.of("content"));
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
 
-    Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2, userId);
+    Snippet actualSnippet = snippetService.editSnippet(snippetId, snippetDto2.getContent(), userId);
 
     verify(blobStorageService).deleteSnippet(initialUrl, initialName);
-    verify(blobStorageService).uploadSnippet(newUrl, "name2", "content2");
+    verify(blobStorageService).uploadSnippet(initialUrl, initialName, "content2");
 
     assertEquals(finalSnippet.getId(), actualSnippet.getId());
     assertEquals(finalSnippet.getName(), actualSnippet.getName());
@@ -172,7 +170,7 @@ class SnippetServiceTest {
 
     assertThrows(
         NoSuchElementException.class,
-        () -> snippetService.editSnippet(snippetId, snippetDto, userId));
+        () -> snippetService.editSnippet(snippetId, snippetDto.getContent(), userId));
   }
 
   @Test

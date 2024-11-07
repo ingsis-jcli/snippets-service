@@ -160,32 +160,36 @@ public class SnippetService {
     return snippet.get().getOwner().equals(userId);
   }
 
-  public Snippet editSnippet(Long snippetId, SnippetDto snippetDto, String userId) {
+  public Snippet editSnippet(Long snippetId, String content, String userId) {
     boolean canEdit = canEditSnippet(snippetId, userId);
     if (!canEdit) {
       throw new PermissionDeniedException(DeniedAction.EDIT_SNIPPET);
     }
 
     Snippet snippet = getSnippet(snippetId).get();
-    SnippetDto oldSnippetDto =
+
+    String oldContent =
+        blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
+
+    SnippetDto newSnippetDto =
         new SnippetDto(
             snippet.getName(),
             snippet.getDescription(),
-            blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).get(),
+            content,
             snippet.getLanguageVersion().getLanguage(),
             snippet.getLanguageVersion().getVersion());
 
     blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
-    saveInBucket(snippetDto, userId);
-    LanguageVersion languageVersion =
-        languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
-    updateSnippetInDbTable(snippetDto, userId, snippet, languageVersion);
+    saveInBucket(newSnippetDto, userId);
+
+    LanguageVersion languageVersion = snippet.getLanguageVersion();
 
     try {
       validateSnippet(snippet, languageVersion);
     } catch (InvalidSnippetException e) {
-      deleteSnippet(snippet);
-      createSnippet(oldSnippetDto, userId);
+      blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+      newSnippetDto.setContent(oldContent);
+      createSnippet(newSnippetDto, userId);
       throw e;
     }
 
