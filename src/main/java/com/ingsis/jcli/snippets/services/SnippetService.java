@@ -210,15 +210,18 @@ public class SnippetService {
         snippet.getLanguageVersion().getVersion());
   }
 
-  public SnippetDto getSnippetDto(Long snippetId) {
+  public SnippetResponse getSnippetDto(Long snippetId) {
     Snippet snippet = getSnippet(snippetId).orElseThrow(NoSuchElementException::new);
     String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
-    return new SnippetDto(
+    return new SnippetResponse(
+        snippet.getId(),
         snippet.getName(),
-        snippet.getDescription(),
         content,
         snippet.getLanguageVersion().getLanguage(),
-        snippet.getLanguageVersion().getVersion());
+        snippet.getLanguageVersion().getVersion(),
+        languageService.getExtension(snippet.getLanguageVersion()),
+        snippet.getStatus().getLinting(),
+        snippet.getOwner());
   }
 
   public List<SnippetResponse> getSnippetsBy(
@@ -272,7 +275,7 @@ public class SnippetService {
       String author = snippet.getOwner();
       snippetResponses.add(
           new SnippetResponse(
-              snippet.getId().toString(),
+              snippet.getId(),
               snippet.getName(),
               blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
               snippet.getLanguageVersion().getLanguage(),

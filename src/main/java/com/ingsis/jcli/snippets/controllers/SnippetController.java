@@ -78,12 +78,12 @@ public class SnippetController {
   }
 
   @GetMapping()
-  public ResponseEntity<SnippetDto> getSnippet(
+  public ResponseEntity<SnippetResponse> getSnippet(
       @RequestParam Long snippetId, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
 
-    SnippetDto snippet = snippetService.getSnippetDto(snippetId);
+    SnippetResponse snippet = snippetService.getSnippetDto(snippetId);
 
     boolean hasPermission = snippetService.canGetSnippet(snippetId, userId);
     if (!hasPermission) {

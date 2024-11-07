@@ -20,6 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
@@ -82,7 +84,9 @@ class SnippetControllerTest {
     Long id = 1L;
     String userId = "123";
     String content = "This is the content of the snippet.";
-    SnippetDto expected = new SnippetDto("name", content, "java", "21");
+    SnippetResponse expected =
+        new SnippetResponse(
+            1L, "name", content, "java", "21", "ps", ProcessStatus.NOT_STARTED, userId);
 
     Jwt mockJwt = createMockJwt(userId);
 
@@ -91,6 +95,7 @@ class SnippetControllerTest {
 
     when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
     when(snippetService.getSnippetDto(id)).thenReturn(expected);
+    when(languageService.getExtension(new LanguageVersion("java", "21"))).thenReturn("java");
 
     mockMvc
         .perform(

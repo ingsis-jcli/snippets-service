@@ -4,7 +4,7 @@ import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import lombok.Getter;
 
 public class SnippetResponse {
-  @Getter private String id;
+  @Getter private Long id;
   @Getter private String name;
   @Getter private String content;
   @Getter private String language;
@@ -14,7 +14,7 @@ public class SnippetResponse {
   @Getter private String author;
 
   public SnippetResponse(
-      String id,
+      Long id,
       String name,
       String content,
       String language,
