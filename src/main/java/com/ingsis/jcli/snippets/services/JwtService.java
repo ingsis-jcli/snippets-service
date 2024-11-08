@@ -22,6 +22,6 @@ public class JwtService {
 
   public String extractUserId(String authHeader) {
     Jwt jwt = extractJwt(authHeader);
-    return jwt.getSubject().substring(6);
+    return jwt.getSubject();
   }
 }

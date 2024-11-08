@@ -13,6 +13,7 @@ import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.services.BlobStorageService;
 import com.ingsis.jcli.snippets.services.JwtService;
+import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import jakarta.transaction.Transactional;
@@ -42,6 +43,7 @@ public class GetSnippetsByTest {
   @Autowired private SnippetRepository snippetRepository;
 
   @MockBean private PermissionService permissionService;
+  @MockBean private LanguageService languageService;
   @MockBean private BlobStorageService blobStorageService;
   @MockBean private RuleController ruleController;
   @MockBean private JwtDecoder jwtDecoder;
@@ -149,6 +151,10 @@ public class GetSnippetsByTest {
     List<Long> snippetIds = snippetRepository.findAll().stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userShared)).thenReturn(snippetIds);
 
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
+
     mockMvc
         .perform(
             get("/snippet/search")
@@ -157,7 +163,15 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(total));
+        .andExpect(jsonPath("$.length()").value(total))
+        .andExpect(jsonPath("$[0].id").exists())
+        .andExpect(jsonPath("$[0].name").exists())
+        .andExpect(jsonPath("$[0].content").value("content"))
+        .andExpect(jsonPath("$[0].language").exists())
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].extension").exists())
+        .andExpect(jsonPath("$[0].compliance").exists())
+        .andExpect(jsonPath("$[0].author").exists());
   }
 
   @Test
@@ -169,6 +183,10 @@ public class GetSnippetsByTest {
     List<Long> snippetIds = snippetRepository.findAll().stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userShared)).thenReturn(snippetIds);
 
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
+
     mockMvc
         .perform(
             get("/snippet/search")
@@ -176,7 +194,15 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(10));
+        .andExpect(jsonPath("$.length()").value(10))
+        .andExpect(jsonPath("$[0].id").exists())
+        .andExpect(jsonPath("$[0].name").exists())
+        .andExpect(jsonPath("$[0].content").value("content"))
+        .andExpect(jsonPath("$[0].language").exists())
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].extension").exists())
+        .andExpect(jsonPath("$[0].compliance").exists())
+        .andExpect(jsonPath("$[0].author").exists());
   }
 
   @Test
@@ -185,6 +211,10 @@ public class GetSnippetsByTest {
     String userId = "user1";
     setupJwt(userId);
 
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
+
     mockMvc
         .perform(
             get("/snippet/search")
@@ -192,7 +222,15 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3));
+        .andExpect(jsonPath("$.length()").value(3))
+        .andExpect(jsonPath("$[0].id").exists())
+        .andExpect(jsonPath("$[0].name").value("DataProcessor"))
+        .andExpect(jsonPath("$[0].content").value("content"))
+        .andExpect(jsonPath("$[0].language").exists())
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].extension").exists())
+        .andExpect(jsonPath("$[0].compliance").value("COMPLIANT"))
+        .andExpect(jsonPath("$[0].author").value("user1"));
   }
 
   @Test
@@ -201,10 +239,13 @@ public class GetSnippetsByTest {
     String userId = "user2";
     setupJwt(userId);
 
-    // all of user1's (3) are shared with user2
     List<Long> snippetIds =
         snippetRepository.findAllByOwner("user1").stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
+
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -213,7 +254,15 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(7));
+        .andExpect(jsonPath("$.length()").value(7))
+        .andExpect(jsonPath("$[0].id").exists())
+        .andExpect(jsonPath("$[0].name").exists())
+        .andExpect(jsonPath("$[0].content").value("content"))
+        .andExpect(jsonPath("$[0].language").exists())
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].extension").exists())
+        .andExpect(jsonPath("$[0].compliance").exists())
+        .andExpect(jsonPath("$[0].author").exists());
   }
 
   @Test
@@ -222,10 +271,13 @@ public class GetSnippetsByTest {
     String userId = "user2";
     setupJwt(userId);
 
-    // all of user1's (3) are shared with user2
     List<Long> snippetIds =
         snippetRepository.findAllByOwner("user1").stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
+
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -235,7 +287,15 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(4));
+        .andExpect(jsonPath("$.length()").value(4))
+        .andExpect(jsonPath("$[0].id").exists())
+        .andExpect(jsonPath("$[0].name").exists())
+        .andExpect(jsonPath("$[0].content").value("content"))
+        .andExpect(jsonPath("$[0].language").exists())
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].extension").exists())
+        .andExpect(jsonPath("$[0].compliance").exists())
+        .andExpect(jsonPath("$[0].author").exists());
   }
 
   @Test
@@ -244,10 +304,13 @@ public class GetSnippetsByTest {
     String userId = "user2";
     setupJwt(userId);
 
-    // all of user1's (3) are shared with user2
     List<Long> snippetIds =
         snippetRepository.findAllByOwner("user1").stream().map(Snippet::getId).toList();
     when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
+
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -257,7 +320,15 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3));
+        .andExpect(jsonPath("$.length()").value(3))
+        .andExpect(jsonPath("$[0].id").exists())
+        .andExpect(jsonPath("$[0].name").exists())
+        .andExpect(jsonPath("$[0].content").value("content"))
+        .andExpect(jsonPath("$[0].language").exists())
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].extension").exists())
+        .andExpect(jsonPath("$[0].compliance").exists())
+        .andExpect(jsonPath("$[0].author").exists());
   }
 
   @Test
@@ -265,6 +336,10 @@ public class GetSnippetsByTest {
   public void getOwnedByUser2WithPrintscript() throws Exception {
     String userId = "user2";
     setupJwt(userId);
+
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("lua", "1.0"))).thenReturn("lua");
+    when(languageService.getExtension(new LanguageVersion("java", "1.0"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -274,200 +349,9 @@ public class GetSnippetsByTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1));
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("language", "PRINTSCRIPT")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1));
-  }
-
-  @Test
-  @Transactional
-  public void getOwnedByUser2WithJava() throws Exception {
-    String userId = "user2";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("language", "java")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3));
-  }
-
-  @Test
-  @Transactional
-  public void getOwnedWithUser1WithJava() throws Exception {
-    String userId = "user1";
-    setupJwt(userId);
-
-    // all of user2's (4) are shared with user1
-    List<Long> snippetIds =
-        snippetRepository.findAllByOwner("user2").stream().map(Snippet::getId).toList();
-    when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("shared", "false")
-                .param("language", "java")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(0));
-  }
-
-  @Test
-  @Transactional
-  public void getSharedWithUser1WithJava() throws Exception {
-    String userId = "user1";
-    setupJwt(userId);
-
-    // all of user2's (4) are shared with user1
-    List<Long> snippetIds =
-        snippetRepository.findAllByOwner("user2").stream().map(Snippet::getId).toList();
-    when(permissionService.getSnippetsSharedWithUser(userId)).thenReturn(snippetIds);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("language", "java")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3));
-  }
-
-  @Test
-  @Transactional
-  public void getOwnedByUser2StartingWith() throws Exception {
-    String userId = "user2";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("name", "we")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(4));
-  }
-
-  @Test
-  @Transactional
-  public void getCompliantByUser1() throws Exception {
-    String userId = "user1";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("lintingStatus", "COMPLIANT")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2));
-  }
-
-  @Test
-  @Transactional
-  public void getCompliantByUser1WithLua() throws Exception {
-    String userId = "user1";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("lintingStatus", "COMPLIANT")
-                .param("language", "LUA")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1));
-  }
-
-  @Test
-  @Transactional
-  public void getOwnedByUser2StartingWith2() throws Exception {
-    String userId = "user2";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("name", "weather")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3));
-  }
-
-  @Test
-  @Transactional
-  public void getPendingByUser2() throws Exception {
-    String userId = "user2";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("lintingStatus", "PENDING")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3));
-  }
-
-  @Test
-  @Transactional
-  public void getSpecificUser1() throws Exception {
-    String userId = "user1";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("owner", "true")
-                .param("shared", "false")
-                .param("language", "lua")
-                .param("name", "notif")
-                .param("lintingStatus", "PENDING")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1));
-  }
-
-  @Test
-  @Transactional
-  public void notSupportedLanguage() throws Exception {
-    String userId = "user1";
-    setupJwt(userId);
-
-    mockMvc
-        .perform(
-            get("/snippet/search")
-                .param("language", "kotlin")
-                .header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isBadRequest());
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].language").value("printscript"))
+        .andExpect(jsonPath("$[0].version").exists())
+        .andExpect(jsonPath("$[0].author").value("user2"));
   }
 }

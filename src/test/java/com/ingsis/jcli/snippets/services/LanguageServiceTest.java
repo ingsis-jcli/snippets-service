@@ -282,18 +282,25 @@ public class LanguageServiceTest {
   @Test
   void testGetAllExtensions() {
     assertEquals(
-        languageService.getAllExtensions(), Map.of("printscript1", "ps", "printscript2", "ps"));
+        languageService.getAllExtensions(),
+        Map.of(
+            new LanguageVersion("printscript", "1.0"),
+            "ps",
+            new LanguageVersion("printscript", "1.1"),
+            "ps"));
   }
 
   @Test
   void testGetPrintScriptExtension() {
-    assertEquals(languageService.getExtension("printscript1"), "ps");
+    assertEquals(languageService.getExtension(new LanguageVersion("printscript", "1.0")), "ps");
   }
 
   @Test
   void testNotValidLanguageExtension() {
     NoSuchLanguageException exception =
-        assertThrows(NoSuchLanguageException.class, () -> languageService.getExtension("notvalid"));
+        assertThrows(
+            NoSuchLanguageException.class,
+            () -> languageService.getExtension(new LanguageVersion("notvalid", "1.0")));
     assertEquals("notvalid", exception.getLanguage());
   }
 }

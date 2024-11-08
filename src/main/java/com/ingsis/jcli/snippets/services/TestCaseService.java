@@ -25,7 +25,7 @@ public class TestCaseService {
     this.languageProducerFactory = languageProducerFactory;
   }
 
-  public Long createTestCase(TestCaseDto testCaseDto, Snippet snippet) {
+  public TestCase createTestCase(TestCaseDto testCaseDto, Snippet snippet) {
     TestCase testCase =
         new TestCase(
             snippet,
@@ -35,7 +35,7 @@ public class TestCaseService {
             testCaseDto.type(),
             TestState.PENDING);
     testCaseRepository.save(testCase);
-    return testCase.getId();
+    return testCase;
   }
 
   public Optional<TestCase> getTestCase(Long id) {
@@ -62,5 +62,9 @@ public class TestCaseService {
 
   public void deleteTestCase(TestCase testCase) {
     testCaseRepository.delete(testCase);
+  }
+
+  public List<TestCase> getTestCaseBySnippet(Snippet snippet) {
+    return testCaseRepository.findTestCaseBySnippet(snippet);
   }
 }

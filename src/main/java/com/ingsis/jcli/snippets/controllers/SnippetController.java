@@ -1,7 +1,9 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
@@ -18,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -62,13 +65,25 @@ public class SnippetController {
     this.languageService = languageService;
   }
 
+  @GetMapping("/filetypes")
+  public ResponseEntity<Map<String, String>> getFileTypes() {
+    Map<LanguageVersion, String> extensions = languageService.getAllExtensions();
+    Map<String, String> response =
+        extensions.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey().getLanguage() + ":" + entry.getKey().getVersion(),
+                    Map.Entry::getValue));
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
   @GetMapping()
-  public ResponseEntity<SnippetDto> getSnippet(
+  public ResponseEntity<SnippetResponse> getSnippet(
       @RequestParam Long snippetId, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
 
-    SnippetDto snippet = snippetService.getSnippetDto(snippetId);
+    SnippetResponse snippet = snippetService.getSnippetDto(snippetId);
 
     boolean hasPermission = snippetService.canGetSnippet(snippetId, userId);
     if (!hasPermission) {
@@ -79,20 +94,17 @@ public class SnippetController {
   }
 
   @PostMapping()
-  public ResponseEntity<Long> createSnippet(
-      @RequestBody @Valid SnippetDto snippetDto,
-      @RequestParam(value = "version", defaultValue = "1.1") String version,
-      @RequestHeader("Authorization") String token) {
+  public ResponseEntity<SnippetResponse> createSnippet(
+      @RequestBody @Valid SnippetDto snippetDto, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
-    snippetDto.setVersion(version);
-
-    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+    snippetDto.setVersion(snippetDto.getVersion());
+    SnippetResponse snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet, HttpStatus.CREATED);
   }
 
   @PostMapping(value = "/upload", consumes = "multipart/form-data")
-  public ResponseEntity<Long> createSnippetFromFile(
+  public ResponseEntity<SnippetResponse> createSnippetFromFile(
       @RequestParam String name,
       @RequestParam(required = false, defaultValue = "") String description,
       @RequestParam String language,
@@ -106,21 +118,25 @@ public class SnippetController {
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
     SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
 
-    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+    SnippetResponse snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet, HttpStatus.CREATED);
   }
 
   @PutMapping()
-  public ResponseEntity<Long> editSnippet(
-      @RequestBody @Valid SnippetDto snippetDto,
-      @RequestParam Long snippetId,
+  public ResponseEntity<SnippetResponse> editSnippet(
+      @RequestBody @Valid String content,
+      @RequestParam("snippetId") Long snippetId,
       @RequestHeader(name = "Authorization") String token) {
+
+    System.out.println("Snippet received in editSnippet: " + content);
 
     String userId = jwtService.extractUserId(token);
 
-    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
+    Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
     testCaseService.runAllTestCases(snippet);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
+
+    SnippetResponse snippetResponse = snippetService.getSnippetResponse(snippet);
+    return new ResponseEntity<>(snippetResponse, HttpStatus.OK);
   }
 
   @PutMapping(value = "/upload", consumes = "multipart/form-data")
@@ -137,15 +153,13 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
 
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
-    SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
-
-    Snippet snippet = snippetService.editSnippet(snippetId, snippetDto, userId);
+    Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
     testCaseService.runAllTestCases(snippet);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
   }
 
   @GetMapping("/search")
-  public ResponseEntity<List<SnippetDto>> getSnippetsBy(
+  public ResponseEntity<List<SnippetResponse>> getSnippetsBy(
       @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
       @RequestParam(value = "size", defaultValue = "10") @Min(1) int pageSize,
       @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
@@ -157,16 +171,11 @@ public class SnippetController {
     // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
-    List<SnippetDto> snippets =
+    List<SnippetResponse> snippets =
         snippetService.getSnippetsBy(
             userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
 
     return new ResponseEntity<>(snippets, HttpStatus.OK);
-  }
-
-  @GetMapping("/file-types")
-  public ResponseEntity<Map<String, String>> getFileTypes() {
-    return new ResponseEntity<>(languageService.getAllExtensions(), HttpStatus.OK);
   }
 
   @GetMapping("/download/{snippetId}")
@@ -201,7 +210,7 @@ public class SnippetController {
       file = new ByteArrayResource(snippetContent.get().getBytes(StandardCharsets.UTF_8));
     }
 
-    String language = snippet.getLanguageVersion().getLanguage();
+    LanguageVersion language = snippet.getLanguageVersion();
 
     return ResponseEntity.ok()
         .header(
