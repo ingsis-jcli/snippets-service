@@ -126,7 +126,6 @@ public class TestsController {
     }
     if (snippetService.isOwner(snippet.get(), userId)) {
       List<TestCase> testCases = testCaseService.getTestCaseBySnippet(snippet.get());
-      System.out.println("Getting all snippet test cases: " + testCases);
       return ResponseEntity.ok(testCases);
     }
     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
