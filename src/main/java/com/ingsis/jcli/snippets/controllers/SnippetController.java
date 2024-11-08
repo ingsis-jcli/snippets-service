@@ -238,4 +238,21 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
     snippetService.deleteSnippet(snippetId, userId);
   }
+
+  @PostMapping("/format/{snippetId}")
+  public ResponseEntity<String> formatSnippet(
+      @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
+    String userId = jwtService.extractUserId(token);
+    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
+    if (snippetOpt.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    Snippet snippet = snippetOpt.get();
+    if (!snippet.getOwner().equals(userId)) {
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+    FormatResponse formatResponse = formatSnippetFromUser(userId, snippet);
+    snippetService.editSnippet(snippetId, formatResponse.content(), userId);
+    return ResponseEntity.ok(formatResponse.content());
+  }
 }
