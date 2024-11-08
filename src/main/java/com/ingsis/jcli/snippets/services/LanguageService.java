@@ -15,6 +15,7 @@ import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.config.LanguageProperties;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -187,5 +188,23 @@ public class LanguageService {
       throw new NoSuchLanguageException(language.getLanguage());
     }
     return extensions.get(language);
+  }
+
+  public ProcessStatus lintSnippet(
+      List<RuleDto> rules, Snippet snippet, LanguageVersion languageVersion) {
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+
+    if (!urls.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+    String baseUrl = urls.get(language);
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
+    ErrorResponse response = client.analyze(snippet.getName(), snippet.getUrl(), rules, version);
+
+    if (response.hasError()) {
+      return ProcessStatus.NON_COMPLIANT;
+    }
+    return ProcessStatus.COMPLIANT;
   }
 }

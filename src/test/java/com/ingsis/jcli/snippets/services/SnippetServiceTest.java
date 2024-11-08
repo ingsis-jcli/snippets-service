@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,9 +22,11 @@ import com.ingsis.jcli.snippets.common.status.Status;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
+import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +46,8 @@ class SnippetServiceTest {
   @MockBean private LanguageService languageService;
 
   @MockBean private PermissionService permissionService;
+
+  @MockBean private RulesService rulesService;
 
   @MockBean private JwtDecoder jwtDecoder;
 
@@ -87,7 +94,7 @@ class SnippetServiceTest {
     SnippetDto snippetDto = new SnippetDto(name, description, content, languageOk, versionOk);
     SnippetResponse expected =
         new SnippetResponse(
-            1L, name, "content", languageOk, versionOk, "ps", ProcessStatus.NOT_STARTED, userId);
+            snippetId, name, content, languageOk, versionOk, "ps", ProcessStatus.COMPLIANT, userId);
 
     when(snippetRepository.save(any(Snippet.class)))
         .thenAnswer(
@@ -96,20 +103,34 @@ class SnippetServiceTest {
               savedSnippet.setId(snippetId);
               return savedSnippet;
             });
+
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
     when(blobStorageService.getSnippet(getBaseUrl(snippetDto, userId), name))
         .thenReturn(Optional.of(content));
 
+    com.ingsis.jcli.snippets.models.Rule mockRule =
+        Mockito.mock(com.ingsis.jcli.snippets.models.Rule.class);
+    doReturn(Collections.singletonList(mockRule))
+        .when(rulesService)
+        .getLintingRules(userId, languageVersionOk);
+    when(languageService.lintSnippet(anyList(), any(Snippet.class), any(LanguageVersion.class)))
+        .thenReturn(ProcessStatus.COMPLIANT);
+
+    doNothing().when(permissionService).grantOwnerPermission(snippetId);
+
     SnippetResponse actualSnippet = snippetService.createSnippet(snippetDto, userId);
+
+    verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto, userId), name, content);
+    verify(permissionService).grantOwnerPermission(snippetId);
+
     assertEquals(expected.getAuthor(), actualSnippet.getAuthor());
     assertEquals(expected.getContent(), actualSnippet.getContent());
     assertEquals(expected.getLanguage(), actualSnippet.getLanguage());
     assertEquals(expected.getName(), actualSnippet.getName());
     assertEquals(expected.getVersion(), actualSnippet.getVersion());
-    assertEquals(expected.getCompliance(), actualSnippet.getCompliance());
-    verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto, userId), name, content);
+    assertEquals(ProcessStatus.COMPLIANT, actualSnippet.getCompliance());
   }
 
   @Test
