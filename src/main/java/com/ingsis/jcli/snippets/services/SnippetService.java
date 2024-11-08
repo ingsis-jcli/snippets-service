@@ -77,6 +77,9 @@ public class SnippetService {
   }
 
   public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
+    if (snippetRepository.findAllByName(snippetDto.getName()).size() != 0) {
+      throw new InvalidSnippetException("Snippet with the same name already exists", null);
+    }
     saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
