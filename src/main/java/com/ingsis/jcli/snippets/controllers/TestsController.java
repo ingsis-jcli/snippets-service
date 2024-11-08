@@ -1,13 +1,11 @@
 package com.ingsis.jcli.snippets.controllers;
 
-import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
-import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
@@ -32,7 +30,6 @@ public class TestsController {
   private final TestCaseService testCaseService;
   private final SnippetService snippetService;
   private final JwtService jwtService;
-  private final PermissionService permissionService;
   private final LanguageService languageService;
 
   @Autowired
@@ -40,12 +37,10 @@ public class TestsController {
       TestCaseService testCaseService,
       JwtService jwtService,
       SnippetService snippetService,
-      PermissionService permissionService,
       LanguageService languageService) {
     this.testCaseService = testCaseService;
     this.jwtService = jwtService;
     this.snippetService = snippetService;
-    this.permissionService = permissionService;
     this.languageService = languageService;
   }
 
@@ -72,7 +67,7 @@ public class TestsController {
     return new ResponseEntity<>(testCase, HttpStatus.CREATED);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/run/{id}")
   public ResponseEntity<TestState> runTestCase(
       @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
     String userId = jwtService.extractUserId(token);
@@ -86,10 +81,7 @@ public class TestsController {
 
     Snippet snippet = testCase.getSnippet();
 
-    boolean hasPermission =
-        snippetService.isOwner(snippet, userId)
-            || permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippet.getId());
-    if (!hasPermission) {
+    if (!snippetService.isOwner(snippet, userId)) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
@@ -104,6 +96,21 @@ public class TestsController {
   public List<TestCase> getTestCaseByUser(@RequestHeader(name = "Authorization") String token) {
     String userId = jwtService.extractUserId(token);
     return testCaseService.getTestCaseByUser(userId);
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<TestCase> getTestCase(
+      @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
+    String userId = jwtService.extractUserId(token);
+    Optional<TestCase> testCaseOp = testCaseService.getTestCase(id);
+    if (testCaseOp.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    TestCase testCase = testCaseOp.get();
+    if (testCase.getSnippet().getOwner().equals(userId)) {
+      return ResponseEntity.ok(testCase);
+    }
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
   }
 
   @DeleteMapping("/{id}")
