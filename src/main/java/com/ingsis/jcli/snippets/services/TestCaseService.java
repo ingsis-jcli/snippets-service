@@ -60,4 +60,8 @@ public class TestCaseService {
   public void deleteTestCase(TestCase testCase) {
     testCaseRepository.delete(testCase);
   }
+
+  public List<TestCase> getTestCaseBySnippet(Snippet snippet) {
+    return testCaseRepository.findTestCaseBySnippet(snippet);
+  }
 }
