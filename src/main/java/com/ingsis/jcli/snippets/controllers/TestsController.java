@@ -50,7 +50,7 @@ public class TestsController {
   }
 
   @PostMapping()
-  public ResponseEntity<Long> createTestCase(
+  public ResponseEntity<TestCase> createTestCase(
       @RequestBody @Valid TestCaseDto testCaseDto,
       @RequestHeader(name = "Authorization") String token) {
 
@@ -68,8 +68,8 @@ public class TestsController {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
-    Long id = testCaseService.createTestCase(testCaseDto, snippet);
-    return new ResponseEntity<>(id, HttpStatus.CREATED);
+    TestCase testCase = testCaseService.createTestCase(testCaseDto, snippet);
+    return new ResponseEntity<>(testCase, HttpStatus.CREATED);
   }
 
   @GetMapping("/{id}")

@@ -20,6 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
@@ -32,6 +34,7 @@ import com.ingsis.jcli.snippets.services.TestCaseService;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -66,6 +69,7 @@ class SnippetControllerTest {
   private static final String path = "/snippet";
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
   @Autowired private SnippetRepository snippetRepository;
+  @Autowired private SnippetController snippetController;
 
   private Jwt createMockJwt(String userId) {
     return Jwt.withTokenValue("mock-token")
@@ -80,7 +84,9 @@ class SnippetControllerTest {
     Long id = 1L;
     String userId = "123";
     String content = "This is the content of the snippet.";
-    SnippetDto expected = new SnippetDto("name", content, "java", "21");
+    SnippetResponse expected =
+        new SnippetResponse(
+            1L, "name", content, "java", "21", "ps", ProcessStatus.NOT_STARTED, userId);
 
     Jwt mockJwt = createMockJwt(userId);
 
@@ -89,6 +95,7 @@ class SnippetControllerTest {
 
     when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
     when(snippetService.getSnippetDto(id)).thenReturn(expected);
+    when(languageService.getExtension(new LanguageVersion("java", "21"))).thenReturn("java");
 
     mockMvc
         .perform(
@@ -152,10 +159,14 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
+    SnippetResponse snippetResponse =
+        new SnippetResponse(
+            1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
+
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
     when(languageService.validateSnippet(snippet, languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
@@ -168,7 +179,13 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$").value(1L));
+        .andExpect(jsonPath("$.id").value(snippetResponse.getId()))
+        .andExpect(jsonPath("$.name").value(snippetResponse.getName()))
+        .andExpect(jsonPath("$.content").value(snippetResponse.getContent()))
+        .andExpect(jsonPath("$.language").value(snippetResponse.getLanguage()))
+        .andExpect(jsonPath("$.version").value(snippetResponse.getVersion()))
+        .andExpect(jsonPath("$.compliance").value(snippetResponse.getCompliance().toString()))
+        .andExpect(jsonPath("$.author").value(snippetResponse.getAuthor()));
   }
 
   @Test
@@ -192,27 +209,38 @@ class SnippetControllerTest {
   void editSnippetSuccess() throws Exception {
     Long id = 1L;
     String userId = "123";
-    SnippetDto snippetDto = new SnippetDto("name", "content", "printscript", "1.1");
+    String content = "new content";
+    LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
+
+    SnippetResponse snippetResponse =
+        new SnippetResponse(
+            id, "name", content, "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
 
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.canEditSnippet(id, userId)).thenReturn(true);
-    when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.editSnippet(id, content, userId)).thenReturn(snippet);
+    when(snippetService.getSnippetResponse(snippet)).thenReturn(snippetResponse);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
         .perform(
             put(path)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(snippetDto))
+                .content(content)
                 .param("snippetId", id.toString())
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").value(id));
+        .andExpect(jsonPath("$.id").value(snippetResponse.getId()))
+        .andExpect(jsonPath("$.name").value(snippetResponse.getName()))
+        .andExpect(jsonPath("$.content").value(snippetResponse.getContent()))
+        .andExpect(jsonPath("$.language").value(snippetResponse.getLanguage()))
+        .andExpect(jsonPath("$.version").value(snippetResponse.getVersion()))
+        .andExpect(jsonPath("$.compliance").value(snippetResponse.getCompliance().toString()))
+        .andExpect(jsonPath("$.author").value(snippetResponse.getAuthor()));
   }
 
   @Test
@@ -222,6 +250,10 @@ class SnippetControllerTest {
     SnippetDto snippetDto = new SnippetDto("name", content, "printscript", "1.1");
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
+
+    SnippetResponse snippetResponse =
+        new SnippetResponse(
+            1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
 
     MockMultipartFile file =
         new MockMultipartFile(
@@ -233,7 +265,7 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
     when(languageService.validateSnippet(snippet, languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
@@ -249,7 +281,13 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$").value(1L));
+        .andExpect(jsonPath("$.id").value(snippetResponse.getId()))
+        .andExpect(jsonPath("$.name").value(snippetResponse.getName()))
+        .andExpect(jsonPath("$.content").value(snippetResponse.getContent()))
+        .andExpect(jsonPath("$.language").value(snippetResponse.getLanguage()))
+        .andExpect(jsonPath("$.version").value(snippetResponse.getVersion()))
+        .andExpect(jsonPath("$.compliance").value(snippetResponse.getCompliance().toString()))
+        .andExpect(jsonPath("$.author").value(snippetResponse.getAuthor()));
   }
 
   @Test
@@ -272,7 +310,7 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.canEditSnippet(id, userId)).thenReturn(true);
-    when(snippetService.editSnippet(id, snippetDto, userId)).thenReturn(snippet);
+    when(snippetService.editSnippet(id, snippetDto.getContent(), userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
@@ -302,6 +340,7 @@ class SnippetControllerTest {
     String content = "This is the content of the snippet.";
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
+    snippet.setLanguageVersion(new LanguageVersion("printscript", "1.0"));
 
     Jwt mockJwt = createMockJwt(userId);
 
@@ -310,7 +349,7 @@ class SnippetControllerTest {
     when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
     when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(content));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-    when(languageService.getExtension("printscript")).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
 
     mockMvc
         .perform(
@@ -357,7 +396,7 @@ class SnippetControllerTest {
     when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
     when(snippetService.canGetSnippet(id, userId)).thenReturn(false);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-    when(languageService.getExtension("printscript")).thenReturn("ps");
+    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
 
     mockMvc
         .perform(
@@ -370,16 +409,34 @@ class SnippetControllerTest {
 
   @Test
   void getFileTypes() throws Exception {
-    when(languageService.getAllExtensions()).thenReturn(Map.of("printscript", "ps"));
+    Map<LanguageVersion, String> map =
+        Map.of(
+            new LanguageVersion("printscript", "1.0"), "ps",
+            new LanguageVersion("printscript", "1.1"), "ps");
+
+    when(languageService.getAllExtensions()).thenReturn(map);
+
+    Map<String, String> stringMap =
+        map.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey().getLanguage() + ":" + entry.getKey().getVersion(),
+                    Map.Entry::getValue));
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(stringMap);
 
     String userId = "123";
     Jwt mockJwt = createMockJwt(userId);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
         .perform(
-            get(path + "/filetypes").with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+            get(path + "/filetypes")
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.printscript").value("ps"));
+        .andExpect(content().json(json));
   }
 
   @Test

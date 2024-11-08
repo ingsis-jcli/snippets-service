@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,10 +76,19 @@ class TestCaseControllerTest {
 
     Jwt mockJwt = createMockJwt("userId");
 
+    TestCase testCase =
+        new TestCase(
+            snippet,
+            testCaseDto.name(),
+            testCaseDto.input(),
+            testCaseDto.output(),
+            testCaseDto.type(),
+            TestState.PENDING);
+
     when(jwtService.extractUserId(token)).thenReturn("userId");
     when(snippetService.isOwner(snippet, "userId")).thenReturn(true);
     when(snippetService.getSnippet(testCaseDto.snippetId())).thenReturn(Optional.of(snippet));
-    when(testCaseService.createTestCase(testCaseDto, snippet)).thenReturn(1L);
+    when(testCaseService.createTestCase(testCaseDto, snippet)).thenReturn(testCase);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
@@ -88,7 +98,9 @@ class TestCaseControllerTest {
                 .content(objectMapper.writeValueAsString(testCaseDto))
                 .header("Authorization", token))
         .andExpect(status().isCreated())
-        .andExpect(content().string("1"));
+        .andExpect(jsonPath("$.name").value(testCase.getName()))
+        .andExpect(jsonPath("$.type").value(testCase.getType().toString()))
+        .andExpect(jsonPath("$.state").value(testCase.getState().toString()));
   }
 
   @Test
