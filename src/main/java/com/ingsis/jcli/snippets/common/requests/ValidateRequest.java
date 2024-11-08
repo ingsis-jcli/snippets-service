@@ -1,6 +1,8 @@
 package com.ingsis.jcli.snippets.common.requests;
 
-import com.ingsis.jcli.snippets.common.Generated;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Generated
-public record ValidateRequest(String snippet, String version) {}
+public record ValidateRequest(
+    @JsonProperty("name") String name,
+    @JsonProperty("url") String url,
+    @JsonProperty("version") String version) {}

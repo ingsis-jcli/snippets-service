@@ -1,10 +1,7 @@
 package com.ingsis.jcli.snippets.config;
 
-import com.ingsis.jcli.snippets.auth0.AuthFeignInterceptor;
 import com.ingsis.jcli.snippets.clients.factory.FeignErrorDecoder;
-import com.ingsis.jcli.snippets.clients.factory.LanguageClientFactory;
 import com.ingsis.jcli.snippets.common.Generated;
-import feign.Contract;
 import feign.Logger;
 import feign.codec.ErrorDecoder;
 import org.springframework.context.annotation.Bean;
@@ -22,13 +19,5 @@ public class FeignConfig {
   @Bean
   public ErrorDecoder feignErrorDecoder() {
     return new FeignErrorDecoder();
-  }
-
-  @Bean
-  public LanguageClientFactory languageClientFactory(
-      AuthFeignInterceptor authFeignInterceptor,
-      Contract feignContract,
-      ErrorDecoder feignErrorDecoder) {
-    return new LanguageClientFactory(authFeignInterceptor, feignContract, feignErrorDecoder);
   }
 }

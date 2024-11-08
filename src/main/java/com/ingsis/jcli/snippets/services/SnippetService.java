@@ -2,88 +2,326 @@ package com.ingsis.jcli.snippets.services;
 
 import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 
+import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.common.exceptions.DeniedAction;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
+import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
+import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
+import com.ingsis.jcli.snippets.common.status.Status;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
+import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.producers.FormatSnippetsProducer;
+import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
+import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SnippetService {
 
-  final SnippetRepository snippetRepository;
-  final BlobStorageService blobStorageService;
-  final LanguageService languageService;
+  private final SnippetRepository snippetRepository;
+  private final BlobStorageService blobStorageService;
+  private final LanguageService languageService;
+  private final PermissionService permissionService;
+  private final RulesService rulesService;
+  private final LintSnippetsProducer lintSnippetsProducer;
+  private final FormatSnippetsProducer formatSnippetsProducer;
 
   @Autowired
   public SnippetService(
       SnippetRepository snippetRepository,
       BlobStorageService blobStorageService,
-      LanguageService languageService) {
+      LanguageService languageService,
+      PermissionService permissionService,
+      RulesService rulesService,
+      LintSnippetsProducer lintSnippetsProducer,
+      FormatSnippetsProducer formatSnippetsProducer) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
+    this.permissionService = permissionService;
+    this.rulesService = rulesService;
+    this.lintSnippetsProducer = lintSnippetsProducer;
+    this.formatSnippetsProducer = formatSnippetsProducer;
   }
 
-  public void helloBucket() {
-    blobStorageService.uploadSnippet("snippet", "hello.txt", "Hello Bucket");
-  }
-
-  public Optional<String> getSnippet(Long snippetId) {
+  public Optional<Snippet> getSnippet(Long snippetId) {
     Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
-    if (snippetOptional.isPresent()) {
-      Snippet snippet = snippetOptional.get();
-      String name = snippet.getName();
-      String url = snippet.getUrl();
-      Optional<String> content = blobStorageService.getSnippet(url, name);
-      return content;
-    }
-    return Optional.empty();
+    return snippetOptional;
   }
 
-  public Snippet createSnippet(SnippetDto snippetDto) {
+  public Optional<String> getSnippetContent(Long snippetId) {
+    Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOptional.isEmpty()) {
+      return Optional.empty();
+    }
+    Snippet snippet = snippetOptional.get();
+    String name = snippet.getName();
+    String url = snippet.getUrl();
+    Optional<String> content = blobStorageService.getSnippet(url, name);
+    return content;
+  }
+
+  public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
+    saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
-    LanguageResponse isValid =
-        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
+    Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
+    try {
+      validateSnippet(snippet, languageVersion);
+    } catch (InvalidSnippetException e) {
+      deleteSnippet(snippet);
+      throw e;
+    }
+    permissionService.grantOwnerPermission(snippet.getId());
+    return getSnippetResponse(snippet);
+  }
 
+  private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
+    LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
     if (isValid.hasError()) {
+      System.out.println("Is throwing the corresponding exception");
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
+  }
 
-    blobStorageService.uploadSnippet(
-        getBaseUrl(snippetDto), snippetDto.getName(), snippetDto.getContent());
+  private @NotNull Snippet saveInDbTable(
+      SnippetDto snippetDto, String userId, LanguageVersion languageVersion) {
+
     Snippet snippet =
         new Snippet(
-            snippetDto.getName(), getBaseUrl(snippetDto), snippetDto.getOwner(), languageVersion);
-    return snippetRepository.save(snippet);
+            snippetDto.getName(),
+            snippetDto.getDescription(),
+            getBaseUrl(snippetDto, userId),
+            userId,
+            languageVersion);
+
+    snippetRepository.save(snippet);
+    return snippet;
   }
 
-  public boolean isOwner(Long snippetId, Long userId) {
-    Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
-    return snippet.filter(value -> userId.equals(value.getOwner())).isPresent();
+  private void saveInBucket(SnippetDto snippetDto, String userId) {
+    blobStorageService.uploadSnippet(
+        getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
+    System.out.println("Snippet saved in bucket: " + snippetDto.getContent());
   }
 
-  public Snippet editSnippet(Long snippetId, SnippetDto snippetDto) {
+  private void deleteSnippet(Snippet snippet) {
+    blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+    snippetRepository.delete(snippet);
+  }
+
+  public void deleteSnippet(Long snippetId, String userId) {
+    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOpt.isEmpty()) {
+      throw new NoSuchElementException("Snippet not found");
+    }
+    Snippet snippet = snippetOpt.get();
+    if (!isOwner(snippet, userId)) {
+      throw new PermissionDeniedException(DeniedAction.DELETE_SNIPPET);
+    }
+    deleteSnippet(snippet);
+  }
+
+  public boolean isOwner(Snippet snippet, String userId) {
+    return snippet.getOwner().equals(userId);
+  }
+
+  public boolean canGetSnippet(Long snippetId, String userId) {
+    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
+    if (snippetOpt.isEmpty()) {
+      throw new NoSuchElementException("Snippet not found");
+    }
+    Snippet snippet = snippetOpt.get();
+    if (isOwner(snippet, userId)) {
+      return true;
+    }
+    return permissionService.hasPermissionOnSnippet(PermissionType.SHARED, snippetId);
+  }
+
+  public boolean canEditSnippet(Long snippetId, String userId) {
     Optional<Snippet> snippet = this.snippetRepository.findSnippetById(snippetId);
     if (snippet.isEmpty()) {
-      throw new NoSuchElementException("Snippet with id " + snippetId + " does not exist");
+      throw new NoSuchElementException("Snippet not found");
     }
-    String languageName = snippetDto.getLanguage();
-    String versionName = snippetDto.getVersion();
-    LanguageVersion languageVersion = languageService.getLanguageVersion(languageName, versionName);
-    LanguageResponse response =
-        languageService.validateSnippet(snippetDto.getContent(), languageVersion);
+    return snippet.get().getOwner().equals(userId);
+  }
 
-    if (response.hasError()) {
-      throw new InvalidSnippetException(response.getError(), languageVersion);
+  public Snippet editSnippet(Long snippetId, String content, String userId) {
+    System.out.println("Editing snippet with id: " + snippetId);
+    System.out.println("Content: " + content);
+    boolean canEdit = canEditSnippet(snippetId, userId);
+    if (!canEdit) {
+      throw new PermissionDeniedException(DeniedAction.EDIT_SNIPPET);
     }
-    blobStorageService.deleteSnippet(snippet.get().getUrl(), snippet.get().getName());
-    return createSnippet(snippetDto);
+
+    Snippet snippet = getSnippet(snippetId).get();
+
+    String oldContent =
+        blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
+
+    SnippetDto newSnippetDto =
+        new SnippetDto(
+            snippet.getName(),
+            snippet.getDescription(),
+            content,
+            snippet.getLanguageVersion().getLanguage(),
+            snippet.getLanguageVersion().getVersion());
+
+    blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+    saveInBucket(newSnippetDto, userId);
+
+    LanguageVersion languageVersion = snippet.getLanguageVersion();
+
+    try {
+      validateSnippet(snippet, languageVersion);
+    } catch (InvalidSnippetException e) {
+      blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+      newSnippetDto.setContent(oldContent);
+      createSnippet(newSnippetDto, userId);
+      throw e;
+    }
+
+    return snippet;
+  }
+
+  public SnippetResponse getSnippetResponse(Snippet snippet) {
+    return new SnippetResponse(
+        snippet.getId(),
+        snippet.getName(),
+        blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
+        snippet.getLanguageVersion().getLanguage(),
+        snippet.getLanguageVersion().getVersion(),
+        languageService.getExtension(snippet.getLanguageVersion()),
+        snippet.getStatus().getLinting(),
+        snippet.getOwner());
+  }
+
+  public SnippetResponse getSnippetDto(Long snippetId) {
+    Snippet snippet = getSnippet(snippetId).orElseThrow(NoSuchElementException::new);
+    String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
+    return new SnippetResponse(
+        snippet.getId(),
+        snippet.getName(),
+        content,
+        snippet.getLanguageVersion().getLanguage(),
+        snippet.getLanguageVersion().getVersion(),
+        languageService.getExtension(snippet.getLanguageVersion()),
+        snippet.getStatus().getLinting(),
+        snippet.getOwner());
+  }
+
+  public List<SnippetResponse> getSnippetsBy(
+      String userId,
+      int page,
+      int pageSize,
+      boolean isOwner,
+      boolean isShared,
+      Optional<ProcessStatus> lintingStatus,
+      Optional<String> name,
+      Optional<String> language) {
+
+    Pageable pageable = PageRequest.of(page, pageSize);
+
+    List<Specification<Snippet>> specs = new ArrayList<>();
+
+    Specification<Snippet> specOwner = Specification.where(null);
+    Specification<Snippet> specShared = Specification.where(null);
+
+    if (isOwner) {
+      specOwner = SnippetSpecifications.isOwner(userId);
+    }
+
+    if (isShared) {
+      List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
+      specShared = SnippetSpecifications.isShared(sharedWithUser);
+    }
+
+    specs.add(Specification.where(specOwner).or(specShared));
+
+    lintingStatus.ifPresent(
+        status -> specs.add(SnippetSpecifications.snippetsLintingStatusIs(status)));
+
+    name.ifPresent(match -> specs.add(SnippetSpecifications.nameHasWordThatStartsWith(match)));
+
+    language.ifPresent(
+        lang -> {
+          languageService.validateLanguage(lang.toLowerCase());
+          specs.add(SnippetSpecifications.isLanguage(lang));
+        });
+
+    Specification<Snippet> finalSpec =
+        specs.stream().reduce(Specification::and).orElse(Specification.where(null));
+
+    List<Snippet> snippets = snippetRepository.findAll(finalSpec, pageable).getContent();
+
+    List<SnippetResponse> snippetResponses = new ArrayList<>();
+
+    for (Snippet snippet : snippets) {
+      ProcessStatus compliance = snippet.getStatus().getLinting();
+      String author = snippet.getOwner();
+      snippetResponses.add(
+          new SnippetResponse(
+              snippet.getId(),
+              snippet.getName(),
+              blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
+              snippet.getLanguageVersion().getLanguage(),
+              snippet.getLanguageVersion().getVersion(),
+              languageService.getExtension(snippet.getLanguageVersion()),
+              compliance,
+              author));
+    }
+
+    return snippetResponses;
+  }
+
+  public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
+    List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
+    List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    snippets.forEach(s -> lintSnippetsProducer.lint(s, rules));
+  }
+
+  public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
+    List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
+    List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
+    snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
+  }
+
+  public void updateLintingStatus(ProcessStatus processStatus, Long snippetId) {
+    Optional<Snippet> optionalSnippet = getSnippet(snippetId);
+    if (optionalSnippet.isEmpty()) {
+      throw new SnippetNotFoundException(snippetId);
+    }
+    Snippet snippet = optionalSnippet.get();
+    Status status = snippet.getStatus();
+    status.setLinting(processStatus);
+    snippetRepository.save(snippet);
+    System.out.println("Snippet lint for " + snippet.getId() + " : " + snippet.getStatus());
+  }
+
+  public void updateFormattingStatus(ProcessStatus processStatus, Long snippetId) {
+    Optional<Snippet> optionalSnippet = getSnippet(snippetId);
+    if (optionalSnippet.isEmpty()) {
+      throw new SnippetNotFoundException(snippetId);
+    }
+    Snippet snippet = optionalSnippet.get();
+    Status status = snippet.getStatus();
+    status.setFormatting(processStatus);
+    snippetRepository.save(snippet);
+    System.out.println("Snippet format for " + snippet.getId() + " : " + snippet.getStatus());
   }
 }

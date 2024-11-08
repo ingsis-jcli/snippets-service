@@ -12,24 +12,29 @@ public class SnippetDto {
   @NotBlank(message = "Name cannot be blank")
   private String name;
 
+  private String description = "";
+
   @NotNull(message = "Content cannot be null")
   private String content;
-
-  @NotNull(message = "Has to have an owner")
-  private Long owner;
 
   @NotBlank(message = "Has to specify program language")
   private String language;
 
   @NotBlank(message = "Has to specify program language's version")
-  private String version;
+  //  private String version;
+  private String version = "1.1";
 
   public SnippetDto() {}
 
-  public SnippetDto(String name, String content, Long owner, String language, String version) {
+  public SnippetDto(String name, String content, String language, String version) {
+    this(name, "", content, language, version);
+  }
+
+  public SnippetDto(
+      String name, String description, String content, String language, String version) {
     this.name = name;
+    this.description = description;
     this.content = content;
-    this.owner = owner;
     this.language = language;
     this.version = version;
   }

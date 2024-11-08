@@ -2,13 +2,18 @@ package com.ingsis.jcli.snippets.models;
 
 import com.ingsis.jcli.snippets.common.Generated;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.status.Status;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import lombok.Data;
 
 @Generated
@@ -23,16 +28,29 @@ public class Snippet {
 
   @NotBlank private String name;
 
+  private String description;
+
   @NotBlank private String url;
 
-  private Long owner;
+  @NotBlank private String owner;
 
   @Embedded private LanguageVersion languageVersion;
 
+  @Embedded private Status status = new Status();
+
+  @OneToMany(mappedBy = "snippet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<TestCase> testCases;
+
   public Snippet() {}
 
-  public Snippet(String name, String url, Long owner, LanguageVersion languageVersion) {
+  public Snippet(String name, String url, String owner, LanguageVersion languageVersion) {
+    this(name, "", url, owner, languageVersion);
+  }
+
+  public Snippet(
+      String name, String description, String url, String owner, LanguageVersion languageVersion) {
     this.name = name;
+    this.description = description;
     this.url = url;
     this.owner = owner;
     this.languageVersion = languageVersion;

@@ -17,7 +17,7 @@ public class LanguageVersion {
   public LanguageVersion() {}
 
   public LanguageVersion(String language, String version) {
-    this.language = language;
-    this.version = version;
+    this.language = language.toLowerCase();
+    this.version = version.toLowerCase();
   }
 }
