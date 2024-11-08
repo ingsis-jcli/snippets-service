@@ -1,6 +1,7 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.requests.TestState;
+import com.ingsis.jcli.snippets.common.responses.TestCaseResponse;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -11,6 +12,7 @@ import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +47,7 @@ public class TestsController {
   }
 
   @PostMapping()
-  public ResponseEntity<TestCase> createTestCase(
+  public ResponseEntity<TestCaseResponse> createTestCase(
       @RequestBody @Valid TestCaseDto testCaseDto,
       @RequestHeader(name = "Authorization") String token) {
 
@@ -64,15 +66,15 @@ public class TestsController {
     }
 
     TestCase testCase = testCaseService.createTestCase(testCaseDto, snippet);
-    System.out.println(
-        "Created a snippet test case: "
-            + testCase.getName()
-            + testCase.getType()
-            + " with inputs "
-            + testCase.getInputs()
-            + " and outputs "
-            + testCase.getOutputs());
-    return new ResponseEntity<>(testCase, HttpStatus.CREATED);
+    return new ResponseEntity<>(
+        new TestCaseResponse(
+            testCase.getId(),
+            testCase.getSnippet().getId(),
+            testCase.getName(),
+            testCase.getInputs(),
+            testCase.getOutputs(),
+            testCase.getState()),
+        HttpStatus.CREATED);
   }
 
   @GetMapping("/run/{id}")
@@ -117,7 +119,7 @@ public class TestsController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<List<TestCase>> getTestCase(
+  public ResponseEntity<List<TestCaseResponse>> getTestCase(
       @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
     String userId = jwtService.extractUserId(token);
     Optional<Snippet> snippet = snippetService.getSnippet(id);
@@ -126,7 +128,18 @@ public class TestsController {
     }
     if (snippetService.isOwner(snippet.get(), userId)) {
       List<TestCase> testCases = testCaseService.getTestCaseBySnippet(snippet.get());
-      return ResponseEntity.ok(testCases);
+      return ResponseEntity.ok(
+          testCases.stream()
+              .map(
+                  (testCase ->
+                      new TestCaseResponse(
+                          testCase.getId(),
+                          testCase.getSnippet().getId(),
+                          testCase.getName(),
+                          testCase.getInputs(),
+                          testCase.getOutputs(),
+                          testCase.getState())))
+              .collect(Collectors.toList()));
     }
     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
   }

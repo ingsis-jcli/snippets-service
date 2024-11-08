@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ingsis.jcli.snippets.common.requests.TestState;
 import com.ingsis.jcli.snippets.common.requests.TestType;
+import com.ingsis.jcli.snippets.common.responses.TestCaseResponse;
 import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
@@ -70,6 +71,7 @@ class TestCaseControllerTest {
     TestCaseDto testCaseDto =
         new TestCaseDto(
             "Test Case", 1L, Arrays.asList("input1"), Arrays.asList("output1"), TestType.VALID);
+
     Snippet snippet = new Snippet();
     snippet.setId(1L);
     snippet.setOwner("userId");
@@ -83,6 +85,16 @@ class TestCaseControllerTest {
             testCaseDto.input(),
             testCaseDto.output(),
             testCaseDto.type(),
+            TestState.PENDING);
+    testCase.setId(1L);
+
+    TestCaseResponse response =
+        new TestCaseResponse(
+            1L,
+            1L,
+            "Test Case",
+            Arrays.asList("input1"),
+            Arrays.asList("output1"),
             TestState.PENDING);
 
     when(jwtService.extractUserId(token)).thenReturn("userId");
@@ -98,9 +110,10 @@ class TestCaseControllerTest {
                 .content(objectMapper.writeValueAsString(testCaseDto))
                 .header("Authorization", token))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.name").value(testCase.getName()))
-        .andExpect(jsonPath("$.type").value(testCase.getType().toString()))
-        .andExpect(jsonPath("$.state").value(testCase.getState().toString()));
+        .andExpect(jsonPath("$.id").value(response.getId()))
+        .andExpect(jsonPath("$.snippetId").value(response.getSnippetId()))
+        .andExpect(jsonPath("$.name").value(response.getName()))
+        .andExpect(jsonPath("$.state").value(response.getState().toString()));
   }
 
   @Test
@@ -274,21 +287,43 @@ class TestCaseControllerTest {
     snippet.setId(snippetId);
     snippet.setOwner(userId);
 
-    List<TestCase> testCases =
+    TestCase test1 =
+        new TestCase(
+            snippet,
+            "Test Case 1",
+            Arrays.asList("input1"),
+            Arrays.asList("output1"),
+            TestType.VALID,
+            TestState.PENDING);
+    test1.setId(1L);
+
+    TestCase test2 =
+        new TestCase(
+            snippet,
+            "Test Case 2",
+            Arrays.asList("input2"),
+            Arrays.asList("output2"),
+            TestType.VALID,
+            TestState.PENDING);
+    test2.setId(2L);
+
+    List<TestCase> testCases = Arrays.asList(test1, test2);
+
+    List<TestCaseResponse> testCaseResponses =
         Arrays.asList(
-            new TestCase(
-                snippet,
+            new TestCaseResponse(
+                1L,
+                1L,
                 "Test Case 1",
                 Arrays.asList("input1"),
                 Arrays.asList("output1"),
-                TestType.VALID,
                 TestState.PENDING),
-            new TestCase(
-                snippet,
+            new TestCaseResponse(
+                2L,
+                1L,
                 "Test Case 2",
                 Arrays.asList("input2"),
                 Arrays.asList("output2"),
-                TestType.VALID,
                 TestState.PENDING));
 
     Jwt mockJwt = createMockJwt(userId);
@@ -303,7 +338,7 @@ class TestCaseControllerTest {
         .perform(get("/testcase/" + snippetId).header("Authorization", token))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(content().json(objectMapper.writeValueAsString(testCases)));
+        .andExpect(content().json(objectMapper.writeValueAsString(testCaseResponses)));
   }
 
   @Test
