@@ -115,7 +115,7 @@ public class LanguageRestClient {
       if (response.getStatusCode() == HttpStatus.OK) {
         return response.getBody() != null
             ? response.getBody()
-            : new ErrorResponse("No response body");
+            : new ErrorResponse();
       } else {
         return new ErrorResponse("Unexpected response status: " + response.getStatusCode());
       }
