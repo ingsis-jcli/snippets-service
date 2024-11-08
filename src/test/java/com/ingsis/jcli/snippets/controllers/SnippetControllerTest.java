@@ -159,8 +159,9 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
-    SnippetResponse snippetResponse = new SnippetResponse(
-        1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
+    SnippetResponse snippetResponse =
+        new SnippetResponse(
+            1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
 
     Jwt mockJwt = createMockJwt(userId);
 
@@ -178,7 +179,13 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$").value(1L));
+        .andExpect(jsonPath("$.id").value(snippetResponse.getId()))
+        .andExpect(jsonPath("$.name").value(snippetResponse.getName()))
+        .andExpect(jsonPath("$.content").value(snippetResponse.getContent()))
+        .andExpect(jsonPath("$.language").value(snippetResponse.getLanguage()))
+        .andExpect(jsonPath("$.version").value(snippetResponse.getVersion()))
+        .andExpect(jsonPath("$.compliance").value(snippetResponse.getCompliance().toString()))
+        .andExpect(jsonPath("$.author").value(snippetResponse.getAuthor()));
   }
 
   @Test
@@ -207,10 +214,15 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
 
+    SnippetResponse snippetResponse =
+        new SnippetResponse(
+            id, "name", content, "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
+
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.editSnippet(id, content, userId)).thenReturn(snippet);
+    when(snippetService.getSnippetResponse(snippet)).thenReturn(snippetResponse);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
@@ -222,7 +234,13 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").value(id));
+        .andExpect(jsonPath("$.id").value(snippetResponse.getId()))
+        .andExpect(jsonPath("$.name").value(snippetResponse.getName()))
+        .andExpect(jsonPath("$.content").value(snippetResponse.getContent()))
+        .andExpect(jsonPath("$.language").value(snippetResponse.getLanguage()))
+        .andExpect(jsonPath("$.version").value(snippetResponse.getVersion()))
+        .andExpect(jsonPath("$.compliance").value(snippetResponse.getCompliance().toString()))
+        .andExpect(jsonPath("$.author").value(snippetResponse.getAuthor()));
   }
 
   @Test
@@ -233,8 +251,9 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", getBaseUrl(snippetDto, userId), userId, languageVersion);
     snippet.setId(1L);
 
-    SnippetResponse snippetResponse = new SnippetResponse(
-        1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
+    SnippetResponse snippetResponse =
+        new SnippetResponse(
+            1L, "name", "content", "printscript", "1.1", "ps", ProcessStatus.NOT_STARTED, userId);
 
     MockMultipartFile file =
         new MockMultipartFile(
@@ -262,7 +281,13 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$").value(1L));
+        .andExpect(jsonPath("$.id").value(snippetResponse.getId()))
+        .andExpect(jsonPath("$.name").value(snippetResponse.getName()))
+        .andExpect(jsonPath("$.content").value(snippetResponse.getContent()))
+        .andExpect(jsonPath("$.language").value(snippetResponse.getLanguage()))
+        .andExpect(jsonPath("$.version").value(snippetResponse.getVersion()))
+        .andExpect(jsonPath("$.compliance").value(snippetResponse.getCompliance().toString()))
+        .andExpect(jsonPath("$.author").value(snippetResponse.getAuthor()));
   }
 
   @Test

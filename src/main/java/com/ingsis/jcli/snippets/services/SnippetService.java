@@ -88,15 +88,7 @@ public class SnippetService {
       throw e;
     }
     permissionService.grantOwnerPermission(snippet.getId());
-    return new SnippetResponse(
-      snippet.getId(),
-      snippet.getName(),
-      blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
-      snippet.getLanguageVersion().getLanguage(),
-      snippet.getLanguageVersion().getVersion(),
-      languageService.getExtension(snippet.getLanguageVersion()),
-      snippet.getStatus().getLinting(),
-      snippet.getOwner());
+    return getSnippetResponse(snippet);
   }
 
   private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
@@ -205,6 +197,18 @@ public class SnippetService {
     }
 
     return snippet;
+  }
+
+  public SnippetResponse getSnippetResponse(Snippet snippet) {
+    return new SnippetResponse(
+        snippet.getId(),
+        snippet.getName(),
+        blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
+        snippet.getLanguageVersion().getLanguage(),
+        snippet.getLanguageVersion().getVersion(),
+        languageService.getExtension(snippet.getLanguageVersion()),
+        snippet.getStatus().getLinting(),
+        snippet.getOwner());
   }
 
   public SnippetResponse getSnippetDto(Long snippetId) {

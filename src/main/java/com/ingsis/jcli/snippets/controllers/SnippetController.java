@@ -123,7 +123,7 @@ public class SnippetController {
   }
 
   @PutMapping()
-  public ResponseEntity<Long> editSnippet(
+  public ResponseEntity<SnippetResponse> editSnippet(
       @RequestBody @Valid String content,
       @RequestParam("snippetId") Long snippetId,
       @RequestHeader(name = "Authorization") String token) {
@@ -132,7 +132,9 @@ public class SnippetController {
 
     Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
     testCaseService.runAllTestCases(snippet);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
+
+    SnippetResponse snippetResponse = snippetService.getSnippetResponse(snippet);
+    return new ResponseEntity<>(snippetResponse, HttpStatus.OK);
   }
 
   @PutMapping(value = "/upload", consumes = "multipart/form-data")
@@ -149,8 +151,6 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
 
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
-    SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
-
     Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
     testCaseService.runAllTestCases(snippet);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
