@@ -19,10 +19,10 @@ public class RequestLogFilter implements Filter {
 
   @Override
   public void doFilter(
-    jakarta.servlet.ServletRequest request,
-    jakarta.servlet.ServletResponse response,
-    FilterChain chain)
-    throws IOException, ServletException {
+      jakarta.servlet.ServletRequest request,
+      jakarta.servlet.ServletResponse response,
+      FilterChain chain)
+      throws IOException, ServletException {
 
     if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
       HttpServletRequest httpRequest = (HttpServletRequest) request;

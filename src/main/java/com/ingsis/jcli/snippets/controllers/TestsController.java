@@ -64,6 +64,14 @@ public class TestsController {
     }
 
     TestCase testCase = testCaseService.createTestCase(testCaseDto, snippet);
+    System.out.println(
+        "Created a snippet test case: "
+            + testCase.getName()
+            + testCase.getType()
+            + " with inputs "
+            + testCase.getInputs()
+            + " and outputs "
+            + testCase.getOutputs());
     return new ResponseEntity<>(testCase, HttpStatus.CREATED);
   }
 
@@ -89,6 +97,16 @@ public class TestsController {
 
     testCaseService.updateTestCaseState(testCase, testCaseResult);
 
+    System.out.println(
+        "Running a snippet test case: "
+            + testCase.getName()
+            + " with inputs "
+            + testCase.getInputs()
+            + " and outputs "
+            + testCase.getOutputs()
+            + " result was "
+            + testCaseResult);
+
     return new ResponseEntity<>(testCaseResult, HttpStatus.OK);
   }
 
@@ -108,6 +126,13 @@ public class TestsController {
     }
     TestCase testCase = testCaseOp.get();
     if (testCase.getSnippet().getOwner().equals(userId)) {
+      System.out.println(
+          "Getting a snippet test case: "
+              + testCase.getName()
+              + " with inputs "
+              + testCase.getInputs()
+              + " and outputs "
+              + testCase.getOutputs());
       return ResponseEntity.ok(testCase);
     }
     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
