@@ -117,23 +117,17 @@ public class TestsController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<TestCase> getTestCase(
+  public ResponseEntity<List<TestCase>> getTestCase(
       @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
     String userId = jwtService.extractUserId(token);
-    Optional<TestCase> testCaseOp = testCaseService.getTestCase(id);
-    if (testCaseOp.isEmpty()) {
+    Optional<Snippet> snippet = snippetService.getSnippet(id);
+    if (snippet.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-    TestCase testCase = testCaseOp.get();
-    if (testCase.getSnippet().getOwner().equals(userId)) {
-      System.out.println(
-          "Getting a snippet test case: "
-              + testCase.getName()
-              + " with inputs "
-              + testCase.getInputs()
-              + " and outputs "
-              + testCase.getOutputs());
-      return ResponseEntity.ok(testCase);
+    if (snippetService.isOwner(snippet.get(), userId)) {
+      List<TestCase> testCases = testCaseService.getTestCaseBySnippet(snippet.get());
+      System.out.println("Getting all snippet test cases: " + testCases);
+      return ResponseEntity.ok(testCases);
     }
     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
   }

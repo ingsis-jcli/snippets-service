@@ -266,22 +266,80 @@ class TestCaseControllerTest {
   }
 
   @Test
-  void testGetTestCase_Forbidden() throws Exception {
+  void testGetTestCaseBySnippetId_Success() throws Exception {
     String token = "Bearer mock-token";
-    Long testCaseId = 1L;
-    TestCase testCase = new TestCase();
+    Long snippetId = 1L;
+    String userId = "userId";
     Snippet snippet = new Snippet();
-    snippet.setOwner("differentUserId");
-    testCase.setSnippet(snippet);
+    snippet.setId(snippetId);
+    snippet.setOwner(userId);
+
+    List<TestCase> testCases =
+        Arrays.asList(
+            new TestCase(
+                snippet,
+                "Test Case 1",
+                Arrays.asList("input1"),
+                Arrays.asList("output1"),
+                TestType.VALID,
+                TestState.PENDING),
+            new TestCase(
+                snippet,
+                "Test Case 2",
+                Arrays.asList("input2"),
+                Arrays.asList("output2"),
+                TestType.VALID,
+                TestState.PENDING));
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(token)).thenReturn(userId);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
+    when(snippetService.isOwner(snippet, userId)).thenReturn(true);
+    when(testCaseService.getTestCaseBySnippet(snippet)).thenReturn(testCases);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(get("/testcase/" + snippetId).header("Authorization", token))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().json(objectMapper.writeValueAsString(testCases)));
+  }
+
+  @Test
+  void testGetTestCaseBySnippetId_NotFound() throws Exception {
+    String token = "Bearer mock-token";
+    Long snippetId = 1L;
 
     Jwt mockJwt = createMockJwt("userId");
 
     when(jwtService.extractUserId(token)).thenReturn("userId");
-    when(testCaseService.getTestCase(testCaseId)).thenReturn(Optional.of(testCase));
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
     mockMvc
-        .perform(get("/testcase/" + testCaseId).header("Authorization", token))
+        .perform(get("/testcase/" + snippetId).header("Authorization", token))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void testGetTestCaseBySnippetId_Forbidden() throws Exception {
+    String token = "Bearer mock-token";
+    Long snippetId = 1L;
+    String userId = "userId";
+    Snippet snippet = new Snippet();
+    snippet.setId(snippetId);
+    snippet.setOwner("differentUserId");
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(token)).thenReturn(userId);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
+    when(snippetService.isOwner(snippet, userId)).thenReturn(false);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(get("/testcase/" + snippetId).header("Authorization", token))
         .andExpect(status().isForbidden());
   }
 }
