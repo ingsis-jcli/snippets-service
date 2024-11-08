@@ -128,6 +128,8 @@ public class SnippetController {
       @RequestParam("snippetId") Long snippetId,
       @RequestHeader(name = "Authorization") String token) {
 
+    System.out.println("Snippet received in editSnippet: " + content);
+
     String userId = jwtService.extractUserId(token);
 
     Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
