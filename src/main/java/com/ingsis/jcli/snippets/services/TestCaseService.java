@@ -24,7 +24,7 @@ public class TestCaseService {
     this.testCaseRunProducer = testCaseRunProducer;
   }
 
-  public Long createTestCase(TestCaseDto testCaseDto, Snippet snippet) {
+  public TestCase createTestCase(TestCaseDto testCaseDto, Snippet snippet) {
     TestCase testCase =
         new TestCase(
             snippet,
@@ -34,7 +34,7 @@ public class TestCaseService {
             testCaseDto.type(),
             TestState.PENDING);
     testCaseRepository.save(testCase);
-    return testCase.getId();
+    return testCase;
   }
 
   public Optional<TestCase> getTestCase(Long id) {

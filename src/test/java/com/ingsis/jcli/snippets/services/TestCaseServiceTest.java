@@ -52,10 +52,11 @@ class TestCaseServiceTest {
             Arrays.asList("output1"),
             TestType.VALID,
             TestState.PENDING);
+
     when(testCaseRepository.save(testCase)).thenReturn(testCase);
 
-    Long id = testCaseService.createTestCase(testCaseDto, snippet);
-    assertEquals(testCase.getId(), id);
+    TestCase testCaseOutput = testCaseService.createTestCase(testCaseDto, snippet);
+    assertEquals(testCaseOutput.getName(), testCase.getName());
   }
 
   @Test
