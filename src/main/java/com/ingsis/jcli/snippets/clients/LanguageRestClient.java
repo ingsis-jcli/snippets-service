@@ -110,7 +110,7 @@ public class LanguageRestClient {
 
     try {
       ResponseEntity<ErrorResponse> response =
-          restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
+          restTemplate.exchange(endpointUrl, HttpMethod.POST, requestEntity, ErrorResponse.class);
       if (response.getStatusCode() == HttpStatus.OK) {
         return new ErrorResponse();
       }
