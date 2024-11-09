@@ -110,17 +110,18 @@ public class LanguageRestClient {
 
     try {
       ResponseEntity<ErrorResponse> response =
-          restTemplate.exchange(endpointUrl, HttpMethod.POST, requestEntity, ErrorResponse.class);
-
+          restTemplate.exchange(url, HttpMethod.POST, requestEntity, ErrorResponse.class);
       if (response.getStatusCode() == HttpStatus.OK) {
-        return response.getBody() != null
-            ? response.getBody()
-            : new ErrorResponse();
-      } else {
-        return new ErrorResponse("Unexpected response status: " + response.getStatusCode());
+        return new ErrorResponse();
       }
+      if (response.getBody() == null) {
+        return new ErrorResponse("No response received");
+      }
+      System.out.println("Received: " + response.getBody());
+      return response.getBody();
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        System.out.println("Bad request during validation: " + e.getResponseBodyAsString());
         return new ErrorResponse("Bad request: " + e.getResponseBodyAsString());
       } else {
         return new ErrorResponse("Client error: " + e.getResponseBodyAsString());
