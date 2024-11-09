@@ -1,7 +1,7 @@
-package com.ingsis.jcli.snippets;
+package com.ingsis.jcli.snippets.server;
 
-import static com.ingsis.jcli.snippets.CorrelationIdFilter.CORRELATION_ID_HEADER;
-import static com.ingsis.jcli.snippets.CorrelationIdFilter.CORRELATION_ID_KEY;
+import static com.ingsis.jcli.snippets.server.CorrelationIdFilter.CORRELATION_ID_HEADER;
+import static com.ingsis.jcli.snippets.server.CorrelationIdFilter.CORRELATION_ID_KEY;
 
 import java.io.IOException;
 import org.slf4j.MDC;
