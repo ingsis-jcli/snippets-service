@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets;
+package com.ingsis.jcli.snippets.server;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;

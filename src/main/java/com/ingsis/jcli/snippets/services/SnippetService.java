@@ -9,6 +9,8 @@ import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.common.status.Status;
@@ -75,6 +77,9 @@ public class SnippetService {
   }
 
   public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
+    if (snippetRepository.findAllByName(snippetDto.getName()).size() != 0) {
+      throw new InvalidSnippetException("Snippet with the same name already exists", null);
+    }
     saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
@@ -86,6 +91,9 @@ public class SnippetService {
       throw e;
     }
     permissionService.grantOwnerPermission(snippet.getId());
+    ProcessStatus lintingStatus = lintSnippet(snippet, userId);
+    snippet.getStatus().setLinting(lintingStatus);
+    snippetRepository.save(snippet);
     return getSnippetResponse(snippet);
   }
 
@@ -95,6 +103,14 @@ public class SnippetService {
       System.out.println("Is throwing the corresponding exception");
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
+  }
+
+  private ProcessStatus lintSnippet(Snippet snippet, String userId) {
+    List<Rule> rules = rulesService.getLintingRules(userId, snippet.getLanguageVersion());
+    List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+    ProcessStatus formatResponse =
+        languageService.lintSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+    return formatResponse;
   }
 
   private @NotNull Snippet saveInDbTable(
@@ -193,7 +209,9 @@ public class SnippetService {
       createSnippet(newSnippetDto, userId);
       throw e;
     }
-
+    ProcessStatus lintingStatus = lintSnippet(snippet, userId);
+    snippet.getStatus().setLinting(lintingStatus);
+    snippetRepository.save(snippet);
     return snippet;
   }
 
@@ -323,5 +341,13 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setFormatting(processStatus);
     snippetRepository.save(snippet);
+  }
+
+  public FormatResponse formatSnippetFromUser(String userId, Snippet snippet) {
+    List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
+    List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+    FormatResponse formatResponse =
+        languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+    return formatResponse;
   }
 }

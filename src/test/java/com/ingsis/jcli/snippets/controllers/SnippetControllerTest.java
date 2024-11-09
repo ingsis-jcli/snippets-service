@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
@@ -475,5 +476,71 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void formatSnippetSuccess() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+    String formattedContent = "formatted content";
+    FormatResponse formatResponse = new FormatResponse(formattedContent, ProcessStatus.COMPLIANT);
+    Snippet snippet = new Snippet();
+    snippet.setOwner(userId);
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
+    when(snippetService.formatSnippetFromUser(userId, snippet)).thenReturn(formatResponse);
+    when(snippetService.editSnippet(snippetId, formattedContent, userId)).thenReturn(snippet);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            post(path + "/format/{snippetId}", snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk())
+        .andExpect(content().string(formattedContent));
+  }
+
+  @Test
+  void formatSnippetNotFound() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.empty());
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            post(path + "/format/{snippetId}", snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void formatSnippetForbidden() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+    Snippet snippet = new Snippet();
+    snippet.setOwner("differentUser");
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+
+    mockMvc
+        .perform(
+            post(path + "/format/{snippetId}", snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isForbidden());
   }
 }

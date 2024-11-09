@@ -1,6 +1,6 @@
 package com.ingsis.jcli.snippets.config;
 
-import com.ingsis.jcli.snippets.*;
+import com.ingsis.jcli.snippets.server.CorrelationIdInterceptor;
 import com.ingsis.jcli.snippets.auth0.Auth0RestTemplateInterceptor;
 import com.ingsis.jcli.snippets.common.Generated;
 import java.util.ArrayList;
