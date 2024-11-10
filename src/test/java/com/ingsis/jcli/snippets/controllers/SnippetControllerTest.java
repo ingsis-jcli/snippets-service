@@ -497,7 +497,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            post(path + "/format/{snippetId}", snippetId)
+            get(path + "/format/{snippetId}", snippetId)
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isOk())
@@ -517,7 +517,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            post(path + "/format/{snippetId}", snippetId)
+            get(path + "/format/{snippetId}", snippetId)
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isNotFound());
@@ -538,7 +538,7 @@ class SnippetControllerTest {
 
     mockMvc
         .perform(
-            post(path + "/format/{snippetId}", snippetId)
+            get(path + "/format/{snippetId}", snippetId)
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isForbidden());

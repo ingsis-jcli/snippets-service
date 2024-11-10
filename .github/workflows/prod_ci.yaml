@@ -1,4 +1,4 @@
-name: "Continuous Integration for Prod"
+name: "Continuous Deployment for Prod"
 on:
   push:
     branches:
@@ -55,3 +55,21 @@ jobs:
           build-args: |
             USERNAME=${{ secrets.USERNAME }}
             TOKEN=${{ secrets.TOKEN }}
+
+  deploy_prod:
+    name: Deploy Docker Image to Prod VM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update service on Prod VM with new image
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST_PROD }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_KEY }}
+          script: |
+              pwd
+              cd infra
+              echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login -u ${{ github.actor }} --password-stdin ghcr.io
+              sudo docker-compose -f docker-compose.prod.yml pull snippets
+              sudo docker-compose -f docker-compose.prod.yml up -d snippets          
