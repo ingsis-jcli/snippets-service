@@ -52,3 +52,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/ingsis-jcli/snippets:latest
+          build-args: |
+            USERNAME=${{ secrets.USERNAME }}
+            TOKEN=${{ secrets.TOKEN }}
