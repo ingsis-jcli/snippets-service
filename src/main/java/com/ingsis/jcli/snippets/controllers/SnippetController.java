@@ -227,7 +227,7 @@ public class SnippetController {
     snippetService.deleteSnippet(snippetId, userId);
   }
 
-  @PostMapping("/format/{snippetId}")
+  @GetMapping("/format/{snippetId}")
   public ResponseEntity<String> formatSnippet(
       @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
     String userId = jwtService.extractUserId(token);
