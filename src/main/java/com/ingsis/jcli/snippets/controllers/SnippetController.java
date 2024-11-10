@@ -227,16 +227,18 @@ public class SnippetController {
     snippetService.deleteSnippet(snippetId, userId);
   }
 
-  @PostMapping("/format/{snippetId}")
+  @GetMapping("/format/{snippetId}")
   public ResponseEntity<String> formatSnippet(
       @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
     String userId = jwtService.extractUserId(token);
     Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
     if (snippetOpt.isEmpty()) {
+      System.out.println("Snippet not found");
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     Snippet snippet = snippetOpt.get();
     if (!snippet.getOwner().equals(userId)) {
+      System.out.println("User does not have permission to format this snippet");
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
     FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
