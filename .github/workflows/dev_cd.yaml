@@ -1,8 +1,10 @@
 name: "Continuous Deployment to Dev"
 on:
-  push:
-    branches:
-      - dev
+  workflow_run:
+    workflows: ["Continuous Integration for Dev"]
+    types:
+      - completed
+
 jobs:
   deploy_dev:
     name: Deploy Docker Image to Dev VM
