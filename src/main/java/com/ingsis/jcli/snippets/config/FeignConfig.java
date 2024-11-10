@@ -2,10 +2,11 @@ package com.ingsis.jcli.snippets.config;
 
 import com.ingsis.jcli.snippets.clients.factory.FeignErrorDecoder;
 import com.ingsis.jcli.snippets.common.Generated;
-import feign.*;
 import feign.Logger;
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import feign.codec.ErrorDecoder;
-import org.slf4j.*;
+import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,7 +27,7 @@ public class FeignConfig {
         }
       }
     };
-    }
+  }
 
   @Bean
   Logger.Level feignLoggerLevel() {

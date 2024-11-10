@@ -15,7 +15,11 @@ public class FormatSnippetsProducer extends JavaRedisStreamProducer {
   }
 
   public void format(Snippet snippet, List<Rule> rules) {
-    System.out.println("Sending format request in stream key " + getStreamKey() + " for snippet " + snippet.getName());
+    System.out.println(
+        "Sending format request in stream key "
+            + getStreamKey()
+            + " for snippet "
+            + snippet.getName());
     String message = serializeFromLintOrFormatRequest(rules, snippet);
     emit(message);
   }

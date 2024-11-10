@@ -1,8 +1,8 @@
 package com.ingsis.jcli.snippets.config;
 
-import com.ingsis.jcli.snippets.server.CorrelationIdInterceptor;
 import com.ingsis.jcli.snippets.auth0.Auth0RestTemplateInterceptor;
 import com.ingsis.jcli.snippets.common.Generated;
+import com.ingsis.jcli.snippets.server.CorrelationIdInterceptor;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
