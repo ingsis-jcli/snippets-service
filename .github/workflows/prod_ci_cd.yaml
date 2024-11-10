@@ -1,4 +1,4 @@
-name: "Continuous Deployment for Prod"
+name: "CI/CD for Prod"
 on:
   push:
     branches:
