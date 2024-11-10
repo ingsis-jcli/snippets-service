@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.services;
 
 import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 
+import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.exceptions.DeniedAction;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
@@ -42,6 +43,7 @@ public class SnippetService {
   private final PermissionService permissionService;
   private final RulesService rulesService;
   private final LanguageProducerFactory languageProducerFactory;
+  private final PermissionsClient permissionsClient;
 
   @Autowired
   public SnippetService(
@@ -50,13 +52,15 @@ public class SnippetService {
       LanguageService languageService,
       PermissionService permissionService,
       RulesService rulesService,
-      LanguageProducerFactory languageProducerFactory) {
+      LanguageProducerFactory languageProducerFactory,
+      PermissionsClient permissionsClient) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
     this.permissionService = permissionService;
     this.rulesService = rulesService;
     this.languageProducerFactory = languageProducerFactory;
+    this.permissionsClient = permissionsClient;
   }
 
   public Optional<Snippet> getSnippet(Long snippetId) {
@@ -148,6 +152,7 @@ public class SnippetService {
     if (!isOwner(snippet, userId)) {
       throw new PermissionDeniedException(DeniedAction.DELETE_SNIPPET);
     }
+    permissionsClient.deletePermissionsBySnippetId(snippetId);
     deleteSnippet(snippet);
   }
 
