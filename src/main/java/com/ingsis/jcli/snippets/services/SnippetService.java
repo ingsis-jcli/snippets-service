@@ -81,7 +81,7 @@ public class SnippetService {
   }
 
   public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
-    if (snippetRepository.findAllByName(snippetDto.getName()).size() != 0) {
+    if (!snippetRepository.findAllByNameAndOwner(snippetDto.getName(), userId).isEmpty()) {
       throw new InvalidSnippetException("Snippet with the same name already exists", null);
     }
     saveInBucket(snippetDto, userId);
