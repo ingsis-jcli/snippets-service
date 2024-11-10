@@ -1,4 +1,4 @@
-name: "Continuous Integration for Dev"
+name: "cidev"
 on:
   push:
     branches:
