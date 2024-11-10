@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -254,9 +255,11 @@ public class SnippetService {
       boolean isShared,
       Optional<ProcessStatus> lintingStatus,
       Optional<String> name,
-      Optional<String> language) {
+      Optional<String> language,
+      Optional<String> orderBy) {
 
-    Pageable pageable = PageRequest.of(page, pageSize);
+    Sort sort = orderBy.map(Sort::by).orElse(Sort.unsorted());
+    Pageable pageable = PageRequest.of(page, pageSize, sort);
 
     List<Specification<Snippet>> specs = new ArrayList<>();
 

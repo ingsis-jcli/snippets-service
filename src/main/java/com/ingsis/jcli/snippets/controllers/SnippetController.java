@@ -163,13 +163,14 @@ public class SnippetController {
       @RequestParam("lintingStatus") Optional<ProcessStatus> lintingStatus,
       @RequestParam("name") Optional<String> name,
       @RequestParam("language") Optional<String> language,
+      @RequestParam(value = "orderBy") Optional<String> orderBy,
       @RequestHeader("Authorization") String token) {
     // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
     List<SnippetResponse> snippets =
         snippetService.getSnippetsBy(
-            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
+            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language, orderBy);
 
     return new ResponseEntity<>(snippets, HttpStatus.OK);
   }
