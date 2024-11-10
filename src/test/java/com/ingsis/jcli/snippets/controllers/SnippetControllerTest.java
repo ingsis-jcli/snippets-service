@@ -20,11 +20,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.TestState;
+import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.services.BlobStorageService;
 import com.ingsis.jcli.snippets.services.JwtService;
@@ -32,6 +35,7 @@ import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -542,5 +546,60 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deleteSnippet_ClearsTestCases() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    Snippet snippet = new Snippet();
+    snippet.setId(snippetId);
+    snippet.setOwner(userId);
+
+    TestCase testCase1 =
+        new TestCase(
+            snippet,
+            "Test 1",
+            List.of("input1"),
+            List.of("output1"),
+            TestType.VALID,
+            TestState.PENDING);
+    TestCase testCase2 =
+        new TestCase(
+            snippet,
+            "Test 2",
+            List.of("input2"),
+            List.of("output2"),
+            TestType.INVALID,
+            TestState.SUCCESS);
+    List<TestCase> testCases = List.of(testCase1, testCase2);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
+    when(snippetService.isOwner(snippet, userId)).thenReturn(true);
+    when(testCaseService.getTestCaseBySnippet(snippet)).thenReturn(testCases);
+
+    doNothing().when(snippetService).deleteSnippet(snippetId, userId);
+
+    mockMvc
+        .perform(
+            delete(path + "/" + snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk());
+
+    when(testCaseService.getTestCaseBySnippet(snippet)).thenReturn(List.of());
+
+    mockMvc
+        .perform(
+            get("/testcase/" + snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk())
+        .andExpect(content().json("[]"));
   }
 }

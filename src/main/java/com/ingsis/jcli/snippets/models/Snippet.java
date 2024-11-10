@@ -38,7 +38,11 @@ public class Snippet {
 
   @Embedded private Status status = new Status();
 
-  @OneToMany(mappedBy = "snippet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(
+      mappedBy = "snippet",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.LAZY,
+      orphanRemoval = true)
   private List<TestCase> testCases;
 
   public Snippet() {}
