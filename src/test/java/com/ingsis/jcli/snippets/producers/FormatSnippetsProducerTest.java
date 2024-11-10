@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
+import com.ingsis.jcli.snippets.producers.factory.JavaRedisStreamProducer;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

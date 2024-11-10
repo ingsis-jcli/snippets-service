@@ -1,4 +1,4 @@
-package com.ingsis.jcli.snippets;
+package com.ingsis.jcli.snippets.server;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 @Order(1)
 public class CorrelationIdFilter implements Filter {
 
-  private static final String CORRELATION_ID_KEY = "correlation-id";
-  private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
+  public static final String CORRELATION_ID_KEY = "correlation-id";
+  public static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

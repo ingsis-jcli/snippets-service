@@ -5,6 +5,7 @@ import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.producers.TestCaseRunProducer;
+import com.ingsis.jcli.snippets.producers.factory.LanguageProducerFactory;
 import com.ingsis.jcli.snippets.repositories.TestCaseRepository;
 import java.util.List;
 import java.util.Optional;
@@ -15,13 +16,13 @@ import org.springframework.stereotype.Service;
 public class TestCaseService {
 
   private final TestCaseRepository testCaseRepository;
-  private final TestCaseRunProducer testCaseRunProducer;
+  private final LanguageProducerFactory languageProducerFactory;
 
   @Autowired
   public TestCaseService(
-      TestCaseRepository testCaseRepository, TestCaseRunProducer testCaseRunProducer) {
+      TestCaseRepository testCaseRepository, LanguageProducerFactory languageProducerFactory) {
     this.testCaseRepository = testCaseRepository;
-    this.testCaseRunProducer = testCaseRunProducer;
+    this.languageProducerFactory = languageProducerFactory;
   }
 
   public TestCase createTestCase(TestCaseDto testCaseDto, Snippet snippet) {
@@ -48,6 +49,8 @@ public class TestCaseService {
 
   public void runAllTestCases(Snippet snippet) {
     List<TestCase> testCaseList = testCaseRepository.findAllBySnippet(snippet);
+    TestCaseRunProducer testCaseRunProducer =
+        languageProducerFactory.getTestCaseRunProducer(snippet.getLanguageVersion().getLanguage());
     for (TestCase testCase : testCaseList) {
       testCaseRunProducer.run(testCase, snippet.getLanguageVersion().getVersion());
     }
