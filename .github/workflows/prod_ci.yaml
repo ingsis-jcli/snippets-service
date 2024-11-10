@@ -1,4 +1,4 @@
-name: "Continuous Integration for Prod"
+name: "Continuous Deployment for Prod"
 on:
   push:
     branches:
