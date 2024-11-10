@@ -212,12 +212,16 @@ public class SnippetController {
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\""
-                + snippet.getName()
+                + formatName(snippet.getName())
                 + "."
                 + languageService.getExtension(language)
                 + "\"")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(file);
+  }
+
+  private String formatName(String name) {
+    return name.replaceAll("[\\s-]+", "");
   }
 
   @DeleteMapping("/{snippetId}")
