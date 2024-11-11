@@ -292,6 +292,10 @@ public class SnippetService {
     return snippetResponses;
   }
 
+  public long getSnippetCount() {
+    return snippetRepository.count();
+  }
+
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);

@@ -354,4 +354,19 @@ public class GetSnippetsByTest {
         .andExpect(jsonPath("$[0].version").exists())
         .andExpect(jsonPath("$[0].author").value("user2"));
   }
+
+  @Test
+  @Transactional
+  public void getCount() throws Exception {
+    String userShared = "userId";
+    setupJwt(userShared);
+
+    mockMvc
+        .perform(
+            get("/snippet/count")
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(total));
+  }
 }

@@ -179,6 +179,12 @@ public class SnippetController {
     return new ResponseEntity<>(snippets, HttpStatus.OK);
   }
 
+  @GetMapping("/count")
+  public ResponseEntity<Long> getSnippetCount() {
+    Long count = snippetService.getSnippetCount();
+    return new ResponseEntity<>(count, HttpStatus.OK);
+  }
+
   @GetMapping("/download/{snippetId}")
   public ResponseEntity<Resource> downloadSnippet(
       @PathVariable Long snippetId,
