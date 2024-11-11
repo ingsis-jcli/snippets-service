@@ -52,6 +52,6 @@ public class BlobStorageService {
   }
 
   private String formatName(String name) {
-    return name.replaceAll("[\\s-]+", "");
+    return URLEncoder.encode(name, StandardCharsets.UTF_8);
   }
 }
