@@ -1,19 +1,14 @@
 package com.ingsis.jcli.snippets.producers;
 
-import static com.ingsis.jcli.snippets.producers.SerializerUtil.serializeFromTestCase;
+import static com.ingsis.jcli.snippets.producers.factory.SerializerUtil.serializeFromTestCase;
 
 import com.ingsis.jcli.snippets.models.TestCase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import com.ingsis.jcli.snippets.producers.factory.JavaRedisStreamProducer;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
-@Component
 public class TestCaseRunProducer extends JavaRedisStreamProducer {
 
-  @Autowired
-  public TestCaseRunProducer(
-      @Value("${test_case_stream.key}") String streamKey, RedisTemplate<String, String> redis) {
+  public TestCaseRunProducer(String streamKey, RedisTemplate<String, String> redis) {
     super(streamKey, redis);
   }
 

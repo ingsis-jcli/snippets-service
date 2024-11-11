@@ -12,5 +12,7 @@ public interface SnippetRepository
     extends JpaRepository<Snippet, Long>, JpaSpecificationExecutor<Snippet> {
   Optional<Snippet> findSnippetById(Long id);
 
+  List<Snippet> findAllByNameAndOwner(String name, String owner);
+
   List<Snippet> findAllByOwner(String userId);
 }

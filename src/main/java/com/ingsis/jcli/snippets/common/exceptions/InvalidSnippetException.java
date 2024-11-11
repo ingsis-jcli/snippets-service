@@ -9,7 +9,7 @@ public class InvalidSnippetException extends RuntimeException {
   private final LanguageVersion languageVersion;
 
   public InvalidSnippetException(String error, LanguageVersion languageVersion) {
-    super("Error validating snippet: " + error);
+    super("Invalid snippet exception : " + error);
     this.error = error;
     this.languageVersion = languageVersion;
   }

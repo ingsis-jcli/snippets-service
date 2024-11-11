@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.clients;
 
+import com.ingsis.jcli.snippets.common.requests.AnalyzeRequest;
 import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
@@ -97,5 +98,36 @@ public class LanguageRestClient {
             url, HttpMethod.POST, requestEntity, new ParameterizedTypeReference<TestType>() {});
 
     return response.getBody();
+  }
+
+  public ErrorResponse analyze(String name, String url, List<RuleDto> rules, String version) {
+    String endpointUrl = String.format("%s/analyze", baseUrl);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    AnalyzeRequest analyzeRequest = new AnalyzeRequest(name, url, rules, version);
+    HttpEntity<AnalyzeRequest> requestEntity = new HttpEntity<>(analyzeRequest, headers);
+
+    try {
+      ResponseEntity<ErrorResponse> response =
+          restTemplate.exchange(endpointUrl, HttpMethod.POST, requestEntity, ErrorResponse.class);
+      if (response.getStatusCode() == HttpStatus.OK) {
+        return new ErrorResponse();
+      }
+      if (response.getBody() == null) {
+        return new ErrorResponse("No response received");
+      }
+      System.out.println("Received: " + response.getBody());
+      return response.getBody();
+    } catch (HttpClientErrorException e) {
+      if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        System.out.println("Bad request during validation: " + e.getResponseBodyAsString());
+        return new ErrorResponse("Bad request: " + e.getResponseBodyAsString());
+      } else {
+        return new ErrorResponse("Client error: " + e.getResponseBodyAsString());
+      }
+    } catch (Exception e) {
+      return new ErrorResponse("Unexpected error occurred: " + e.getMessage());
+    }
   }
 }

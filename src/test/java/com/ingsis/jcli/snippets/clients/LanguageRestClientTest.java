@@ -1,6 +1,7 @@
 package com.ingsis.jcli.snippets.clients;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -9,6 +10,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.requests.AnalyzeRequest;
 import com.ingsis.jcli.snippets.common.requests.FormatRequest;
 import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.requests.TestCaseRequest;
@@ -134,5 +136,27 @@ class LanguageRestClientTest {
 
     assertNotNull(result);
     assertEquals("formatted code", result.content());
+  }
+
+  @Test
+  void testLint() {
+    AnalyzeRequest analyzeRequest =
+        new AnalyzeRequest("input code", "language", List.of(), "version");
+    ErrorResponse errorResponse = new ErrorResponse();
+    ResponseEntity<ErrorResponse> responseEntity = ResponseEntity.ok(errorResponse);
+
+    when(restTemplate.exchange(
+            anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(ErrorResponse.class)))
+        .thenReturn(responseEntity);
+
+    ErrorResponse result =
+        languageRestClient.analyze(
+            analyzeRequest.name(),
+            analyzeRequest.url(),
+            analyzeRequest.rules(),
+            analyzeRequest.version());
+
+    assertNotNull(result);
+    assertFalse(result.hasError());
   }
 }

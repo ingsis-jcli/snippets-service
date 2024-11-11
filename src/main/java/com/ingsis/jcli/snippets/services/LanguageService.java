@@ -15,9 +15,11 @@ import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
+import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.config.LanguageProperties;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
+import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -32,17 +34,20 @@ public class LanguageService {
   private final Map<String, String> urls;
   private final Map<LanguageVersion, String> extensions;
   private final LanguageRestTemplateFactory languageRestTemplateFactory;
+  private final SnippetRepository snippetRepository;
 
   @Autowired
   public LanguageService(
       LanguageProperties languageProperties,
-      LanguageRestTemplateFactory languageRestTemplateFactory) {
+      LanguageRestTemplateFactory languageRestTemplateFactory,
+      SnippetRepository snippetRepository) {
     this.languageRestTemplateFactory = languageRestTemplateFactory;
     this.urls = languageProperties.getUrls();
     this.extensions =
         Map.of(
             new LanguageVersion("printscript", "1.0"), "ps",
             new LanguageVersion("printscript", "1.1"), "ps");
+    this.snippetRepository = snippetRepository;
   }
 
   public LanguageVersion getLanguageVersion(String languageName, String versionName) {
@@ -169,6 +174,8 @@ public class LanguageService {
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     FormatRequest request = new FormatRequest(snippet.getName(), snippet.getUrl(), rules, version);
     FormatResponse response = client.format(request);
+    snippet.getStatus().setFormatting(response.status());
+    snippetRepository.save(snippet);
     return response;
   }
 
@@ -181,5 +188,23 @@ public class LanguageService {
       throw new NoSuchLanguageException(language.getLanguage());
     }
     return extensions.get(language);
+  }
+
+  public ProcessStatus lintSnippet(
+      List<RuleDto> rules, Snippet snippet, LanguageVersion languageVersion) {
+    String language = languageVersion.getLanguage();
+    String version = languageVersion.getVersion();
+
+    if (!urls.containsKey(language)) {
+      throw new NoSuchLanguageException(language);
+    }
+    String baseUrl = urls.get(language);
+    LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
+    ErrorResponse response = client.analyze(snippet.getName(), snippet.getUrl(), rules, version);
+
+    if (response.hasError()) {
+      return ProcessStatus.NON_COMPLIANT;
+    }
+    return ProcessStatus.COMPLIANT;
   }
 }

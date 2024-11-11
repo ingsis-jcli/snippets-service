@@ -2,6 +2,7 @@ package com.ingsis.jcli.snippets.services;
 
 import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
 
+import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
 import com.ingsis.jcli.snippets.common.exceptions.DeniedAction;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
@@ -9,6 +10,8 @@ import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageResponse;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.RuleDto;
+import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.common.status.Status;
@@ -17,6 +20,7 @@ import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.producers.FormatSnippetsProducer;
 import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
+import com.ingsis.jcli.snippets.producers.factory.LanguageProducerFactory;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
 import java.util.ArrayList;
@@ -27,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -38,8 +43,8 @@ public class SnippetService {
   private final LanguageService languageService;
   private final PermissionService permissionService;
   private final RulesService rulesService;
-  private final LintSnippetsProducer lintSnippetsProducer;
-  private final FormatSnippetsProducer formatSnippetsProducer;
+  private final LanguageProducerFactory languageProducerFactory;
+  private final PermissionsClient permissionsClient;
 
   @Autowired
   public SnippetService(
@@ -48,15 +53,15 @@ public class SnippetService {
       LanguageService languageService,
       PermissionService permissionService,
       RulesService rulesService,
-      LintSnippetsProducer lintSnippetsProducer,
-      FormatSnippetsProducer formatSnippetsProducer) {
+      LanguageProducerFactory languageProducerFactory,
+      PermissionsClient permissionsClient) {
     this.snippetRepository = snippetRepository;
     this.blobStorageService = blobStorageService;
     this.languageService = languageService;
     this.permissionService = permissionService;
     this.rulesService = rulesService;
-    this.lintSnippetsProducer = lintSnippetsProducer;
-    this.formatSnippetsProducer = formatSnippetsProducer;
+    this.languageProducerFactory = languageProducerFactory;
+    this.permissionsClient = permissionsClient;
   }
 
   public Optional<Snippet> getSnippet(Long snippetId) {
@@ -76,7 +81,10 @@ public class SnippetService {
     return content;
   }
 
-  public Snippet createSnippet(SnippetDto snippetDto, String userId) {
+  public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
+    if (!snippetRepository.findAllByNameAndOwner(snippetDto.getName(), userId).isEmpty()) {
+      throw new InvalidSnippetException("Snippet with the same name already exists", null);
+    }
     saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
@@ -88,7 +96,10 @@ public class SnippetService {
       throw e;
     }
     permissionService.grantOwnerPermission(snippet.getId());
-    return snippet;
+    ProcessStatus lintingStatus = lintSnippet(snippet, userId);
+    snippet.getStatus().setLinting(lintingStatus);
+    snippetRepository.save(snippet);
+    return getSnippetResponse(snippet);
   }
 
   private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
@@ -97,6 +108,14 @@ public class SnippetService {
       System.out.println("Is throwing the corresponding exception");
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
+  }
+
+  private ProcessStatus lintSnippet(Snippet snippet, String userId) {
+    List<Rule> rules = rulesService.getLintingRules(userId, snippet.getLanguageVersion());
+    List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+    ProcessStatus formatResponse =
+        languageService.lintSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+    return formatResponse;
   }
 
   private @NotNull Snippet saveInDbTable(
@@ -117,6 +136,7 @@ public class SnippetService {
   private void saveInBucket(SnippetDto snippetDto, String userId) {
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
+    System.out.println("Snippet saved in bucket: " + snippetDto.getContent());
   }
 
   private void deleteSnippet(Snippet snippet) {
@@ -133,6 +153,7 @@ public class SnippetService {
     if (!isOwner(snippet, userId)) {
       throw new PermissionDeniedException(DeniedAction.DELETE_SNIPPET);
     }
+    permissionsClient.deletePermissionsBySnippetId(snippetId);
     deleteSnippet(snippet);
   }
 
@@ -161,6 +182,8 @@ public class SnippetService {
   }
 
   public Snippet editSnippet(Long snippetId, String content, String userId) {
+    System.out.println("Editing snippet with id: " + snippetId);
+    System.out.println("Content: " + content);
     boolean canEdit = canEditSnippet(snippetId, userId);
     if (!canEdit) {
       throw new PermissionDeniedException(DeniedAction.EDIT_SNIPPET);
@@ -192,26 +215,22 @@ public class SnippetService {
       createSnippet(newSnippetDto, userId);
       throw e;
     }
-
+    ProcessStatus lintingStatus = lintSnippet(snippet, userId);
+    snippet.getStatus().setLinting(lintingStatus);
+    snippetRepository.save(snippet);
     return snippet;
   }
 
-  private void updateSnippetInDbTable(
-      SnippetDto snippetDto, String userId, Snippet snippet, LanguageVersion languageVersion) {
-    snippet.setName(snippetDto.getName());
-    snippet.setUrl(getBaseUrl(snippetDto, userId));
-    snippet.setLanguageVersion(languageVersion);
-    snippetRepository.save(snippet);
-  }
-
-  public SnippetDto getSnippetDto(Snippet snippet) {
-    String content = blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
-    return new SnippetDto(
+  public SnippetResponse getSnippetResponse(Snippet snippet) {
+    return new SnippetResponse(
+        snippet.getId(),
         snippet.getName(),
-        snippet.getDescription(),
-        content,
+        blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
         snippet.getLanguageVersion().getLanguage(),
-        snippet.getLanguageVersion().getVersion());
+        snippet.getLanguageVersion().getVersion(),
+        languageService.getExtension(snippet.getLanguageVersion()),
+        snippet.getStatus().getLinting(),
+        snippet.getOwner());
   }
 
   public SnippetResponse getSnippetDto(Long snippetId) {
@@ -236,9 +255,11 @@ public class SnippetService {
       boolean isShared,
       Optional<ProcessStatus> lintingStatus,
       Optional<String> name,
-      Optional<String> language) {
+      Optional<String> language,
+      Optional<String> orderBy) {
 
-    Pageable pageable = PageRequest.of(page, pageSize);
+    Sort sort = orderBy.map(Sort::by).orElse(Sort.unsorted());
+    Pageable pageable = PageRequest.of(page, pageSize, sort);
 
     List<Specification<Snippet>> specs = new ArrayList<>();
 
@@ -299,12 +320,16 @@ public class SnippetService {
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+    LintSnippetsProducer lintSnippetsProducer =
+        languageProducerFactory.getLintProducer(languageVersion.getLanguage());
     snippets.forEach(s -> lintSnippetsProducer.lint(s, rules));
   }
 
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
+    FormatSnippetsProducer formatSnippetsProducer =
+        languageProducerFactory.getFormatProducer(languageVersion.getLanguage());
     snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
   }
 
@@ -317,7 +342,6 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setLinting(processStatus);
     snippetRepository.save(snippet);
-    System.out.println("Snippet lint for " + snippet.getId() + " : " + snippet.getStatus());
   }
 
   public void updateFormattingStatus(ProcessStatus processStatus, Long snippetId) {
@@ -329,6 +353,13 @@ public class SnippetService {
     Status status = snippet.getStatus();
     status.setFormatting(processStatus);
     snippetRepository.save(snippet);
-    System.out.println("Snippet format for " + snippet.getId() + " : " + snippet.getStatus());
+  }
+
+  public FormatResponse formatSnippetFromUser(String userId, Snippet snippet) {
+    List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
+    List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+    FormatResponse formatResponse =
+        languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+    return formatResponse;
   }
 }

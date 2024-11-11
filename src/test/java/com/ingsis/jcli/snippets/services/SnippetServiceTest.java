@@ -5,25 +5,33 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageError;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.common.status.Status;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
+import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -41,7 +49,11 @@ class SnippetServiceTest {
 
   @MockBean private PermissionService permissionService;
 
+  @MockBean private RulesService rulesService;
+
   @MockBean private JwtDecoder jwtDecoder;
+
+  @MockBean private PermissionsClient permissionsClient;
 
   private static final String languageOk = "printscript";
   private static final String versionOk = "1.1";
@@ -84,9 +96,9 @@ class SnippetServiceTest {
     String userId = "123";
 
     SnippetDto snippetDto = new SnippetDto(name, description, content, languageOk, versionOk);
-    Snippet expected =
-        new Snippet(name, description, getBaseUrl(snippetDto, userId), userId, languageVersionOk);
-    expected.setId(1L);
+    SnippetResponse expected =
+        new SnippetResponse(
+            snippetId, name, content, languageOk, versionOk, "ps", ProcessStatus.COMPLIANT, userId);
 
     when(snippetRepository.save(any(Snippet.class)))
         .thenAnswer(
@@ -95,13 +107,34 @@ class SnippetServiceTest {
               savedSnippet.setId(snippetId);
               return savedSnippet;
             });
+
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
     when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
+    when(blobStorageService.getSnippet(getBaseUrl(snippetDto, userId), name))
+        .thenReturn(Optional.of(content));
 
-    Snippet actualSnippet = snippetService.createSnippet(snippetDto, userId);
-    assertEquals(expected, actualSnippet);
+    com.ingsis.jcli.snippets.models.Rule mockRule =
+        Mockito.mock(com.ingsis.jcli.snippets.models.Rule.class);
+    doReturn(Collections.singletonList(mockRule))
+        .when(rulesService)
+        .getLintingRules(userId, languageVersionOk);
+    when(languageService.lintSnippet(anyList(), any(Snippet.class), any(LanguageVersion.class)))
+        .thenReturn(ProcessStatus.COMPLIANT);
+
+    doNothing().when(permissionService).grantOwnerPermission(snippetId);
+
+    SnippetResponse actualSnippet = snippetService.createSnippet(snippetDto, userId);
+
     verify(blobStorageService).uploadSnippet(getBaseUrl(snippetDto, userId), name, content);
+    verify(permissionService).grantOwnerPermission(snippetId);
+
+    assertEquals(expected.getAuthor(), actualSnippet.getAuthor());
+    assertEquals(expected.getContent(), actualSnippet.getContent());
+    assertEquals(expected.getLanguage(), actualSnippet.getLanguage());
+    assertEquals(expected.getName(), actualSnippet.getName());
+    assertEquals(expected.getVersion(), actualSnippet.getVersion());
+    assertEquals(ProcessStatus.COMPLIANT, actualSnippet.getCompliance());
   }
 
   @Test
@@ -241,7 +274,12 @@ class SnippetServiceTest {
     snippet.setName("Test Snippet");
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(snippet));
+    when(permissionsClient.deletePermissionsBySnippetId(snippetId))
+        .thenReturn(ResponseEntity.noContent().build());
+
     snippetService.deleteSnippet(snippetId, userId);
+
     verify(blobStorageService).deleteSnippet(snippet.getUrl(), snippet.getName());
+    verify(permissionsClient).deletePermissionsBySnippetId(snippetId);
   }
 }

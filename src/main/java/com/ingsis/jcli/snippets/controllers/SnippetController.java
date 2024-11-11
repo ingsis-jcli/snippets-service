@@ -1,12 +1,10 @@
 package com.ingsis.jcli.snippets.controllers;
 
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
-import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
-import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
@@ -94,20 +92,17 @@ public class SnippetController {
   }
 
   @PostMapping()
-  public ResponseEntity<Long> createSnippet(
+  public ResponseEntity<SnippetResponse> createSnippet(
       @RequestBody @Valid SnippetDto snippetDto, @RequestHeader("Authorization") String token) {
 
     String userId = jwtService.extractUserId(token);
     snippetDto.setVersion(snippetDto.getVersion());
-
-    System.out.println("SnippetDto: " + snippetDto);
-
-    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+    SnippetResponse snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet, HttpStatus.CREATED);
   }
 
   @PostMapping(value = "/upload", consumes = "multipart/form-data")
-  public ResponseEntity<Long> createSnippetFromFile(
+  public ResponseEntity<SnippetResponse> createSnippetFromFile(
       @RequestParam String name,
       @RequestParam(required = false, defaultValue = "") String description,
       @RequestParam String language,
@@ -121,12 +116,12 @@ public class SnippetController {
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
     SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
 
-    Snippet snippet = snippetService.createSnippet(snippetDto, userId);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
+    SnippetResponse snippet = snippetService.createSnippet(snippetDto, userId);
+    return new ResponseEntity<>(snippet, HttpStatus.CREATED);
   }
 
   @PutMapping()
-  public ResponseEntity<Long> editSnippet(
+  public ResponseEntity<SnippetResponse> editSnippet(
       @RequestBody @Valid String content,
       @RequestParam("snippetId") Long snippetId,
       @RequestHeader(name = "Authorization") String token) {
@@ -135,7 +130,9 @@ public class SnippetController {
 
     Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
     testCaseService.runAllTestCases(snippet);
-    return new ResponseEntity<>(snippet.getId(), HttpStatus.OK);
+
+    SnippetResponse snippetResponse = snippetService.getSnippetResponse(snippet);
+    return new ResponseEntity<>(snippetResponse, HttpStatus.OK);
   }
 
   @PutMapping(value = "/upload", consumes = "multipart/form-data")
@@ -152,8 +149,6 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
 
     String content = new String(file.getBytes(), StandardCharsets.UTF_8);
-    SnippetDto snippetDto = new SnippetDto(name, description, content, language, version);
-
     Snippet snippet = snippetService.editSnippet(snippetId, content, userId);
     testCaseService.runAllTestCases(snippet);
     return new ResponseEntity<>(snippet.getId(), HttpStatus.CREATED);
@@ -168,13 +163,14 @@ public class SnippetController {
       @RequestParam("lintingStatus") Optional<ProcessStatus> lintingStatus,
       @RequestParam("name") Optional<String> name,
       @RequestParam("language") Optional<String> language,
+      @RequestParam(value = "orderBy") Optional<String> orderBy,
       @RequestHeader("Authorization") String token) {
     // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
     List<SnippetResponse> snippets =
         snippetService.getSnippetsBy(
-            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
+            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language, orderBy);
 
     return new ResponseEntity<>(snippets, HttpStatus.OK);
   }
@@ -207,7 +203,7 @@ public class SnippetController {
 
     Resource file;
     if (formatted) {
-      FormatResponse formatResponse = formatSnippetFromUser(userId, snippet);
+      FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
       file = new ByteArrayResource(formatResponse.content().getBytes(StandardCharsets.UTF_8));
     } else {
       Optional<String> snippetContent = snippetService.getSnippetContent(snippetId);
@@ -223,7 +219,7 @@ public class SnippetController {
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\""
-                + snippet.getName()
+                + formatName(snippet.getName())
                 + "."
                 + languageService.getExtension(language)
                 + "\"")
@@ -231,12 +227,8 @@ public class SnippetController {
         .body(file);
   }
 
-  private FormatResponse formatSnippetFromUser(String userId, Snippet snippet) {
-    List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
-    List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
-    FormatResponse formatResponse =
-        languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
-    return formatResponse;
+  private String formatName(String name) {
+    return name.replaceAll("[\\s-]+", "");
   }
 
   @DeleteMapping("/{snippetId}")
@@ -244,5 +236,24 @@ public class SnippetController {
       @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
     String userId = jwtService.extractUserId(token);
     snippetService.deleteSnippet(snippetId, userId);
+  }
+
+  @GetMapping("/format/{snippetId}")
+  public ResponseEntity<String> formatSnippet(
+      @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
+    String userId = jwtService.extractUserId(token);
+    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
+    if (snippetOpt.isEmpty()) {
+      System.out.println("Snippet not found");
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    Snippet snippet = snippetOpt.get();
+    if (!snippet.getOwner().equals(userId)) {
+      System.out.println("User does not have permission to format this snippet");
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+    FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
+    snippetService.editSnippet(snippetId, formatResponse.content(), userId);
+    return ResponseEntity.ok(formatResponse.content());
   }
 }

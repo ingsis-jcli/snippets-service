@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
+import com.ingsis.jcli.snippets.producers.factory.JavaRedisStreamProducer;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

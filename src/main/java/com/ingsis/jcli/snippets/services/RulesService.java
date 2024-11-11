@@ -5,8 +5,6 @@ import com.ingsis.jcli.snippets.common.requests.RuleDto;
 import com.ingsis.jcli.snippets.models.FormattingRules;
 import com.ingsis.jcli.snippets.models.LintingRules;
 import com.ingsis.jcli.snippets.models.Rule;
-import com.ingsis.jcli.snippets.producers.FormatSnippetsProducer;
-import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
 import com.ingsis.jcli.snippets.repositories.FormattingRulesRepository;
 import com.ingsis.jcli.snippets.repositories.LintingRulesRepository;
 import com.ingsis.jcli.snippets.repositories.RuleRepository;
@@ -22,23 +20,17 @@ public class RulesService {
   final LintingRulesRepository lintingRulesRepository;
   final RuleRepository ruleRepository;
   final LanguageService languageService;
-  final LintSnippetsProducer lintSnippetsProducer;
-  final FormatSnippetsProducer formatSnippetsProducer;
 
   @Autowired
   public RulesService(
       FormattingRulesRepository formattingRulesRepository,
       LintingRulesRepository lintingRulesRepository,
       LanguageService languageService,
-      RuleRepository ruleRepository,
-      LintSnippetsProducer lintSnippetsProducer,
-      FormatSnippetsProducer formatSnippetsProducer) {
+      RuleRepository ruleRepository) {
     this.formattingRulesRepository = formattingRulesRepository;
     this.lintingRulesRepository = lintingRulesRepository;
     this.languageService = languageService;
     this.ruleRepository = ruleRepository;
-    this.lintSnippetsProducer = lintSnippetsProducer;
-    this.formatSnippetsProducer = formatSnippetsProducer;
   }
 
   public void updateLintingRules(String userId, List<Rule> rules) {

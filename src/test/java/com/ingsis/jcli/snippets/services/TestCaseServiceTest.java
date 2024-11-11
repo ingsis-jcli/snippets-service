@@ -13,6 +13,7 @@ import com.ingsis.jcli.snippets.dto.TestCaseDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.producers.TestCaseRunProducer;
+import com.ingsis.jcli.snippets.producers.factory.LanguageProducerFactory;
 import com.ingsis.jcli.snippets.repositories.TestCaseRepository;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.mockito.MockitoAnnotations;
 class TestCaseServiceTest {
 
   @Mock private TestCaseRepository testCaseRepository;
+  @Mock private LanguageProducerFactory languageProducerFactory;
   @Mock private TestCaseRunProducer testCaseRunProducer;
 
   @InjectMocks private TestCaseService testCaseService;
@@ -52,10 +54,11 @@ class TestCaseServiceTest {
             Arrays.asList("output1"),
             TestType.VALID,
             TestState.PENDING);
+
     when(testCaseRepository.save(testCase)).thenReturn(testCase);
 
-    Long id = testCaseService.createTestCase(testCaseDto, snippet);
-    assertEquals(testCase.getId(), id);
+    TestCase testCaseOutput = testCaseService.createTestCase(testCaseDto, snippet);
+    assertEquals(testCaseOutput.getName(), testCase.getName());
   }
 
   @Test
@@ -109,6 +112,8 @@ class TestCaseServiceTest {
     List<TestCase> testCaseList = Arrays.asList(testCase1, testCase2);
 
     when(testCaseRepository.findAllBySnippet(snippet)).thenReturn(testCaseList);
+    when(languageProducerFactory.getTestCaseRunProducer("printscript"))
+        .thenReturn(testCaseRunProducer);
 
     testCaseService.runAllTestCases(snippet);
 
