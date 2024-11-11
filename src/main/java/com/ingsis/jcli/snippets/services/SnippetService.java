@@ -86,6 +86,9 @@ public class SnippetService {
     if (!snippetRepository.findAllByNameAndOwner(snippetDto.getName(), userId).isEmpty()) {
       throw new InvalidSnippetException("Snippet with the same name already exists", null);
     }
+    if (!snippetRepository.findAllByNameAndOwner(snippetDto.getName().replaceAll("[\\s-]+", ""), userId).isEmpty()) {
+      throw new InvalidSnippetException("Snippet with the same name already exists", null);
+    }
     saveInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
