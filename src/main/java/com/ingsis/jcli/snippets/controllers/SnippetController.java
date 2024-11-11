@@ -4,6 +4,7 @@ import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
+import com.ingsis.jcli.snippets.dto.SearchResult;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
@@ -15,7 +16,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -155,7 +155,7 @@ public class SnippetController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<List<SnippetResponse>> getSnippetsBy(
+  public ResponseEntity<SearchResult> getSnippetsBy(
       @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
       @RequestParam(value = "size", defaultValue = "10") @Min(1) int pageSize,
       @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
@@ -165,14 +165,13 @@ public class SnippetController {
       @RequestParam("language") Optional<String> language,
       @RequestParam(value = "orderBy") Optional<String> orderBy,
       @RequestHeader("Authorization") String token) {
-    // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
-    List<SnippetResponse> snippets =
+    SearchResult result =
         snippetService.getSnippetsBy(
             userId, page, pageSize, isOwner, isShared, lintingStatus, name, language, orderBy);
 
-    return new ResponseEntity<>(snippets, HttpStatus.OK);
+    return new ResponseEntity<>(result, HttpStatus.OK);
   }
 
   @GetMapping("/count")

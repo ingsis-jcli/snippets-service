@@ -15,6 +15,7 @@ import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.common.status.Status;
+import com.ingsis.jcli.snippets.dto.SearchResult;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
@@ -247,7 +248,7 @@ public class SnippetService {
         snippet.getOwner());
   }
 
-  public List<SnippetResponse> getSnippetsBy(
+  public SearchResult getSnippetsBy(
       String userId,
       int page,
       int pageSize,
@@ -292,25 +293,13 @@ public class SnippetService {
         specs.stream().reduce(Specification::and).orElse(Specification.where(null));
 
     List<Snippet> snippets = snippetRepository.findAll(finalSpec, pageable).getContent();
+    long count = snippetRepository.count(finalSpec);
 
     List<SnippetResponse> snippetResponses = new ArrayList<>();
 
-    for (Snippet snippet : snippets) {
-      ProcessStatus compliance = snippet.getStatus().getLinting();
-      String author = snippet.getOwner();
-      snippetResponses.add(
-          new SnippetResponse(
-              snippet.getId(),
-              snippet.getName(),
-              blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse(""),
-              snippet.getLanguageVersion().getLanguage(),
-              snippet.getLanguageVersion().getVersion(),
-              languageService.getExtension(snippet.getLanguageVersion()),
-              compliance,
-              author));
-    }
+    snippets.forEach(s -> snippetResponses.add(getSnippetResponse(s)));
 
-    return snippetResponses;
+    return new SearchResult(count, snippetResponses);
   }
 
   public long getSnippetCount() {
