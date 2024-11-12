@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.requests.TestState;
@@ -497,7 +498,7 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
-    when(snippetService.formatSnippetFromUser(userId, snippet)).thenReturn(formatResponse);
+    when(snippetService.format(snippetId, userId)).thenReturn(formatResponse);
     when(snippetService.editSnippet(snippetId, formattedContent, userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -518,8 +519,8 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.format(snippetId, userId)).thenThrow(NoSuchElementException.class);
 
     mockMvc
         .perform(
@@ -539,8 +540,8 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.format(snippetId, userId)).thenThrow(PermissionDeniedException.class);
 
     mockMvc
         .perform(

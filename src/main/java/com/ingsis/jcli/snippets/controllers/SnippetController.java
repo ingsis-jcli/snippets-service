@@ -140,10 +140,6 @@ public class SnippetController {
   @PutMapping(value = "/upload", consumes = "multipart/form-data")
   public ResponseEntity<Long> editSnippetFromFile(
       @RequestParam Long snippetId,
-      @RequestParam(required = false, defaultValue = "") String description,
-      @RequestParam String name,
-      @RequestParam String language,
-      @RequestParam String version,
       @RequestPart("file") MultipartFile file,
       @RequestHeader("Authorization") String token)
       throws IOException {
@@ -243,18 +239,10 @@ public class SnippetController {
   public ResponseEntity<String> formatSnippet(
       @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
     String userId = jwtService.extractUserId(token);
-    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
-    if (snippetOpt.isEmpty()) {
-      log.error("Snippet not found");
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-    Snippet snippet = snippetOpt.get();
-    if (!snippet.getOwner().equals(userId)) {
-      log.error("User does not have permission to format this snippet");
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
-    FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
+
+    FormatResponse formatResponse = snippetService.format(snippetId, userId);
     snippetService.editSnippet(snippetId, formatResponse.content(), userId);
+
     return ResponseEntity.ok(formatResponse.content());
   }
 }
