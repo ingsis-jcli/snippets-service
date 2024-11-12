@@ -91,25 +91,28 @@ public class SnippetService {
         .isEmpty()) {
       throw new InvalidSnippetException("Snippet with the same name already exists", null);
     }
-    saveInBucket(snippetDto, userId);
+    saveTemporaryInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
-    Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
+
     try {
-      validateSnippet(snippet, languageVersion);
+      validateSnippet(
+          snippetDto.getName(), "validate/" + getBaseUrl(snippetDto, userId), languageVersion);
+      Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
+      saveInBucket(snippetDto, userId);
+      permissionService.grantOwnerPermission(snippet.getId());
+      ProcessStatus lintingStatus = lintSnippet(snippet, userId);
+      snippet.getStatus().setLinting(lintingStatus);
+      snippetRepository.save(snippet);
+      return getSnippetResponse(snippet);
     } catch (InvalidSnippetException e) {
-      deleteSnippet(snippet);
+      deleteFromTemporaryBucket(snippetDto, userId);
       throw e;
     }
-    permissionService.grantOwnerPermission(snippet.getId());
-    ProcessStatus lintingStatus = lintSnippet(snippet, userId);
-    snippet.getStatus().setLinting(lintingStatus);
-    snippetRepository.save(snippet);
-    return getSnippetResponse(snippet);
   }
 
-  private void validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
-    LanguageResponse isValid = languageService.validateSnippet(snippet, languageVersion);
+  private void validateSnippet(String name, String url, LanguageVersion languageVersion) {
+    LanguageResponse isValid = languageService.validateSnippet(name, url, languageVersion);
     if (isValid.hasError()) {
       System.out.println("Is throwing the corresponding exception");
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
@@ -143,6 +146,19 @@ public class SnippetService {
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
     System.out.println("Snippet saved in bucket: " + snippetDto.getContent());
+  }
+
+  private void saveTemporaryInBucket(SnippetDto snippetDto, String userId) {
+    blobStorageService.uploadSnippet(
+        "validate/" + getBaseUrl(snippetDto, userId),
+        snippetDto.getName(),
+        snippetDto.getContent());
+    System.out.println("Snippet saved te in bucket: " + snippetDto.getContent());
+  }
+
+  private void deleteFromTemporaryBucket(SnippetDto snippetDto, String userId) {
+    blobStorageService.deleteSnippet(
+        "validate/" + getBaseUrl(snippetDto, userId), snippetDto.getName());
   }
 
   private void deleteSnippet(Snippet snippet) {
@@ -197,9 +213,6 @@ public class SnippetService {
 
     Snippet snippet = getSnippet(snippetId).get();
 
-    String oldContent =
-        blobStorageService.getSnippet(snippet.getUrl(), snippet.getName()).orElse("");
-
     SnippetDto newSnippetDto =
         new SnippetDto(
             snippet.getName(),
@@ -208,17 +221,16 @@ public class SnippetService {
             snippet.getLanguageVersion().getLanguage(),
             snippet.getLanguageVersion().getVersion());
 
-    blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
-    saveInBucket(newSnippetDto, userId);
+    saveTemporaryInBucket(newSnippetDto, userId);
 
     LanguageVersion languageVersion = snippet.getLanguageVersion();
 
     try {
-      validateSnippet(snippet, languageVersion);
-    } catch (InvalidSnippetException e) {
+      validateSnippet(
+          snippet.getName(), "validate/" + getBaseUrl(newSnippetDto, userId), languageVersion);
       blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
-      newSnippetDto.setContent(oldContent);
-      createSnippet(newSnippetDto, userId);
+      saveInBucket(newSnippetDto, userId);
+    } catch (InvalidSnippetException e) {
       throw e;
     }
     ProcessStatus lintingStatus = lintSnippet(snippet, userId);

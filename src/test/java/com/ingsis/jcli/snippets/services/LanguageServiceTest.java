@@ -83,7 +83,8 @@ public class LanguageServiceTest {
     when(languageRestClient.validate(request)).thenReturn(response);
 
     assertEquals(
-        new LanguageSuccess(), languageService.validateSnippet(snippet, languageVersionOk));
+        new LanguageSuccess(),
+        languageService.validateSnippet(snippet.getName(), snippet.getUrl(), languageVersionOk));
   }
 
   @Test
@@ -95,7 +96,9 @@ public class LanguageServiceTest {
     NoSuchLanguageException exception =
         assertThrows(
             NoSuchLanguageException.class,
-            () -> languageService.validateSnippet(snippet, languageVersion));
+            () ->
+                languageService.validateSnippet(
+                    snippet.getName(), snippet.getUrl(), languageVersion));
 
     assertEquals(language.toLowerCase(), exception.getLanguage());
   }
@@ -177,7 +180,8 @@ public class LanguageServiceTest {
     when(languageRestTemplateFactory.createClient(url)).thenReturn(languageRestClient);
     when(languageRestClient.validate(request)).thenReturn(successResponse);
 
-    LanguageResponse response = languageService.validateSnippet(snippet, languageVersionOk);
+    LanguageResponse response =
+        languageService.validateSnippet(snippet.getName(), snippet.getUrl(), languageVersionOk);
     assertEquals(new LanguageSuccess(), response);
   }
 

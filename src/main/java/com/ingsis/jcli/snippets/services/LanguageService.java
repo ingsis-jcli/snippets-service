@@ -64,9 +64,10 @@ public class LanguageService {
     }
   }
 
-  public LanguageResponse validateSnippet(Snippet snippet, LanguageVersion languageVersion) {
+  public LanguageResponse validateSnippet(
+      String name, String url, LanguageVersion languageVersion) {
     Marker marker = MarkerFactory.getMarker("Validate");
-    log.info(marker, "Validating snippet: " + snippet.getName());
+    log.info(marker, "Validating snippet: " + name);
 
     String language = languageVersion.getLanguage();
     String version = languageVersion.getVersion();
@@ -81,8 +82,7 @@ public class LanguageService {
     LanguageRestClient client = languageRestTemplateFactory.createClient(baseUrl);
     log.info(marker, "Client base url: " + baseUrl);
 
-    ValidateRequest validateRequest =
-        new ValidateRequest(snippet.getName(), snippet.getUrl(), version);
+    ValidateRequest validateRequest = new ValidateRequest(name, url, version);
     log.info(marker, "Validate request: " + validateRequest);
 
     ErrorResponse response = client.validate(validateRequest);

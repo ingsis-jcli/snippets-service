@@ -109,7 +109,8 @@ class SnippetServiceTest {
             });
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
+    when(languageService.validateSnippet(
+            any(String.class), any(String.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
     when(blobStorageService.getSnippet(getBaseUrl(snippetDto, userId), name))
         .thenReturn(Optional.of(content));
@@ -148,7 +149,8 @@ class SnippetServiceTest {
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
 
-    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
+    when(languageService.validateSnippet(
+            any(String.class), any(String.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageError(errorMessage));
 
     InvalidSnippetException exception =
@@ -178,7 +180,8 @@ class SnippetServiceTest {
     when(blobStorageService.getSnippet(initialUrl, initialName)).thenReturn(Optional.of("content"));
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
+    when(languageService.validateSnippet(
+            any(String.class), any(String.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
 

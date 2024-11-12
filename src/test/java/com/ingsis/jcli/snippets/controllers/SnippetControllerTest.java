@@ -172,7 +172,8 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
-    when(languageService.validateSnippet(snippet, languageVersion))
+    when(languageService.validateSnippet(
+            snippet.getName(), "validate/" + getBaseUrl(snippetDto, userId), languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -271,7 +272,8 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
-    when(languageService.validateSnippet(snippet, languageVersion))
+    when(languageService.validateSnippet(
+            snippet.getName(), "validate/" + getBaseUrl(snippetDto, userId), languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
