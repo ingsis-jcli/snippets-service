@@ -270,7 +270,7 @@ public class SnippetService {
     if (!isOwner && !isShared) {
       return new SearchResult(0, List.of());
     }
-    
+
     List<Specification<Snippet>> specs = new ArrayList<>();
 
     Specification<Snippet> specOwner = Specification.where(null);
