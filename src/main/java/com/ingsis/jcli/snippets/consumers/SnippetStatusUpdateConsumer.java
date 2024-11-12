@@ -16,6 +16,7 @@ import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 @Generated
 @Profile("!test")
@@ -41,27 +42,38 @@ public class SnippetStatusUpdateConsumer extends RedisStreamConsumer<String> {
     return StreamReceiver.StreamReceiverOptions.builder()
         .pollTimeout(Duration.ofMillis(10000))
         .targetType(String.class)
+        .onErrorResume(
+            e -> {
+              log.error(
+                  "(SnippetStatusUpdateConsumer) Error occurred while receiving data: {}",
+                  e.getMessage());
+              return Mono.empty();
+            })
         .build();
   }
 
   @Override
   protected void onMessage(@NotNull ObjectRecord<String, String> objectRecord) {
-    String statusUpdate = objectRecord.getValue();
-    SnippetStatusUpdateProduct snippetStatusUpdateProduct =
-        deserializeIntoSnippetStatusUpdate(statusUpdate);
+    try {
+      String statusUpdate = objectRecord.getValue();
+      SnippetStatusUpdateProduct snippetStatusUpdateProduct =
+          deserializeIntoSnippetStatusUpdate(statusUpdate);
 
-    log.info(
-        "Update snippet "
-            + snippetStatusUpdateProduct.getSnippetId()
-            + " status to "
-            + snippetStatusUpdateProduct.getStatus());
+      log.info(
+          "Update snippet "
+              + snippetStatusUpdateProduct.getSnippetId()
+              + " status to "
+              + snippetStatusUpdateProduct.getStatus());
 
-    if (snippetStatusUpdateProduct.getOperation().equals("format")) {
-      snippetService.updateFormattingStatus(
-          snippetStatusUpdateProduct.getStatus(), snippetStatusUpdateProduct.getSnippetId());
-    } else if (snippetStatusUpdateProduct.getOperation().equals("lint")) {
-      snippetService.updateLintingStatus(
-          snippetStatusUpdateProduct.getStatus(), snippetStatusUpdateProduct.getSnippetId());
+      if (snippetStatusUpdateProduct.getOperation().equals("format")) {
+        snippetService.updateFormattingStatus(
+            snippetStatusUpdateProduct.getStatus(), snippetStatusUpdateProduct.getSnippetId());
+      } else if (snippetStatusUpdateProduct.getOperation().equals("lint")) {
+        snippetService.updateLintingStatus(
+            snippetStatusUpdateProduct.getStatus(), snippetStatusUpdateProduct.getSnippetId());
+      }
+    } catch (Exception e) {
+      log.error("(SnippetStatusUpdateConsumer) Error processing message: {}", e.getMessage());
     }
   }
 }

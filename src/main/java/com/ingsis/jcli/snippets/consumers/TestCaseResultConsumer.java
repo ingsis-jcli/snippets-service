@@ -9,7 +9,7 @@ import com.ingsis.jcli.snippets.common.responses.TestCaseResultProduct;
 import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import java.time.Duration;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 import org.austral.ingsis.redis.RedisStreamConsumer;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +20,7 @@ import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamReceiver;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 @Generated
 @Profile("!test")
@@ -45,26 +46,30 @@ public class TestCaseResultConsumer extends RedisStreamConsumer<String> {
     return StreamReceiver.StreamReceiverOptions.builder()
         .pollTimeout(Duration.ofMillis(10000))
         .targetType(String.class)
+        .onErrorResume(
+            e -> {
+              log.error(
+                  "(TestCaseResultConsumer) Error occurred while receiving data: {}",
+                  e.getMessage());
+              return Mono.empty();
+            })
         .build();
   }
 
   @Override
   protected void onMessage(@NotNull ObjectRecord<String, String> objectRecord) {
-    String testResult = objectRecord.getValue();
-    if (testResult == null) {
-      return;
-    }
-    TestCaseResultProduct testCaseProduct = deserializeIntoTestResult(testResult);
-    Long id = testCaseProduct.getTestCaseId();
-    Optional<TestCase> testCaseOpt = testCaseService.getTestCase(id);
-    if (testCaseOpt.isPresent()) {
+    try {
+      String testResult = objectRecord.getValue();
+      TestCaseResultProduct testCaseProduct = deserializeIntoTestResult(testResult);
+
+      Long id = testCaseProduct.getTestCaseId();
+      TestCase testCase = testCaseService.getTestCase(id).orElseThrow(NoSuchElementException::new);
       TestType type = testCaseProduct.getType();
-      TestCase testCase = testCaseOpt.get();
-      if (type == testCase.getType()) {
-        testCaseService.updateTestCaseState(testCase, TestState.SUCCESS);
-      } else {
-        testCaseService.updateTestCaseState(testCase, TestState.FAILURE);
-      }
+
+      testCaseService.updateTestCaseState(
+          testCase, type == testCase.getType() ? TestState.SUCCESS : TestState.FAILURE);
+    } catch (Exception e) {
+      log.error("(TestCaseResultConsumer) Error processing message: {}", e.getMessage(), e);
     }
   }
 }
