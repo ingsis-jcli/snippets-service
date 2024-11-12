@@ -106,7 +106,6 @@ public class SnippetService {
       snippetRepository.save(snippet);
       return getSnippetResponse(snippet);
     } catch (InvalidSnippetException e) {
-      deleteFromTemporaryBucket(snippetDto, userId);
       throw e;
     }
   }
@@ -154,11 +153,6 @@ public class SnippetService {
         snippetDto.getName(),
         snippetDto.getContent());
     System.out.println("Snippet saved te in bucket: " + snippetDto.getContent());
-  }
-
-  private void deleteFromTemporaryBucket(SnippetDto snippetDto, String userId) {
-    blobStorageService.deleteSnippet(
-        "validate/" + getBaseUrl(snippetDto, userId), snippetDto.getName());
   }
 
   private void deleteSnippet(Snippet snippet) {
