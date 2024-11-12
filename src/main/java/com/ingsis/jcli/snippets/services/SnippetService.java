@@ -1,6 +1,7 @@
 package com.ingsis.jcli.snippets.services;
 
 import static com.ingsis.jcli.snippets.services.BlobStorageService.getBaseUrl;
+import static com.ingsis.jcli.snippets.services.BlobStorageService.getTemporaryBaseUrl;
 
 import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
@@ -97,7 +98,7 @@ public class SnippetService {
 
     try {
       validateSnippet(
-          snippetDto.getName(), "validate/" + getBaseUrl(snippetDto, userId), languageVersion);
+          snippetDto.getName(), getTemporaryBaseUrl(snippetDto, userId), languageVersion);
       Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
       saveInBucket(snippetDto, userId);
       permissionService.grantOwnerPermission(snippet.getId());
@@ -148,8 +149,7 @@ public class SnippetService {
   }
 
   private void saveTemporaryInBucket(SnippetDto snippetDto, String userId) {
-    blobStorageService.uploadSnippet(
-        "validate/" + getBaseUrl(snippetDto, userId),
+    blobStorageService.uploadSnippet(getTemporaryBaseUrl(snippetDto, userId),
         snippetDto.getName(),
         snippetDto.getContent());
     System.out.println("Snippet saved te in bucket: " + snippetDto.getContent());
@@ -216,12 +216,11 @@ public class SnippetService {
             snippet.getLanguageVersion().getVersion());
 
     saveTemporaryInBucket(newSnippetDto, userId);
-
     LanguageVersion languageVersion = snippet.getLanguageVersion();
 
     try {
       validateSnippet(
-          snippet.getName(), "validate/" + getBaseUrl(newSnippetDto, userId), languageVersion);
+          snippet.getName(), getTemporaryBaseUrl(newSnippetDto, userId), languageVersion);
       blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
       saveInBucket(newSnippetDto, userId);
     } catch (InvalidSnippetException e) {

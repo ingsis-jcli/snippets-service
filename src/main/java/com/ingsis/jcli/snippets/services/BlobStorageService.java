@@ -34,6 +34,18 @@ public class BlobStorageService {
         + encodedUserId;
   }
 
+  public static String getTemporaryBaseUrl(SnippetDto snippetDto, String userId) {
+    String formattedUserId = userId.replace("|", " ");
+    String encodedUserId = URLEncoder.encode(formattedUserId, StandardCharsets.UTF_8);
+    return "snippets/"
+      + "validate-"
+      + snippetDto.getLanguage()
+      + "-"
+      + snippetDto.getVersion()
+      + "-"
+      + encodedUserId;
+  }
+
   public void uploadSnippet(String container, String name, String content) {
     bucketClient.saveSnippet(container, formatName(name), content);
   }
