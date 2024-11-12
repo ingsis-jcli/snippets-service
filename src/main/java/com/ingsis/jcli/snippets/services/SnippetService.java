@@ -80,36 +80,37 @@ public class SnippetService {
     Snippet snippet = snippetOptional.get();
     String name = snippet.getName();
     String url = snippet.getUrl();
-    Optional<String> content = blobStorageService.getSnippet(url, name);
-    return content;
+    return blobStorageService.getSnippet(url, name);
   }
 
   public SnippetResponse createSnippet(SnippetDto snippetDto, String userId) {
     if (!snippetRepository.findAllByNameAndOwner(snippetDto.getName(), userId).isEmpty()) {
       throw new InvalidSnippetException("Snippet with the same name already exists", null);
     }
+    
     if (!snippetRepository
         .findAllByNameAndOwner(snippetDto.getName().replaceAll("[\\s-]+", ""), userId)
         .isEmpty()) {
       throw new InvalidSnippetException("Snippet with the same name already exists", null);
     }
+    
     saveTemporaryInBucket(snippetDto, userId);
     LanguageVersion languageVersion =
         languageService.getLanguageVersion(snippetDto.getLanguage(), snippetDto.getVersion());
-
-    try {
-      validateSnippet(
-          snippetDto.getName(), getTemporaryBaseUrl(snippetDto, userId), languageVersion);
-      Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
-      saveInBucket(snippetDto, userId);
-      permissionService.grantOwnerPermission(snippet.getId());
-      ProcessStatus lintingStatus = lintSnippet(snippet, userId);
-      snippet.getStatus().setLinting(lintingStatus);
-      snippetRepository.save(snippet);
-      return getSnippetResponse(snippet);
-    } catch (InvalidSnippetException e) {
-      throw e;
-    }
+    
+    validateSnippet(
+        snippetDto.getName(), getTemporaryBaseUrl(snippetDto, userId), languageVersion);
+    
+    Snippet snippet = saveInDbTable(snippetDto, userId, languageVersion);
+    saveInBucket(snippetDto, userId);
+    
+    permissionService.grantOwnerPermission(snippet.getId());
+    
+    ProcessStatus lintingStatus = lintSnippet(snippet, userId);
+    snippet.getStatus().setLinting(lintingStatus);
+    
+    snippetRepository.save(snippet);
+    return getSnippetResponse(snippet);
   }
 
   private void validateSnippet(String name, String url, LanguageVersion languageVersion) {
@@ -123,11 +124,8 @@ public class SnippetService {
   private ProcessStatus lintSnippet(Snippet snippet, String userId) {
     List<Rule> rules = rulesService.getLintingRules(userId, snippet.getLanguageVersion());
     List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
-
-    ProcessStatus formatResponse =
-        languageService.lintSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
-
-    return formatResponse;
+    
+    return languageService.lintSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
   }
 
   private @NotNull Snippet saveInDbTable(
@@ -379,10 +377,7 @@ public class SnippetService {
   public FormatResponse formatSnippetFromUser(String userId, Snippet snippet) {
     List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
     List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
-
-    FormatResponse formatResponse =
-        languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
-
-    return formatResponse;
+    
+    return languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
   }
 }
