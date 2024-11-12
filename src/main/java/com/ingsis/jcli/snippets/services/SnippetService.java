@@ -384,7 +384,7 @@ public class SnippetService {
 
   public FormatResponse format(Long snippetId, String userId) {
     Snippet snippet = getSnippet(snippetId).orElseThrow(NoSuchElementException::new);
-    if (canEditSnippet(snippetId, userId)) {
+    if (!canEditSnippet(snippetId, userId)) {
       log.error("User does not have permission to format this snippet");
       throw new PermissionDeniedException(DeniedAction.FORMAT_SNIPPET);
     }
