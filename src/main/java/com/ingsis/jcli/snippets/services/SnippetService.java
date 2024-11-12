@@ -330,7 +330,11 @@ public class SnippetService {
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
     LintSnippetsProducer lintSnippetsProducer =
         languageProducerFactory.getLintProducer(languageVersion.getLanguage());
-    snippets.forEach(s -> lintSnippetsProducer.lint(s, rules));
+    snippets.forEach(
+        s -> {
+          updateLintingStatus(ProcessStatus.PENDING, s.getId());
+          lintSnippetsProducer.lint(s, rules);
+        });
   }
 
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
