@@ -29,8 +29,6 @@ import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.models.TestCase;
-import com.ingsis.jcli.snippets.repositories.SnippetRepository;
-import com.ingsis.jcli.snippets.services.BlobStorageService;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
@@ -65,7 +63,6 @@ class SnippetControllerTest {
   @MockBean private SnippetService snippetService;
   @MockBean private PermissionService permissionService;
   @MockBean private LanguageService languageService;
-  @MockBean private BlobStorageService blobStorageService;
   @MockBean private JwtDecoder jwtDecoder;
   @MockBean private JwtService jwtService;
   @MockBean private TestCaseService testCaseService;
@@ -74,8 +71,6 @@ class SnippetControllerTest {
 
   private static final String path = "/snippet";
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-  @Autowired private SnippetRepository snippetRepository;
-  @Autowired private SnippetController snippetController;
 
   private Jwt createMockJwt(String userId) {
     return Jwt.withTokenValue("mock-token")

@@ -9,7 +9,6 @@ import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
-import com.ingsis.jcli.snippets.services.RulesService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
@@ -48,7 +47,6 @@ public class SnippetController {
   private final SnippetService snippetService;
   private final TestCaseService testCaseService;
   private final JwtService jwtService;
-  private final RulesService rulesService;
   private final LanguageService languageService;
 
   @Autowired
@@ -56,12 +54,10 @@ public class SnippetController {
       SnippetService snippetService,
       JwtService jwtService,
       TestCaseService testCaseService,
-      RulesService rulesService,
       LanguageService languageService) {
     this.snippetService = snippetService;
     this.jwtService = jwtService;
     this.testCaseService = testCaseService;
-    this.rulesService = rulesService;
     this.languageService = languageService;
   }
 

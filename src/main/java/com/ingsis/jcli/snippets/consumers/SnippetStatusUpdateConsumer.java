@@ -47,9 +47,6 @@ public class SnippetStatusUpdateConsumer extends RedisStreamConsumer<String> {
   @Override
   protected void onMessage(@NotNull ObjectRecord<String, String> objectRecord) {
     String statusUpdate = objectRecord.getValue();
-    if (statusUpdate == null) {
-      return;
-    }
     SnippetStatusUpdateProduct snippetStatusUpdateProduct =
         deserializeIntoSnippetStatusUpdate(statusUpdate);
 
