@@ -358,6 +358,24 @@ public class GetSnippetsByTest {
 
   @Test
   @Transactional
+  public void getNothing() throws Exception {
+    String userId = "user2";
+    setupJwt(userId);
+
+    mockMvc
+        .perform(
+            get("/snippet/search")
+                .param("owner", "false")
+                .param("shared", "false")
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.count").value(0))
+        .andExpect(jsonPath("$.snippets").isArray());
+  }
+
+  @Test
+  @Transactional
   public void getCount() throws Exception {
     String userShared = "userId";
     setupJwt(userShared);
