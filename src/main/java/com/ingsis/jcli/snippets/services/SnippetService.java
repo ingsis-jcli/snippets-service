@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +38,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class SnippetService {
 
@@ -67,8 +69,7 @@ public class SnippetService {
   }
 
   public Optional<Snippet> getSnippet(Long snippetId) {
-    Optional<Snippet> snippetOptional = this.snippetRepository.findSnippetById(snippetId);
-    return snippetOptional;
+    return snippetRepository.findSnippetById(snippetId);
   }
 
   public Optional<String> getSnippetContent(Long snippetId) {
@@ -114,7 +115,7 @@ public class SnippetService {
   private void validateSnippet(String name, String url, LanguageVersion languageVersion) {
     LanguageResponse isValid = languageService.validateSnippet(name, url, languageVersion);
     if (isValid.hasError()) {
-      System.out.println("Is throwing the corresponding exception");
+      log.error("Snippet not valid");
       throw new InvalidSnippetException(isValid.getError(), languageVersion);
     }
   }
@@ -122,8 +123,10 @@ public class SnippetService {
   private ProcessStatus lintSnippet(Snippet snippet, String userId) {
     List<Rule> rules = rulesService.getLintingRules(userId, snippet.getLanguageVersion());
     List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+
     ProcessStatus formatResponse =
         languageService.lintSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+
     return formatResponse;
   }
 
@@ -145,13 +148,13 @@ public class SnippetService {
   private void saveInBucket(SnippetDto snippetDto, String userId) {
     blobStorageService.uploadSnippet(
         getBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
-    System.out.println("Snippet saved in bucket: " + snippetDto.getContent());
+    log.info("Snippet saved in bucket: " + snippetDto.getContent());
   }
 
   private void saveTemporaryInBucket(SnippetDto snippetDto, String userId) {
     blobStorageService.uploadSnippet(
         getTemporaryBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
-    System.out.println("Snippet saved te in bucket: " + snippetDto.getContent());
+    log.info("Snippet saved te in bucket: " + snippetDto.getContent());
   }
 
   private void deleteSnippet(Snippet snippet) {
@@ -197,10 +200,10 @@ public class SnippetService {
   }
 
   public Snippet editSnippet(Long snippetId, String content, String userId) {
-    System.out.println("Editing snippet with id: " + snippetId);
-    System.out.println("Content: " + content);
-    boolean canEdit = canEditSnippet(snippetId, userId);
-    if (!canEdit) {
+    log.debug("Editing snippet with id: " + snippetId);
+    log.debug("Content: " + content);
+
+    if (!canEditSnippet(snippetId, userId)) {
       throw new PermissionDeniedException(DeniedAction.EDIT_SNIPPET);
     }
 
@@ -217,16 +220,14 @@ public class SnippetService {
     saveTemporaryInBucket(newSnippetDto, userId);
     LanguageVersion languageVersion = snippet.getLanguageVersion();
 
-    try {
-      validateSnippet(
-          snippet.getName(), getTemporaryBaseUrl(newSnippetDto, userId), languageVersion);
-      blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
-      saveInBucket(newSnippetDto, userId);
-    } catch (InvalidSnippetException e) {
-      throw e;
-    }
+    validateSnippet(snippet.getName(), getTemporaryBaseUrl(newSnippetDto, userId), languageVersion);
+
+    blobStorageService.deleteSnippet(snippet.getUrl(), snippet.getName());
+    saveInBucket(newSnippetDto, userId);
+
     ProcessStatus lintingStatus = lintSnippet(snippet, userId);
     snippet.getStatus().setLinting(lintingStatus);
+
     snippetRepository.save(snippet);
     return snippet;
   }
@@ -328,8 +329,10 @@ public class SnippetService {
   public void lintUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getLintingRules(userId, languageVersion);
+
     LintSnippetsProducer lintSnippetsProducer =
         languageProducerFactory.getLintProducer(languageVersion.getLanguage());
+
     snippets.forEach(
         s -> {
           updateLintingStatus(ProcessStatus.PENDING, s.getId());
@@ -340,8 +343,10 @@ public class SnippetService {
   public void formatUserSnippets(String userId, LanguageVersion languageVersion) {
     List<Snippet> snippets = snippetRepository.findAllByOwner(userId);
     List<Rule> rules = rulesService.getFormattingRules(userId, languageVersion);
+
     FormatSnippetsProducer formatSnippetsProducer =
         languageProducerFactory.getFormatProducer(languageVersion.getLanguage());
+
     snippets.forEach(s -> formatSnippetsProducer.format(s, rules));
   }
 
@@ -350,9 +355,11 @@ public class SnippetService {
     if (optionalSnippet.isEmpty()) {
       throw new SnippetNotFoundException(snippetId);
     }
+
     Snippet snippet = optionalSnippet.get();
     Status status = snippet.getStatus();
     status.setLinting(processStatus);
+
     snippetRepository.save(snippet);
   }
 
@@ -361,17 +368,21 @@ public class SnippetService {
     if (optionalSnippet.isEmpty()) {
       throw new SnippetNotFoundException(snippetId);
     }
+
     Snippet snippet = optionalSnippet.get();
     Status status = snippet.getStatus();
     status.setFormatting(processStatus);
+
     snippetRepository.save(snippet);
   }
 
   public FormatResponse formatSnippetFromUser(String userId, Snippet snippet) {
     List<Rule> rules = rulesService.getFormattingRules(userId, snippet.getLanguageVersion());
     List<RuleDto> ruleDtos = rules.stream().map(RuleDto::of).toList();
+
     FormatResponse formatResponse =
         languageService.formatSnippet(ruleDtos, snippet, snippet.getLanguageVersion());
+
     return formatResponse;
   }
 }

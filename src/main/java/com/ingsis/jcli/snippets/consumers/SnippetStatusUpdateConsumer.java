@@ -53,7 +53,7 @@ public class SnippetStatusUpdateConsumer extends RedisStreamConsumer<String> {
     SnippetStatusUpdateProduct snippetStatusUpdateProduct =
         deserializeIntoSnippetStatusUpdate(statusUpdate);
 
-    System.out.println(
+    log.info(
         "Update snippet "
             + snippetStatusUpdateProduct.getSnippetId()
             + " status to "

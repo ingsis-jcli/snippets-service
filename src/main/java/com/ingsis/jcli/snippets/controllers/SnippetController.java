@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequestMapping("/snippet")
 public class SnippetController {
@@ -243,12 +245,12 @@ public class SnippetController {
     String userId = jwtService.extractUserId(token);
     Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
     if (snippetOpt.isEmpty()) {
-      System.out.println("Snippet not found");
+      log.error("Snippet not found");
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     Snippet snippet = snippetOpt.get();
     if (!snippet.getOwner().equals(userId)) {
-      System.out.println("User does not have permission to format this snippet");
+      log.error("User does not have permission to format this snippet");
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
     FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
