@@ -1,5 +1,6 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.SnippetFile;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
@@ -20,7 +21,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -182,42 +182,23 @@ public class SnippetController {
 
     String userId = jwtService.extractUserId(token);
 
-    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
-    if (snippetOpt.isEmpty()) {
-      return ResponseEntity.notFound().build();
-    }
-
-    Snippet snippet = snippetOpt.get();
-
     boolean hasPermission = snippetService.canGetSnippet(snippetId, userId);
     if (!hasPermission) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    Resource file;
-    if (formatted) {
-      FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
-      file = new ByteArrayResource(formatResponse.content().getBytes(StandardCharsets.UTF_8));
-    } else {
-      Optional<String> snippetContent = snippetService.getSnippetContent(snippetId);
-      if (snippetContent.isEmpty()) {
-        return ResponseEntity.notFound().build();
-      }
-      file = new ByteArrayResource(snippetContent.get().getBytes(StandardCharsets.UTF_8));
-    }
-
-    LanguageVersion language = snippet.getLanguageVersion();
+    SnippetFile snippetFile = snippetService.getFileFromSnippet(snippetId, userId, formatted);
 
     return ResponseEntity.ok()
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\""
-                + formatName(snippet.getName())
+                + formatName(snippetFile.filename())
                 + "."
-                + languageService.getExtension(language)
+                + snippetFile.extension()
                 + "\"")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .body(file);
+        .body(snippetFile.file());
   }
 
   private String formatName(String name) {

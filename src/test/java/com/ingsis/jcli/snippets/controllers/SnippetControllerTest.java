@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.SnippetFile;
 import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
@@ -44,6 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -344,15 +347,15 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
     snippet.setLanguageVersion(new LanguageVersion("printscript", "1.0"));
+    Resource file = new ByteArrayResource(content.getBytes());
 
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
-    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
-    when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(content));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
+    when(snippetService.getFileFromSnippet(id, userId, false))
+        .thenReturn(new SnippetFile(file, snippet.getName(), "ps"));
 
     mockMvc
         .perform(
@@ -374,8 +377,10 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
+    when(snippetService.getFileFromSnippet(id, userId, false))
+        .thenThrow(NoSuchElementException.class);
 
     mockMvc
         .perform(

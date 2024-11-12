@@ -5,6 +5,7 @@ import static com.ingsis.jcli.snippets.services.BlobStorageService.getTemporaryB
 
 import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.PermissionType;
+import com.ingsis.jcli.snippets.common.SnippetFile;
 import com.ingsis.jcli.snippets.common.exceptions.DeniedAction;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
@@ -25,6 +26,7 @@ import com.ingsis.jcli.snippets.producers.LintSnippetsProducer;
 import com.ingsis.jcli.snippets.producers.factory.LanguageProducerFactory;
 import com.ingsis.jcli.snippets.repositories.SnippetRepository;
 import com.ingsis.jcli.snippets.specifications.SnippetSpecifications;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -32,6 +34,8 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -177,11 +181,9 @@ public class SnippetService {
   }
 
   public boolean canGetSnippet(Long snippetId, String userId) {
-    Optional<Snippet> snippetOpt = this.snippetRepository.findSnippetById(snippetId);
-    if (snippetOpt.isEmpty()) {
-      throw new NoSuchElementException("Snippet not found");
-    }
-    Snippet snippet = snippetOpt.get();
+    Snippet snippet =
+        snippetRepository.findSnippetById(snippetId).orElseThrow(NoSuchElementException::new);
+
     if (isOwner(snippet, userId)) {
       return true;
     }
@@ -387,5 +389,19 @@ public class SnippetService {
       throw new PermissionDeniedException(DeniedAction.FORMAT_SNIPPET);
     }
     return formatSnippetFromUser(userId, snippet);
+  }
+
+  public SnippetFile getFileFromSnippet(Long snippetId, String userId, boolean shouldBeFormatted) {
+    Snippet snippet = getSnippet(snippetId).orElseThrow(NoSuchElementException::new);
+
+    String content =
+        shouldBeFormatted
+            ? format(snippetId, userId).content()
+            : getSnippetContent(snippetId).orElseThrow(NoSuchElementException::new);
+    Resource file = new ByteArrayResource(content.getBytes(StandardCharsets.UTF_8));
+    String filename = snippet.getName();
+    String extension = languageService.getExtension(snippet.getLanguageVersion());
+
+    return new SnippetFile(file, filename, extension);
   }
 }
