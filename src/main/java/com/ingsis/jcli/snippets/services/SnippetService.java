@@ -267,6 +267,10 @@ public class SnippetService {
     Sort sort = orderBy.map(Sort::by).orElse(Sort.unsorted());
     Pageable pageable = PageRequest.of(page, pageSize, sort);
 
+    if (!isOwner && !isShared) {
+      return new SearchResult(0, List.of());
+    }
+    
     List<Specification<Snippet>> specs = new ArrayList<>();
 
     Specification<Snippet> specOwner = Specification.where(null);
