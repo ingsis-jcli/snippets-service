@@ -149,9 +149,8 @@ public class SnippetService {
   }
 
   private void saveTemporaryInBucket(SnippetDto snippetDto, String userId) {
-    blobStorageService.uploadSnippet(getTemporaryBaseUrl(snippetDto, userId),
-        snippetDto.getName(),
-        snippetDto.getContent());
+    blobStorageService.uploadSnippet(
+        getTemporaryBaseUrl(snippetDto, userId), snippetDto.getName(), snippetDto.getContent());
     System.out.println("Snippet saved te in bucket: " + snippetDto.getContent());
   }
 

@@ -38,12 +38,12 @@ public class BlobStorageService {
     String formattedUserId = userId.replace("|", " ");
     String encodedUserId = URLEncoder.encode(formattedUserId, StandardCharsets.UTF_8);
     return "snippets/"
-      + "validate-"
-      + snippetDto.getLanguage()
-      + "-"
-      + snippetDto.getVersion()
-      + "-"
-      + encodedUserId;
+        + "validate-"
+        + snippetDto.getLanguage()
+        + "-"
+        + snippetDto.getVersion()
+        + "-"
+        + encodedUserId;
   }
 
   public void uploadSnippet(String container, String name, String content) {
