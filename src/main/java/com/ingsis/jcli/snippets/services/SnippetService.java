@@ -271,21 +271,27 @@ public class SnippetService {
       return new SearchResult(0, List.of());
     }
 
-    List<Specification<Snippet>> specs = new ArrayList<>();
-
-    Specification<Snippet> specOwner = Specification.where(null);
-    Specification<Snippet> specShared = Specification.where(null);
+    /* Adding possible snippets */
+    List<Specification<Snippet>> specsAvailableSnippets = new ArrayList<>();
 
     if (isOwner) {
-      specOwner = SnippetSpecifications.isOwner(userId);
+      Specification<Snippet> specOwner = SnippetSpecifications.isOwner(userId);
+      specsAvailableSnippets.add(specOwner);
     }
 
     if (isShared) {
       List<Long> sharedWithUser = permissionService.getSnippetsSharedWithUser(userId);
-      specShared = SnippetSpecifications.isShared(sharedWithUser);
+      Specification<Snippet> specShared = SnippetSpecifications.isShared(sharedWithUser);
+      specsAvailableSnippets.add(specShared);
     }
 
-    specs.add(Specification.where(specOwner).or(specShared));
+    Specification<Snippet> specAvailableSnippets =
+        specsAvailableSnippets.stream().reduce(Specification::or).get();
+
+    /* Filtering snippets */
+    List<Specification<Snippet>> specs = new ArrayList<>();
+
+    specs.add(specAvailableSnippets);
 
     lintingStatus.ifPresent(
         status -> specs.add(SnippetSpecifications.snippetsLintingStatusIs(status)));
