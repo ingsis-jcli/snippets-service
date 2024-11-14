@@ -1,26 +1,26 @@
 package com.ingsis.jcli.snippets.controllers;
 
+import com.ingsis.jcli.snippets.common.SnippetFile;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
+import com.ingsis.jcli.snippets.dto.SearchResult;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
-import com.ingsis.jcli.snippets.services.RulesService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequestMapping("/snippet")
 public class SnippetController {
@@ -46,7 +47,6 @@ public class SnippetController {
   private final SnippetService snippetService;
   private final TestCaseService testCaseService;
   private final JwtService jwtService;
-  private final RulesService rulesService;
   private final LanguageService languageService;
 
   @Autowired
@@ -54,12 +54,10 @@ public class SnippetController {
       SnippetService snippetService,
       JwtService jwtService,
       TestCaseService testCaseService,
-      RulesService rulesService,
       LanguageService languageService) {
     this.snippetService = snippetService;
     this.jwtService = jwtService;
     this.testCaseService = testCaseService;
-    this.rulesService = rulesService;
     this.languageService = languageService;
   }
 
@@ -138,10 +136,6 @@ public class SnippetController {
   @PutMapping(value = "/upload", consumes = "multipart/form-data")
   public ResponseEntity<Long> editSnippetFromFile(
       @RequestParam Long snippetId,
-      @RequestParam(required = false, defaultValue = "") String description,
-      @RequestParam String name,
-      @RequestParam String language,
-      @RequestParam String version,
       @RequestPart("file") MultipartFile file,
       @RequestHeader("Authorization") String token)
       throws IOException {
@@ -155,7 +149,7 @@ public class SnippetController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<List<SnippetResponse>> getSnippetsBy(
+  public ResponseEntity<SearchResult> getSnippetsBy(
       @RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
       @RequestParam(value = "size", defaultValue = "10") @Min(1) int pageSize,
       @RequestParam(value = "owner", defaultValue = "true") boolean isOwner,
@@ -163,15 +157,21 @@ public class SnippetController {
       @RequestParam("lintingStatus") Optional<ProcessStatus> lintingStatus,
       @RequestParam("name") Optional<String> name,
       @RequestParam("language") Optional<String> language,
+      @RequestParam(value = "orderBy") Optional<String> orderBy,
       @RequestHeader("Authorization") String token) {
-    // TODO: orderBy
 
     String userId = jwtService.extractUserId(token);
-    List<SnippetResponse> snippets =
+    SearchResult result =
         snippetService.getSnippetsBy(
-            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language);
+            userId, page, pageSize, isOwner, isShared, lintingStatus, name, language, orderBy);
 
-    return new ResponseEntity<>(snippets, HttpStatus.OK);
+    return new ResponseEntity<>(result, HttpStatus.OK);
+  }
+
+  @GetMapping("/count")
+  public ResponseEntity<Long> getSnippetCount() {
+    Long count = snippetService.getSnippetCount();
+    return new ResponseEntity<>(count, HttpStatus.OK);
   }
 
   @GetMapping("/download/{snippetId}")
@@ -182,42 +182,27 @@ public class SnippetController {
 
     String userId = jwtService.extractUserId(token);
 
-    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
-    if (snippetOpt.isEmpty()) {
-      return ResponseEntity.notFound().build();
-    }
-
-    Snippet snippet = snippetOpt.get();
-
     boolean hasPermission = snippetService.canGetSnippet(snippetId, userId);
     if (!hasPermission) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    Resource file;
-    if (formatted) {
-      FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
-      file = new ByteArrayResource(formatResponse.content().getBytes(StandardCharsets.UTF_8));
-    } else {
-      Optional<String> snippetContent = snippetService.getSnippetContent(snippetId);
-      if (snippetContent.isEmpty()) {
-        return ResponseEntity.notFound().build();
-      }
-      file = new ByteArrayResource(snippetContent.get().getBytes(StandardCharsets.UTF_8));
-    }
-
-    LanguageVersion language = snippet.getLanguageVersion();
+    SnippetFile snippetFile = snippetService.getFileFromSnippet(snippetId, userId, formatted);
 
     return ResponseEntity.ok()
         .header(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\""
-                + snippet.getName()
+                + formatName(snippetFile.filename())
                 + "."
-                + languageService.getExtension(language)
+                + snippetFile.extension()
                 + "\"")
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .body(file);
+        .body(snippetFile.file());
+  }
+
+  private String formatName(String name) {
+    return name.replaceAll("[\\s-]+", "");
   }
 
   @DeleteMapping("/{snippetId}")
@@ -231,18 +216,10 @@ public class SnippetController {
   public ResponseEntity<String> formatSnippet(
       @PathVariable Long snippetId, @RequestHeader("Authorization") String token) {
     String userId = jwtService.extractUserId(token);
-    Optional<Snippet> snippetOpt = snippetService.getSnippet(snippetId);
-    if (snippetOpt.isEmpty()) {
-      System.out.println("Snippet not found");
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-    Snippet snippet = snippetOpt.get();
-    if (!snippet.getOwner().equals(userId)) {
-      System.out.println("User does not have permission to format this snippet");
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
-    FormatResponse formatResponse = snippetService.formatSnippetFromUser(userId, snippet);
+
+    FormatResponse formatResponse = snippetService.format(snippetId, userId);
     snippetService.editSnippet(snippetId, formatResponse.content(), userId);
+
     return ResponseEntity.ok(formatResponse.content());
   }
 }

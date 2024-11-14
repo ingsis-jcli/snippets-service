@@ -9,6 +9,7 @@ import com.ingsis.jcli.snippets.common.requests.ValidateRequest;
 import com.ingsis.jcli.snippets.common.responses.ErrorResponse;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 public class LanguageRestClient {
 
   private final RestTemplate restTemplate;
@@ -63,11 +65,11 @@ public class LanguageRestClient {
       if (response.getBody() == null) {
         return new ErrorResponse("No response received");
       }
-      System.out.println("Received: " + response.getBody());
+      log.info("Received: " + response.getBody());
       return response.getBody();
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        System.out.println("Bad request during validation: " + e.getResponseBodyAsString());
+        log.error("Bad request during validation: " + e.getResponseBodyAsString());
         return new ErrorResponse("Bad request: " + e.getResponseBodyAsString());
       } else {
         return new ErrorResponse("Client error: " + e.getResponseBodyAsString());
@@ -117,11 +119,11 @@ public class LanguageRestClient {
       if (response.getBody() == null) {
         return new ErrorResponse("No response received");
       }
-      System.out.println("Received: " + response.getBody());
+      log.info("Received: " + response.getBody());
       return response.getBody();
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        System.out.println("Bad request during validation: " + e.getResponseBodyAsString());
+        log.error("Bad request during validation: " + e.getResponseBodyAsString());
         return new ErrorResponse("Bad request: " + e.getResponseBodyAsString());
       } else {
         return new ErrorResponse("Client error: " + e.getResponseBodyAsString());

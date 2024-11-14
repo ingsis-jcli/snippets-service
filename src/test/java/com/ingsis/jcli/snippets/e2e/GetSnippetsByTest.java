@@ -162,16 +162,16 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(total))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].name").exists())
-        .andExpect(jsonPath("$[0].content").value("content"))
-        .andExpect(jsonPath("$[0].language").exists())
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].extension").exists())
-        .andExpect(jsonPath("$[0].compliance").exists())
-        .andExpect(jsonPath("$[0].author").exists());
+        .andExpect(jsonPath("$.count").value(total))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets[0].id").exists())
+        .andExpect(jsonPath("$.snippets[0].name").exists())
+        .andExpect(jsonPath("$.snippets[0].content").value("content"))
+        .andExpect(jsonPath("$.snippets[0].language").exists())
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].extension").exists())
+        .andExpect(jsonPath("$.snippets[0].compliance").exists())
+        .andExpect(jsonPath("$.snippets[0].author").exists());
   }
 
   @Test
@@ -193,16 +193,17 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(10))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].name").exists())
-        .andExpect(jsonPath("$[0].content").value("content"))
-        .andExpect(jsonPath("$[0].language").exists())
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].extension").exists())
-        .andExpect(jsonPath("$[0].compliance").exists())
-        .andExpect(jsonPath("$[0].author").exists());
+        .andExpect(jsonPath("$.count").value(total))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets.length()").value(10))
+        .andExpect(jsonPath("$.snippets[0].id").exists())
+        .andExpect(jsonPath("$.snippets[0].name").exists())
+        .andExpect(jsonPath("$.snippets[0].content").value("content"))
+        .andExpect(jsonPath("$.snippets[0].language").exists())
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].extension").exists())
+        .andExpect(jsonPath("$.snippets[0].compliance").exists())
+        .andExpect(jsonPath("$.snippets[0].author").exists());
   }
 
   @Test
@@ -221,16 +222,16 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].name").value("DataProcessor"))
-        .andExpect(jsonPath("$[0].content").value("content"))
-        .andExpect(jsonPath("$[0].language").exists())
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].extension").exists())
-        .andExpect(jsonPath("$[0].compliance").value("COMPLIANT"))
-        .andExpect(jsonPath("$[0].author").value("user1"));
+        .andExpect(jsonPath("$.count").value(3))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets[0].id").exists())
+        .andExpect(jsonPath("$.snippets[0].name").value("DataProcessor"))
+        .andExpect(jsonPath("$.snippets[0].content").value("content"))
+        .andExpect(jsonPath("$.snippets[0].language").exists())
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].extension").exists())
+        .andExpect(jsonPath("$.snippets[0].compliance").value("COMPLIANT"))
+        .andExpect(jsonPath("$.snippets[0].author").value("user1"));
   }
 
   @Test
@@ -253,16 +254,16 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(7))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].name").exists())
-        .andExpect(jsonPath("$[0].content").value("content"))
-        .andExpect(jsonPath("$[0].language").exists())
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].extension").exists())
-        .andExpect(jsonPath("$[0].compliance").exists())
-        .andExpect(jsonPath("$[0].author").exists());
+        .andExpect(jsonPath("$.count").value(7))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets[0].id").exists())
+        .andExpect(jsonPath("$.snippets[0].name").exists())
+        .andExpect(jsonPath("$.snippets[0].content").value("content"))
+        .andExpect(jsonPath("$.snippets[0].language").exists())
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].extension").exists())
+        .andExpect(jsonPath("$.snippets[0].compliance").exists())
+        .andExpect(jsonPath("$.snippets[0].author").exists());
   }
 
   @Test
@@ -286,16 +287,16 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(4))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].name").exists())
-        .andExpect(jsonPath("$[0].content").value("content"))
-        .andExpect(jsonPath("$[0].language").exists())
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].extension").exists())
-        .andExpect(jsonPath("$[0].compliance").exists())
-        .andExpect(jsonPath("$[0].author").exists());
+        .andExpect(jsonPath("$.count").value(4))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets[0].id").exists())
+        .andExpect(jsonPath("$.snippets[0].name").exists())
+        .andExpect(jsonPath("$.snippets[0].content").value("content"))
+        .andExpect(jsonPath("$.snippets[0].language").exists())
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].extension").exists())
+        .andExpect(jsonPath("$.snippets[0].compliance").exists())
+        .andExpect(jsonPath("$.snippets[0].author").exists());
   }
 
   @Test
@@ -319,16 +320,16 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(3))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].name").exists())
-        .andExpect(jsonPath("$[0].content").value("content"))
-        .andExpect(jsonPath("$[0].language").exists())
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].extension").exists())
-        .andExpect(jsonPath("$[0].compliance").exists())
-        .andExpect(jsonPath("$[0].author").exists());
+        .andExpect(jsonPath("$.count").value(3))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets[0].id").exists())
+        .andExpect(jsonPath("$.snippets[0].name").exists())
+        .andExpect(jsonPath("$.snippets[0].content").value("content"))
+        .andExpect(jsonPath("$.snippets[0].language").exists())
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].extension").exists())
+        .andExpect(jsonPath("$.snippets[0].compliance").exists())
+        .andExpect(jsonPath("$.snippets[0].author").exists());
   }
 
   @Test
@@ -348,10 +349,43 @@ public class GetSnippetsByTest {
                 .header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].language").value("printscript"))
-        .andExpect(jsonPath("$[0].version").exists())
-        .andExpect(jsonPath("$[0].author").value("user2"));
+        .andExpect(jsonPath("$.count").value(1))
+        .andExpect(jsonPath("$.snippets").isArray())
+        .andExpect(jsonPath("$.snippets[0].language").value("printscript"))
+        .andExpect(jsonPath("$.snippets[0].version").exists())
+        .andExpect(jsonPath("$.snippets[0].author").value("user2"));
+  }
+
+  @Test
+  @Transactional
+  public void getNothing() throws Exception {
+    String userId = "user2";
+    setupJwt(userId);
+
+    mockMvc
+        .perform(
+            get("/snippet/search")
+                .param("owner", "false")
+                .param("shared", "false")
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.count").value(0))
+        .andExpect(jsonPath("$.snippets").isArray());
+  }
+
+  @Test
+  @Transactional
+  public void getCount() throws Exception {
+    String userShared = "userId";
+    setupJwt(userShared);
+
+    mockMvc
+        .perform(
+            get("/snippet/count")
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(total));
   }
 }

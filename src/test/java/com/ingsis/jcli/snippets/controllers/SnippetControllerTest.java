@@ -18,20 +18,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ingsis.jcli.snippets.common.SnippetFile;
+import com.ingsis.jcli.snippets.common.exceptions.PermissionDeniedException;
 import com.ingsis.jcli.snippets.common.language.LanguageSuccess;
 import com.ingsis.jcli.snippets.common.language.LanguageVersion;
+import com.ingsis.jcli.snippets.common.requests.TestState;
+import com.ingsis.jcli.snippets.common.requests.TestType;
 import com.ingsis.jcli.snippets.common.responses.FormatResponse;
 import com.ingsis.jcli.snippets.common.responses.SnippetResponse;
 import com.ingsis.jcli.snippets.common.status.ProcessStatus;
 import com.ingsis.jcli.snippets.dto.SnippetDto;
 import com.ingsis.jcli.snippets.models.Snippet;
-import com.ingsis.jcli.snippets.repositories.SnippetRepository;
-import com.ingsis.jcli.snippets.services.BlobStorageService;
+import com.ingsis.jcli.snippets.models.TestCase;
 import com.ingsis.jcli.snippets.services.JwtService;
 import com.ingsis.jcli.snippets.services.LanguageService;
 import com.ingsis.jcli.snippets.services.PermissionService;
 import com.ingsis.jcli.snippets.services.SnippetService;
 import com.ingsis.jcli.snippets.services.TestCaseService;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -41,6 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -60,7 +66,6 @@ class SnippetControllerTest {
   @MockBean private SnippetService snippetService;
   @MockBean private PermissionService permissionService;
   @MockBean private LanguageService languageService;
-  @MockBean private BlobStorageService blobStorageService;
   @MockBean private JwtDecoder jwtDecoder;
   @MockBean private JwtService jwtService;
   @MockBean private TestCaseService testCaseService;
@@ -69,8 +74,6 @@ class SnippetControllerTest {
 
   private static final String path = "/snippet";
   private static final LanguageVersion languageVersion = new LanguageVersion("printscript", "1.1");
-  @Autowired private SnippetRepository snippetRepository;
-  @Autowired private SnippetController snippetController;
 
   private Jwt createMockJwt(String userId) {
     return Jwt.withTokenValue("mock-token")
@@ -168,7 +171,8 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
-    when(languageService.validateSnippet(snippet, languageVersion))
+    when(languageService.validateSnippet(
+            snippet.getName(), "validate/" + getBaseUrl(snippetDto, userId), languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -267,7 +271,8 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.createSnippet(snippetDto, userId)).thenReturn(snippetResponse);
-    when(languageService.validateSnippet(snippet, languageVersion))
+    when(languageService.validateSnippet(
+            snippet.getName(), "validate/" + getBaseUrl(snippetDto, userId), languageVersion))
         .thenReturn(new LanguageSuccess());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -342,15 +347,15 @@ class SnippetControllerTest {
     Snippet snippet = new Snippet("name", "url", userId, languageVersion);
     snippet.setId(id);
     snippet.setLanguageVersion(new LanguageVersion("printscript", "1.0"));
+    Resource file = new ByteArrayResource(content.getBytes());
 
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.of(snippet));
-    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
-    when(snippetService.getSnippetContent(id)).thenReturn(Optional.of(content));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
-    when(languageService.getExtension(new LanguageVersion("printscript", "1.0"))).thenReturn("ps");
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
+    when(snippetService.getFileFromSnippet(id, userId, false))
+        .thenReturn(new SnippetFile(file, snippet.getName(), "ps"));
 
     mockMvc
         .perform(
@@ -372,8 +377,10 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(id)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.canGetSnippet(id, userId)).thenReturn(true);
+    when(snippetService.getFileFromSnippet(id, userId, false))
+        .thenThrow(NoSuchElementException.class);
 
     mockMvc
         .perform(
@@ -491,7 +498,7 @@ class SnippetControllerTest {
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
     when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
-    when(snippetService.formatSnippetFromUser(userId, snippet)).thenReturn(formatResponse);
+    when(snippetService.format(snippetId, userId)).thenReturn(formatResponse);
     when(snippetService.editSnippet(snippetId, formattedContent, userId)).thenReturn(snippet);
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
 
@@ -512,8 +519,8 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.empty());
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.format(snippetId, userId)).thenThrow(NoSuchElementException.class);
 
     mockMvc
         .perform(
@@ -533,8 +540,8 @@ class SnippetControllerTest {
     Jwt mockJwt = createMockJwt(userId);
 
     when(jwtService.extractUserId(anyString())).thenReturn(userId);
-    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
     when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.format(snippetId, userId)).thenThrow(PermissionDeniedException.class);
 
     mockMvc
         .perform(
@@ -542,5 +549,60 @@ class SnippetControllerTest {
                 .header("Authorization", "Bearer mock-token")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void deleteSnippet_ClearsTestCases() throws Exception {
+    Long snippetId = 1L;
+    String userId = "123";
+
+    Jwt mockJwt = createMockJwt(userId);
+
+    Snippet snippet = new Snippet();
+    snippet.setId(snippetId);
+    snippet.setOwner(userId);
+
+    TestCase testCase1 =
+        new TestCase(
+            snippet,
+            "Test 1",
+            List.of("input1"),
+            List.of("output1"),
+            TestType.VALID,
+            TestState.PENDING);
+    TestCase testCase2 =
+        new TestCase(
+            snippet,
+            "Test 2",
+            List.of("input2"),
+            List.of("output2"),
+            TestType.INVALID,
+            TestState.SUCCESS);
+    List<TestCase> testCases = List.of(testCase1, testCase2);
+
+    when(jwtService.extractUserId(anyString())).thenReturn(userId);
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(snippetService.getSnippet(snippetId)).thenReturn(Optional.of(snippet));
+    when(snippetService.isOwner(snippet, userId)).thenReturn(true);
+    when(testCaseService.getTestCaseBySnippet(snippet)).thenReturn(testCases);
+
+    doNothing().when(snippetService).deleteSnippet(snippetId, userId);
+
+    mockMvc
+        .perform(
+            delete(path + "/" + snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk());
+
+    when(testCaseService.getTestCaseBySnippet(snippet)).thenReturn(List.of());
+
+    mockMvc
+        .perform(
+            get("/testcase/" + snippetId)
+                .header("Authorization", "Bearer mock-token")
+                .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(mockJwt)))
+        .andExpect(status().isOk())
+        .andExpect(content().json("[]"));
   }
 }

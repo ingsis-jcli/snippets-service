@@ -11,6 +11,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.ingsis.jcli.snippets.clients.PermissionsClient;
 import com.ingsis.jcli.snippets.common.exceptions.InvalidSnippetException;
 import com.ingsis.jcli.snippets.common.exceptions.SnippetNotFoundException;
 import com.ingsis.jcli.snippets.common.language.LanguageError;
@@ -30,6 +31,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -50,6 +52,8 @@ class SnippetServiceTest {
   @MockBean private RulesService rulesService;
 
   @MockBean private JwtDecoder jwtDecoder;
+
+  @MockBean private PermissionsClient permissionsClient;
 
   private static final String languageOk = "printscript";
   private static final String versionOk = "1.1";
@@ -105,7 +109,8 @@ class SnippetServiceTest {
             });
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
+    when(languageService.validateSnippet(
+            any(String.class), any(String.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
     when(blobStorageService.getSnippet(getBaseUrl(snippetDto, userId), name))
         .thenReturn(Optional.of(content));
@@ -144,7 +149,8 @@ class SnippetServiceTest {
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
 
-    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
+    when(languageService.validateSnippet(
+            any(String.class), any(String.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageError(errorMessage));
 
     InvalidSnippetException exception =
@@ -174,7 +180,8 @@ class SnippetServiceTest {
     when(blobStorageService.getSnippet(initialUrl, initialName)).thenReturn(Optional.of("content"));
 
     when(languageService.getLanguageVersion(languageOk, versionOk)).thenReturn(languageVersionOk);
-    when(languageService.validateSnippet(any(Snippet.class), any(LanguageVersion.class)))
+    when(languageService.validateSnippet(
+            any(String.class), any(String.class), any(LanguageVersion.class)))
         .thenReturn(new LanguageSuccess());
     when(snippetRepository.save(any(Snippet.class))).thenReturn(finalSnippet);
 
@@ -270,7 +277,12 @@ class SnippetServiceTest {
     snippet.setName("Test Snippet");
 
     when(snippetRepository.findSnippetById(snippetId)).thenReturn(Optional.of(snippet));
+    when(permissionsClient.deletePermissionsBySnippetId(snippetId))
+        .thenReturn(ResponseEntity.noContent().build());
+
     snippetService.deleteSnippet(snippetId, userId);
+
     verify(blobStorageService).deleteSnippet(snippet.getUrl(), snippet.getName());
+    verify(permissionsClient).deletePermissionsBySnippetId(snippetId);
   }
 }

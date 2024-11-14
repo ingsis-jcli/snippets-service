@@ -34,12 +34,24 @@ public class BlobStorageService {
         + encodedUserId;
   }
 
+  public static String getTemporaryBaseUrl(SnippetDto snippetDto, String userId) {
+    String formattedUserId = userId.replace("|", " ");
+    String encodedUserId = URLEncoder.encode(formattedUserId, StandardCharsets.UTF_8);
+    return "snippets/"
+        + "validate-"
+        + snippetDto.getLanguage()
+        + "-"
+        + snippetDto.getVersion()
+        + "-"
+        + encodedUserId;
+  }
+
   public void uploadSnippet(String container, String name, String content) {
-    bucketClient.saveSnippet(container, name, content);
+    bucketClient.saveSnippet(container, formatName(name), content);
   }
 
   public Optional<String> getSnippet(String container, String name) {
-    ResponseEntity<String> response = bucketClient.getSnippet(container, name);
+    ResponseEntity<String> response = bucketClient.getSnippet(container, formatName(name));
     if (response.hasBody()) {
       String body = response.getBody();
       return Optional.ofNullable(body);
@@ -48,6 +60,10 @@ public class BlobStorageService {
   }
 
   public void deleteSnippet(String container, String name) {
-    bucketClient.deleteSnippet(container, name);
+    bucketClient.deleteSnippet(container, formatName(name));
+  }
+
+  private String formatName(String name) {
+    return URLEncoder.encode(name, StandardCharsets.UTF_8);
   }
 }

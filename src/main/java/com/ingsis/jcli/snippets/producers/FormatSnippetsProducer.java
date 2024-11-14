@@ -6,8 +6,10 @@ import com.ingsis.jcli.snippets.models.Rule;
 import com.ingsis.jcli.snippets.models.Snippet;
 import com.ingsis.jcli.snippets.producers.factory.JavaRedisStreamProducer;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
+@Slf4j
 public class FormatSnippetsProducer extends JavaRedisStreamProducer {
 
   public FormatSnippetsProducer(String streamKey, RedisTemplate<String, String> redis) {
@@ -15,7 +17,7 @@ public class FormatSnippetsProducer extends JavaRedisStreamProducer {
   }
 
   public void format(Snippet snippet, List<Rule> rules) {
-    System.out.println(
+    log.info(
         "Sending format request in stream key "
             + getStreamKey()
             + " for snippet "
